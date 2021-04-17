@@ -2,7 +2,7 @@ import java.util.Properties
 
 plugins {
 	kotlin("jvm") version "1.4.31"
-	id("fabric-loom")
+	id("org.quiltmc.loom")
 }
 
 java {
