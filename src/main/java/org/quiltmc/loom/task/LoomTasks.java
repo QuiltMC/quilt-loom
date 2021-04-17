@@ -50,7 +50,7 @@ public final class LoomTasks {
 
 		tasks.register("remapJar", RemapJarTask.class, t -> {
 			t.setDescription("Remaps the built project jar to intermediary mappings.");
-			t.setGroup("fabric");
+			t.setGroup("quilt");
 		});
 
 		tasks.register("downloadAssets", DownloadAssetsTask.class, t -> t.setDescription("Downloads required assets for Fabric."));
@@ -97,7 +97,7 @@ public final class LoomTasks {
 
 			tasks.register(taskName, RunGameTask.class, config).configure(t -> {
 				t.setDescription("Starts the '" + config.getConfigName() + "' run configuration");
-				t.setGroup("fabric");
+				t.setGroup("quilt");
 
 				if (config.getEnvironment().equals("client")) {
 					t.dependsOn("downloadAssets");
