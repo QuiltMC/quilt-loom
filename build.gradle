@@ -151,19 +151,17 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
-publishing {
-	publications {
-		loom(MavenPublication) { publication ->
-			groupId project.group
-			artifactId project.archivesBaseName
-			version project.version
-
-			//from components['java'] // Gradle does this for us with its magicks
-
-			artifact sourcesJar
-			artifact javadocJar
+afterEvaluate {
+	publishing {
+		publications {
+			pluginMaven {
+				artifact sourcesJar
+				artifact javadocJar
+			}
 		}
 	}
+}
+publishing {
 	repositories {
 		if (ENV.MAVEN_URL) {
 			maven {
