@@ -158,7 +158,7 @@ publishing {
 			artifactId project.archivesBaseName
 			version project.version
 
-			from components['java']
+			//from components['java'] // Gradle does this for us with its magicks
 
 			artifact sourcesJar
 			artifact javadocJar
