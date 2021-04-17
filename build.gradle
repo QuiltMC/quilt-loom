@@ -122,7 +122,7 @@ codenarc {
 
 gradlePlugin {
 	plugins {
-		fabricLoom {
+		loom {
 			id = 'org.quiltmc.loom'
 			implementationClass = 'net.fabricmc.loom.LoomGradlePlugin'
 		}
@@ -153,7 +153,7 @@ import org.w3c.dom.Node
 
 publishing {
 	publications {
-		plugin(MavenPublication) { publication ->
+		loom(MavenPublication) { publication ->
 			groupId project.group
 			artifactId project.archivesBaseName
 			version project.version
@@ -165,15 +165,19 @@ publishing {
 		}
 	}
 	repositories {
-		maven {
-			if (ENV.MAVEN_URL) {
+		if (ENV.MAVEN_URL) {
+			maven {
+				name = "Quilt"
 				url ENV.MAVEN_URL
 				credentials {
 					username ENV.MAVEN_USERNAME
 					password ENV.MAVEN_PASSWORD
 				}
 			}
+		} else {
+			mavenLocal()
 		}
+
 	}
 }
 
