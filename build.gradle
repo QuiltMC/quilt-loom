@@ -119,12 +119,11 @@ codenarc {
 	toolVersion = "2.0.0"
 	configFile = file("codenarc.groovy")
 }
-
 gradlePlugin {
 	plugins {
 		loom {
 			id = 'org.quiltmc.loom'
-			implementationClass = 'net.fabricmc.loom.LoomGradlePlugin'
+			implementationClass = 'org.quiltmc.loom.LoomGradlePlugin'
 		}
 	}
 }
