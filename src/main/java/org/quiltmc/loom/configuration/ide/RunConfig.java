@@ -115,7 +115,7 @@ public class RunConfig {
 			runConfig.mainClass = "net.minecraft.launchwrapper.Launch"; // TODO What about custom tweakers for run configs?
 			runConfig.programArgs += "--tweakClass " + ("client".equals(environment) ? Constants.LaunchWrapper.DEFAULT_FABRIC_CLIENT_TWEAKER : Constants.LaunchWrapper.DEFAULT_FABRIC_SERVER_TWEAKER);
 		} else {
-			runConfig.mainClass = "org.quiltmc.argumentinjector.Main";
+			runConfig.mainClass = "org.quiltmc.devlaunchinjector.Main";
 			runConfig.vmArgs = "-Dquilt.dli.config=" + encodeEscaped(extension.getDevLauncherConfig().getAbsolutePath()) + " -Dquilt.dli.env=" + environment.toLowerCase();
 		}
 
