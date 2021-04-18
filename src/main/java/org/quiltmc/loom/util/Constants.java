@@ -123,16 +123,16 @@ public class Constants {
 	}
 
 	public static final class LaunchWrapper {
-		public static final String DEFAULT_FABRIC_CLIENT_TWEAKER = "net.fabricmc.loader.launch.FabricClientTweaker";
-		public static final String DEFAULT_FABRIC_SERVER_TWEAKER = "net.fabricmc.loader.launch.FabricServerTweaker";
+		public static final String DEFAULT_FABRIC_CLIENT_TWEAKER = "org.quiltmc.loader.impl.launch.FabricClientTweaker";
+		public static final String DEFAULT_FABRIC_SERVER_TWEAKER = "org.quiltmc.loader.impl.launch.FabricServerTweaker";
 
 		private LaunchWrapper() {
 		}
 	}
 
 	public static final class Knot {
-		public static final String KNOT_CLIENT = "net.fabricmc.loader.launch.knot.KnotClient";
-		public static final String KNOT_SERVER = "net.fabricmc.loader.launch.knot.KnotServer";
+		public static final String KNOT_CLIENT = "org.quiltmc.loader.impl.launch.knot.KnotClient";
+		public static final String KNOT_SERVER = "org.quiltmc.loader.impl.launch.knot.KnotServer";
 
 		private Knot() {
 		}
