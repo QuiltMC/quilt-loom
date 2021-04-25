@@ -4,6 +4,6 @@ plugins {
 
 dependencies {
 	minecraft "com.mojang:minecraft:21w13a"
-	mappings "net.fabricmc:yarn:21w13a+build.30:v2"
-	modImplementation "net.fabricmc:fabric-loader:0.11.3"
+	mappings "org.quiltmc:yarn:21w13a+build.30:v2"
+	modImplementation "org.quiltmc:quilt-loader:0.13.0"
 }
