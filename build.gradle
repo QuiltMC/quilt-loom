@@ -51,7 +51,7 @@ dependencies {
 	implementation ('org.ow2.asm:asm-util:9.1')
 
 	// game handling utils
-	implementation ('org.quiltmc:stitch:0.5.1') {
+	implementation ('org.quiltmc:stitch:0.6.1') {
 		exclude module: 'enigma'
 	}
 
