@@ -123,8 +123,8 @@ public class Constants {
 	}
 
 	public static final class LaunchWrapper {
-		public static final String DEFAULT_FABRIC_CLIENT_TWEAKER = "org.quiltmc.loader.impl.launch.FabricClientTweaker";
-		public static final String DEFAULT_FABRIC_SERVER_TWEAKER = "org.quiltmc.loader.impl.launch.FabricServerTweaker";
+		public static final String DEFAULT_FABRIC_CLIENT_TWEAKER = "org.quiltmc.loader.impl.launch.QuiltcClientTweaker";
+		public static final String DEFAULT_FABRIC_SERVER_TWEAKER = "org.quiltmc.loader.impl.launch.QuiltServerTweaker";
 
 		private LaunchWrapper() {
 		}
