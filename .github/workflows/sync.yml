@@ -1,0 +1,30 @@
+name: Sync Fork
+
+on:
+  #schedule:
+  #- cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0 # is this needed?
+      - uses: repo-sync/github-sync@v2
+        with:
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          source_repo: FabricMC/fabric-loom
+          source_branch: dev/0.8
+          destination_branch: upstream/0.8
+      - uses: repo-sync/pull-request@v2
+        with:
+          source_branch: upstream/0.8
+          destination_branch: dev/0.8
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_title: "Merge upstream to 0.8"
+          pr_body: "This PR was made automatically. **DO NOT** push any changes to this branch, or you will break the action! Instead, create a new branch and fix any errors there."
+          pr_draft: true
+          pr_label: "automated,upstream-update"
