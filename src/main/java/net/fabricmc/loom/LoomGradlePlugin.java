@@ -31,7 +31,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
 import net.fabricmc.loom.configuration.CompileConfiguration;
-import net.fabricmc.loom.configuration.FabricApiExtension;
 import net.fabricmc.loom.configuration.MavenPublication;
 import net.fabricmc.loom.configuration.ide.IdeConfiguration;
 import net.fabricmc.loom.configuration.providers.mappings.MappingsCache;
@@ -61,7 +60,6 @@ public class LoomGradlePlugin implements Plugin<Project> {
 		// Setup extensions, loom shadows minecraft
 		project.getExtensions().create("minecraft", LoomGradleExtension.class, project);
 		project.getExtensions().add("loom", project.getExtensions().getByName("minecraft"));
-		project.getExtensions().create("fabricApi", FabricApiExtension.class, project);
 
 		CompileConfiguration.setupConfigurations(project);
 		IdeConfiguration.setup(project);

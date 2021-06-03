@@ -17,14 +17,14 @@ jobs:
         with:
           github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           source_repo: FabricMC/fabric-loom
-          source_branch: dev/0.8
-          destination_branch: upstream/0.8
+          source_branch: dev/0.7
+          destination_branch: upstream/0.7
       - uses: repo-sync/pull-request@v2
         with:
-          source_branch: upstream/0.8
-          destination_branch: dev/0.8
+          source_branch: upstream/0.7
+          destination_branch: dev/0.7
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          pr_title: "Merge upstream to 0.8"
+          pr_title: "Merge upstream to 0.7"
           pr_body: "This PR was made automatically. **DO NOT** push any changes to this branch, or you will break the action! Instead, create a new branch and fix any errors there."
           pr_draft: true
           pr_label: "automated,upstream-update"

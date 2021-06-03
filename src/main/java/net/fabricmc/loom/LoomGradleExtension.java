@@ -62,7 +62,7 @@ public class LoomGradleExtension {
 	public boolean remapMod = true;
 	public String customManifest = null;
 	public File accessWidener = null;
-	public Function<String, Object> intermediaryUrl = mcVer -> "https://maven.fabricmc.net/net/fabricmc/intermediary/" + mcVer + "/intermediary-" + mcVer + "-v2.jar";
+	public Function<String, Object> intermediaryUrl = mcVer -> "https://maven.quiltmc.org/repository/release/org/quiltmc/intermediary/" + mcVer + "/intermediary-" + mcVer + "-v2.jar";
 	public boolean shareCaches = false;
 
 	private final ConfigurableFileCollection unmappedMods;

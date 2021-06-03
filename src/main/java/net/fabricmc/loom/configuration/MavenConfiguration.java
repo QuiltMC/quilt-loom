@@ -43,8 +43,8 @@ public class MavenConfiguration {
 		});
 
 		project.getRepositories().maven(repo -> {
-			repo.setName("Fabric");
-			repo.setUrl("https://maven.fabricmc.net/");
+			repo.setName("Quilt");
+			repo.setUrl("https://maven.quiltmc.org/repository/release/");
 		});
 
 		project.getRepositories().maven(repo -> {

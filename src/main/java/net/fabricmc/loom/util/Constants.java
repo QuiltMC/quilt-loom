@@ -35,7 +35,7 @@ import net.fabricmc.loom.util.gradle.GradleSupport;
 
 public class Constants {
 	public static final String LIBRARIES_BASE = "https://libraries.minecraft.net/";
-	public static final String RESOURCES_BASE = "http://resources.download.minecraft.net/";
+	public static final String RESOURCES_BASE = "https://resources.download.minecraft.net/";
 	public static final String VERSION_MANIFESTS = "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
 
 	public static final String SYSTEM_ARCH = System.getProperty("os.arch").equals("64") ? "64" : "32";
@@ -90,8 +90,8 @@ public class Constants {
 	 * Constants related to dependencies.
 	 */
 	public static final class Dependencies {
-		public static final String MIXIN_COMPILE_EXTENSIONS = "net.fabricmc:fabric-mixin-compile-extensions:";
-		public static final String DEV_LAUNCH_INJECTOR = "net.fabricmc:dev-launch-injector:";
+		public static final String MIXIN_COMPILE_EXTENSIONS = "org.quiltmc:sponge-mixin-compile-extensions:";
+		public static final String DEV_LAUNCH_INJECTOR = "org.quiltmc:dev-launch-injector:";
 		public static final String TERMINAL_CONSOLE_APPENDER = "net.minecrell:terminalconsoleappender:";
 		public static final String JETBRAINS_ANNOTATIONS = "org.jetbrains:annotations:";
 
@@ -102,8 +102,8 @@ public class Constants {
 		 * Constants for versions of dependencies.
 		 */
 		public static final class Versions {
-			public static final String MIXIN_COMPILE_EXTENSIONS = "0.4.3";
-			public static final String DEV_LAUNCH_INJECTOR = "0.2.1+build.8";
+			public static final String MIXIN_COMPILE_EXTENSIONS = "1.0.0";
+			public static final String DEV_LAUNCH_INJECTOR = "1.0.1";
 			public static final String TERMINAL_CONSOLE_APPENDER = "1.2.0";
 			public static final String JETBRAINS_ANNOTATIONS = "19.0.0";
 
@@ -123,16 +123,16 @@ public class Constants {
 	}
 
 	public static final class LaunchWrapper {
-		public static final String DEFAULT_FABRIC_CLIENT_TWEAKER = "net.fabricmc.loader.launch.FabricClientTweaker";
-		public static final String DEFAULT_FABRIC_SERVER_TWEAKER = "net.fabricmc.loader.launch.FabricServerTweaker";
+		public static final String DEFAULT_FABRIC_CLIENT_TWEAKER = "org.quiltmc.loader.impl.launch.QuiltClientTweaker";
+		public static final String DEFAULT_FABRIC_SERVER_TWEAKER = "org.quiltmc.loader.impl.launch.QuiltServerTweaker";
 
 		private LaunchWrapper() {
 		}
 	}
 
 	public static final class Knot {
-		public static final String KNOT_CLIENT = "net.fabricmc.loader.launch.knot.KnotClient";
-		public static final String KNOT_SERVER = "net.fabricmc.loader.launch.knot.KnotServer";
+		public static final String KNOT_CLIENT = "org.quiltmc.loader.impl.launch.knot.KnotClient";
+		public static final String KNOT_SERVER = "org.quiltmc.loader.impl.launch.knot.KnotServer";
 
 		private Knot() {
 		}

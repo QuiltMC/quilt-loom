@@ -57,10 +57,10 @@ public class LaunchProvider extends DependencyProvider {
 	@Override
 	public void provide(DependencyInfo dependency, Consumer<Runnable> postPopulationScheduler) throws IOException {
 		final LaunchConfig launchConfig = new LaunchConfig()
-				.property("fabric.development", "true")
-				.property("fabric.remapClasspathFile", getRemapClasspathFile().getAbsolutePath())
+				.property("quilt.development", "true")
+				.property("quilt.remapClasspathFile", getRemapClasspathFile().getAbsolutePath())
+				.property("quilt.launcherName", "Loom")
 				.property("log4j.configurationFile", getAllLog4JConfigFiles())
-
 				.property("client", "java.library.path", getExtension().getNativesDirectory().getAbsolutePath())
 				.property("client", "org.lwjgl.librarypath", getExtension().getNativesDirectory().getAbsolutePath())
 
