@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: [0.7, 0.8, 0.9]
+        branch: [0.7, 0.8]
       max-parallel: 1
     runs-on: ubuntu-20.04
     steps:
