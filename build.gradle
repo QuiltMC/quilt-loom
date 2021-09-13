@@ -95,7 +95,7 @@ dependencies {
 	implementation ('org.cadixdev:lorenz-io-proguard:0.5.7')
 
 	// decompilers
-	implementation ('org.quiltmc:quiltflower:1.4.0')
+	implementation ('org.quiltmc:quiltflower:1.5.0')
 	implementation ('org.benf:cfr:0.151')
 
 	// source code remapping
