@@ -36,6 +36,11 @@ repositories {
 		name = 'Quilt'
 		url = 'https://maven.quiltmc.org/repository/release'
 	}
+	// Used for mapping-io and mercury
+	maven {
+		name = 'Fabric'
+		url = 'https://maven.fabricmc.net'
+	}
 	mavenCentral()
 }
 
@@ -80,8 +85,9 @@ dependencies {
 	implementation ('org.quiltmc:tiny-remapper:0.4.3')
 	implementation ('org.quiltmc:tiny-mappings-parser:0.3.0')
 
-	implementation 'org.quiltmc:access-widener:1.1.0'
-	implementation 'net.fabricmc:mapping-io:0.2.2'
+	// TODO: Fork mapping-io and mercury, publish to Quilt Maven
+	implementation 'org.quiltmc:access-widener:1.0.2'
+	implementation 'net.fabricmc:mapping-io:0.2.1'
 
 	implementation ('org.quiltmc:lorenz-tiny:3.0.0') {
 		transitive = false
