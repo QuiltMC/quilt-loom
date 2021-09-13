@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2016-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +33,9 @@ import org.gradle.api.tasks.TaskContainer;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.api.decompilers.LoomDecompiler;
 import net.fabricmc.loom.configuration.ide.RunConfigSettings;
-import net.fabricmc.loom.configuration.providers.mappings.MappingsProvider;
+import net.fabricmc.loom.configuration.providers.mappings.MappingsProviderImpl;
 import net.fabricmc.loom.decompilers.fernflower.FabricFernFlowerDecompiler;
+import net.fabricmc.loom.util.Constants;
 
 public final class LoomTasks {
 	private LoomTasks() {
@@ -50,7 +51,7 @@ public final class LoomTasks {
 
 		tasks.register("remapJar", RemapJarTask.class, t -> {
 			t.setDescription("Remaps the built project jar to intermediary mappings.");
-			t.setGroup("fabric");
+			t.setGroup(Constants.TaskGroup.FABRIC);
 		});
 
 		tasks.register("downloadAssets", DownloadAssetsTask.class, t -> t.setDescription("Downloads required assets for Fabric."));
@@ -65,29 +66,29 @@ public final class LoomTasks {
 		tasks.register("genIdeaWorkspace", GenIdeaProjectTask.class, t -> {
 			t.setDescription("Generates an IntelliJ IDEA workspace from this project.");
 			t.dependsOn("idea", "downloadAssets");
-			t.setGroup("ide");
+			t.setGroup(Constants.TaskGroup.IDE);
 		});
 
 		tasks.register("genEclipseRuns", GenEclipseRunsTask.class, t -> {
 			t.setDescription("Generates Eclipse run configurations for this project.");
 			t.dependsOn("downloadAssets");
-			t.setGroup("ide");
+			t.setGroup(Constants.TaskGroup.IDE);
 		});
 
 		tasks.register("cleanEclipseRuns", CleanEclipseRunsTask.class, t -> {
 			t.setDescription("Removes Eclipse run configurations for this project.");
-			t.setGroup("ide");
+			t.setGroup(Constants.TaskGroup.IDE);
 		});
 
 		tasks.register("vscode", GenVsCodeProjectTask.class, t -> {
 			t.setDescription("Generates VSCode launch configurations.");
 			t.dependsOn("downloadAssets");
-			t.setGroup("ide");
+			t.setGroup(Constants.TaskGroup.IDE);
 		});
 	}
 
 	private static void registerRunTasks(TaskContainer tasks, Project project) {
-		LoomGradleExtension extension = project.getExtensions().getByType(LoomGradleExtension.class);
+		LoomGradleExtension extension = LoomGradleExtension.get(project);
 
 		Preconditions.checkArgument(extension.getRunConfigs().size() == 0, "Run configurations must not be registered before loom");
 
@@ -97,7 +98,6 @@ public final class LoomTasks {
 
 			tasks.register(taskName, RunGameTask.class, config).configure(t -> {
 				t.setDescription("Starts the '" + config.getConfigName() + "' run configuration");
-				t.setGroup("fabric");
 
 				if (config.getEnvironment().equals("client")) {
 					t.dependsOn("downloadAssets");
@@ -110,10 +110,18 @@ public final class LoomTasks {
 	}
 
 	private static void registerDecompileTasks(TaskContainer tasks, Project project) {
-		LoomGradleExtension extension = project.getExtensions().getByType(LoomGradleExtension.class);
+		LoomGradleExtension extension = LoomGradleExtension.get(project);
 
 		project.afterEvaluate(p -> {
-			MappingsProvider mappingsProvider = extension.getMappingsProvider();
+			MappingsProviderImpl mappingsProvider = extension.getMappingsProvider();
+
+			if (mappingsProvider.mappedProvider == null) {
+				// If this is ever null something has gone badly wrong,
+				// for some reason for another this afterEvaluate still gets called when something has gone badly
+				// wrong, returning here seems to produce nicer errors.
+				return;
+			}
+
 			File inputJar = mappingsProvider.mappedProvider.getMappedJar();
 
 			if (mappingsProvider.hasUnpickDefinitions()) {
@@ -128,7 +136,9 @@ public final class LoomTasks {
 				inputJar = outputJar;
 			}
 
-			for (LoomDecompiler decompiler : extension.getDecompilers()) {
+			extension.getGameDecompilers().finalizeValue();
+
+			for (LoomDecompiler decompiler : extension.getGameDecompilers().get()) {
 				String taskName = decompiler instanceof FabricFernFlowerDecompiler ? "genSources" : "genSourcesWith" + decompiler.name();
 				// decompiler will be passed to the constructor of GenerateSourcesTask
 				GenerateSourcesTask generateSourcesTask = tasks.register(taskName, GenerateSourcesTask.class, decompiler).get();

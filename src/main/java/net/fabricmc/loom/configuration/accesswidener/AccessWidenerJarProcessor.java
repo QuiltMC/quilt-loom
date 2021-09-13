@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2020-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,16 +70,22 @@ public class AccessWidenerJarProcessor implements JarProcessor {
 	}
 
 	@Override
-	public void setup() {
-		LoomGradleExtension loomGradleExtension = project.getExtensions().getByType(LoomGradleExtension.class);
+	public String getId() {
+		return "loom:access_widener";
+	}
 
-		if (!loomGradleExtension.accessWidener.exists()) {
-			throw new RuntimeException("Could not find access widener file @ " + loomGradleExtension.accessWidener.getAbsolutePath());
+	@Override
+	public void setup() {
+		LoomGradleExtension loomGradleExtension = LoomGradleExtension.get(project);
+		File awPath = loomGradleExtension.getAccessWidenerPath().get().getAsFile();
+
+		if (!awPath.exists()) {
+			throw new RuntimeException("Could not find access widener file @ " + awPath.getAbsolutePath());
 		}
 
-		inputHash = Checksum.sha256(loomGradleExtension.accessWidener);
+		inputHash = Checksum.sha256(awPath);
 
-		try (BufferedReader reader = new BufferedReader(new FileReader(loomGradleExtension.accessWidener))) {
+		try (BufferedReader reader = new BufferedReader(new FileReader(awPath))) {
 			accessWidenerReader.read(reader);
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to read project access widener file");

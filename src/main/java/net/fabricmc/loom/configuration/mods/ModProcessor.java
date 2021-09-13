@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2018-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,7 @@ import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.configuration.RemappedConfigurationEntry;
 import net.fabricmc.loom.configuration.processors.dependency.ModDependencyInfo;
-import net.fabricmc.loom.configuration.providers.mappings.MappingsProvider;
+import net.fabricmc.loom.configuration.providers.mappings.MappingsProviderImpl;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMappedProvider;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.TinyRemapperMappingsHelper;
@@ -127,12 +127,12 @@ public class ModProcessor {
 	}
 
 	private static void remapJars(Project project, List<ModDependencyInfo> processList) throws IOException {
-		LoomGradleExtension extension = project.getExtensions().getByType(LoomGradleExtension.class);
+		LoomGradleExtension extension = LoomGradleExtension.get(project);
 		String fromM = "intermediary";
 		String toM = "named";
 
 		MinecraftMappedProvider mappedProvider = extension.getMinecraftMappedProvider();
-		MappingsProvider mappingsProvider = extension.getMappingsProvider();
+		MappingsProviderImpl mappingsProvider = extension.getMappingsProvider();
 
 		Path mc = mappedProvider.getIntermediaryJar().toPath();
 		Path[] mcDeps = project.getConfigurations().getByName(Constants.Configurations.LOADER_DEPENDENCIES).getFiles()
@@ -175,7 +175,14 @@ public class ModProcessor {
 
 		// Apply this in a second loop as we need to ensure all the inputs are on the classpath before remapping.
 		for (ModDependencyInfo info : remapList) {
-			OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(info.getRemappedOutput().toPath()).build();
+			OutputConsumerPath outputConsumer;
+
+			try {
+				outputConsumer = new OutputConsumerPath.Builder(info.getRemappedOutput().toPath()).build();
+			} catch (Exception e) {
+				throw new IOException("Could not create output consumer for " + info.getRemappedOutput().getAbsolutePath());
+			}
+
 			outputConsumer.addNonClassFiles(info.getInputFile().toPath());
 			outputConsumerMap.put(info, outputConsumer);
 			String accessWidener = info.getAccessWidener();
@@ -203,28 +210,15 @@ public class ModProcessor {
 
 	public static JsonObject readInstallerJson(File file, Project project) {
 		try {
-			LoomGradleExtension extension = project.getExtensions().getByType(LoomGradleExtension.class);
-			String launchMethod = extension.getLoaderLaunchMethod();
+			LoomGradleExtension extension = LoomGradleExtension.get(project);
 
 			String jsonStr;
 
 			try (JarFile jarFile = new JarFile(file)) {
-				ZipEntry entry = null;
-
-				if (!launchMethod.isEmpty()) {
-					entry = jarFile.getEntry("quilt-installer." + launchMethod + ".json");
-
-					if (entry == null) {
-						project.getLogger().warn("Could not find loader launch method '" + launchMethod + "', falling back");
-					}
-				}
+				ZipEntry entry = jarFile.getEntry("quilt-installer.json");
 
 				if (entry == null) {
-					entry = jarFile.getEntry("quilt-installer.json");
-
-					if (entry == null) {
-						return null;
-					}
+					return null;
 				}
 
 				try (InputStream inputstream = jarFile.getInputStream(entry)) {

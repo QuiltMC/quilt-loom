@@ -8,7 +8,7 @@ plugins {
 	id 'checkstyle'
 	id 'jacoco'
 	id 'codenarc'
-	id "org.cadixdev.licenser" version "0.5.0"
+	id "com.diffplug.spotless" version "5.14.1"
 }
 
 sourceCompatibility = 16
@@ -22,7 +22,7 @@ tasks.withType(JavaCompile).configureEach {
 
 group = 'org.quiltmc'
 archivesBaseName = project.name
-def baseVersion = '0.8'
+def baseVersion = '0.9'
 
 def ENV = System.getenv()
 if (ENV.BUILD_NUMBER) {
@@ -45,6 +45,13 @@ configurations {
 	}
 	compileClasspath.extendsFrom bootstrap
 	runtimeClasspath.extendsFrom bootstrap
+	testRuntimeClasspath.extendsFrom bootstrap
+}
+
+configurations.all {
+	resolutionStrategy {
+		failOnNonReproducibleResolution()
+	}
 }
 
 dependencies {
@@ -55,14 +62,14 @@ dependencies {
 	// libraries
 	implementation ('commons-io:commons-io:2.8.0')
 	implementation ('org.zeroturnaround:zt-zip:1.14')
-	implementation ('com.google.code.gson:gson:2.8.6')
-	implementation ('com.fasterxml.jackson.core:jackson-databind:2.12.3')
-	implementation ('com.google.guava:guava:30.1-jre')
-	implementation ('org.ow2.asm:asm:9.1')
-	implementation ('org.ow2.asm:asm-analysis:9.1')
-	implementation ('org.ow2.asm:asm-commons:9.1')
-	implementation ('org.ow2.asm:asm-tree:9.1')
-	implementation ('org.ow2.asm:asm-util:9.1')
+	implementation ('com.google.code.gson:gson:2.8.7')
+	implementation ('com.fasterxml.jackson.core:jackson-databind:2.12.4')
+	implementation ('com.google.guava:guava:30.1.1-jre')
+	implementation ('org.ow2.asm:asm:9.2')
+	implementation ('org.ow2.asm:asm-analysis:9.2')
+	implementation ('org.ow2.asm:asm-commons:9.2')
+	implementation ('org.ow2.asm:asm-tree:9.2')
+	implementation ('org.ow2.asm:asm-util:9.2')
 
 	// game handling utils
 	implementation ('org.quiltmc:stitch:0.6.1') {
@@ -70,34 +77,35 @@ dependencies {
 	}
 
 	// tinyfile management
-	implementation ('org.quiltmc:tiny-remapper:0.3.2')
+	implementation ('org.quiltmc:tiny-remapper:0.4.3')
 	implementation ('org.quiltmc:tiny-mappings-parser:0.3.0')
 
-	implementation 'org.quiltmc:access-widener:1.0.2'
+	implementation 'org.quiltmc:access-widener:1.1.0'
+	implementation 'net.fabricmc:mapping-io:0.2.2'
 
 	implementation ('org.quiltmc:lorenz-tiny:3.0.0') {
 		transitive = false
 	}
-	implementation ('org.cadixdev:lorenz-io-proguard:0.5.6')
+	implementation ('org.cadixdev:lorenz-io-proguard:0.5.7')
 
 	// decompilers
 	implementation ('org.quiltmc:quiltflower:1.4.0')
 	implementation ('org.benf:cfr:0.151')
 
 	// source code remapping
-	implementation ('org.cadixdev:mercury:0.1.0-rc1')
+	implementation ('net.fabricmc:mercury:0.2.4')
 
 	// Kapt integration
-	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0')
+	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21')
 
 	// Testing
 	testImplementation(gradleTestKit())
-	testImplementation('org.spockframework:spock-core:2.0-M5-groovy-3.0') {
+	testImplementation('org.spockframework:spock-core:2.0-groovy-3.0') {
 		exclude module: 'groovy-all'
 	}
-	testImplementation 'io.javalin:javalin:3.13.7'
+	testImplementation 'io.javalin:javalin:3.13.9'
 
-	compileOnly 'org.jetbrains:annotations:20.1.0'
+	compileOnly 'org.jetbrains:annotations:21.0.1'
 }
 
 jar {
@@ -118,17 +126,20 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 	from javadoc.destinationDir
 }
 
-license {
-	header rootProject.file("HEADER")
-	include "**/*.java"
-	include "**/*.groovy"
-	exclude '**/loom/util/DownloadUtil.java'
-	exclude '**/projects'
+spotless {
+	java {
+		licenseHeaderFile(rootProject.file("HEADER")).yearSeparator("-")
+		targetExclude("**/loom/util/DownloadUtil.java")
+	}
+
+	groovy {
+		licenseHeaderFile(rootProject.file("HEADER")).yearSeparator("-")
+	}
 }
 
 checkstyle {
 	configFile = file('checkstyle.xml')
-	toolVersion = '8.42'
+	toolVersion = '8.44'
 }
 
 codenarc {

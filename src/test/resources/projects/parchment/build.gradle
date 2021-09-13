@@ -1,0 +1,20 @@
+plugins {
+	id 'fabric-loom'
+}
+
+repositories {
+	maven {
+		name = "ParchmentMC"
+		url = "https://maven.parchmentmc.net/"
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:1.16.5"
+	mappings loom.layered() {
+		officialMojangMappings()
+		parchment("org.parchmentmc.data:parchment-1.16.5:2021.08.08@zip")
+	}
+
+	modImplementation "net.fabricmc:fabric-loader:0.11.3"
+}

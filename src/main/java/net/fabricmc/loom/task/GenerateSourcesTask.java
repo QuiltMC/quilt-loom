@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2016-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ import org.gradle.api.tasks.TaskAction;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.api.decompilers.DecompilationMetadata;
 import net.fabricmc.loom.api.decompilers.LoomDecompiler;
-import net.fabricmc.loom.configuration.providers.mappings.MappingsProvider;
+import net.fabricmc.loom.configuration.providers.mappings.MappingsProviderImpl;
 import net.fabricmc.loom.decompilers.LineNumberRemapper;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.gradle.ProgressLogger;
@@ -56,7 +56,6 @@ public class GenerateSourcesTask extends AbstractLoomTask {
 	public GenerateSourcesTask(LoomDecompiler decompiler) {
 		this.decompiler = decompiler;
 
-		setGroup("fabric");
 		getOutputs().upToDateWhen((o) -> false);
 	}
 
@@ -101,8 +100,8 @@ public class GenerateSourcesTask extends AbstractLoomTask {
 	}
 
 	private File getMappedJarFileWithSuffix(String suffix) {
-		LoomGradleExtension extension = getProject().getExtensions().getByType(LoomGradleExtension.class);
-		MappingsProvider mappingsProvider = extension.getMappingsProvider();
+		LoomGradleExtension extension = LoomGradleExtension.get(getProject());
+		MappingsProviderImpl mappingsProvider = extension.getMappingsProvider();
 		File mappedJar = mappingsProvider.mappedProvider.getMappedJar();
 		String path = mappedJar.getAbsolutePath();
 

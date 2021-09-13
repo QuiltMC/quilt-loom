@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2018-2020 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,8 +35,8 @@ public final class DecompilerConfiguration {
 	}
 
 	public static void setup(Project project) {
-		LoomGradleExtension extension = project.getExtensions().getByType(LoomGradleExtension.class);
-		extension.addDecompiler(new FabricFernFlowerDecompiler(project));
-		extension.addDecompiler(new FabricCFRDecompiler(project));
+		LoomGradleExtension extension = LoomGradleExtension.get(project);
+		extension.getGameDecompilers().add(new FabricFernFlowerDecompiler(project));
+		extension.getGameDecompilers().add(new FabricCFRDecompiler(project));
 	}
 }

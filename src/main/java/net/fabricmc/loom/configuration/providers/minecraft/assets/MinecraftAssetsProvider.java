@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2018-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,28 +41,28 @@ import org.gradle.api.Project;
 
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.LoomGradlePlugin;
-import net.fabricmc.loom.configuration.providers.MinecraftProvider;
+import net.fabricmc.loom.configuration.providers.MinecraftProviderImpl;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.HashedDownloadUtil;
 import net.fabricmc.loom.util.gradle.ProgressLogger;
 
 public class MinecraftAssetsProvider {
-	public static void provide(MinecraftProvider minecraftProvider, Project project) throws IOException {
-		LoomGradleExtension extension = project.getExtensions().getByType(LoomGradleExtension.class);
+	public static void provide(MinecraftProviderImpl minecraftProvider, Project project) throws IOException {
+		LoomGradleExtension extension = LoomGradleExtension.get(project);
 		boolean offline = project.getGradle().getStartParameter().isOffline();
 
 		MinecraftVersionMeta versionInfo = minecraftProvider.getVersionInfo();
 		MinecraftVersionMeta.AssetIndex assetIndex = versionInfo.assetIndex();
 
 		// get existing cache files
-		File assets = new File(extension.getUserCache(), "assets");
+		File assets = new File(extension.getFiles().getUserCache(), "assets");
 
 		if (!assets.exists()) {
 			assets.mkdirs();
 		}
 
-		File assetsInfo = new File(assets, "indexes" + File.separator + assetIndex.fabricId(minecraftProvider.getMinecraftVersion()) + ".json");
+		File assetsInfo = new File(assets, "indexes" + File.separator + assetIndex.fabricId(minecraftProvider.minecraftVersion()) + ".json");
 
 		project.getLogger().info(":downloading asset index");
 

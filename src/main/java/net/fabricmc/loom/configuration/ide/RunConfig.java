@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2016-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,10 @@ package net.fabricmc.loom.configuration.ide;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -44,7 +42,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import net.fabricmc.loom.LoomGradleExtension;
-import net.fabricmc.loom.util.Constants;
+import net.fabricmc.loom.configuration.InstallerData;
 import net.fabricmc.loom.util.OperatingSystem;
 
 public class RunConfig {
@@ -110,42 +108,8 @@ public class RunConfig {
 		runConfig.vmArgs = "";
 		runConfig.programArgs = "";
 
-		if ("launchwrapper".equals(extension.getLoaderLaunchMethod())) {
-			runConfig.mainClass = "net.minecraft.launchwrapper.Launch"; // TODO What about custom tweakers for run configs?
-			runConfig.programArgs += "--tweakClass " + ("client".equals(environment) ? Constants.LaunchWrapper.DEFAULT_FABRIC_CLIENT_TWEAKER : Constants.LaunchWrapper.DEFAULT_FABRIC_SERVER_TWEAKER);
-		} else {
-			runConfig.mainClass = "org.quiltmc.devlaunchinjector.Main";
-			runConfig.vmArgs = "-XX:+ShowCodeDetailsInExceptionMessages -Dquilt.dli.config=" + encodeEscaped(extension.getDevLauncherConfig().getAbsolutePath()) + " -Dquilt.dli.env=" + environment.toLowerCase();
-		}
-
-		if (extension.getLoaderLaunchMethod().equals("launchwrapper")) {
-			// if installer.json found...
-			JsonObject installerJson = extension.getInstallerJson();
-
-			if (installerJson != null) {
-				List<String> sideKeys = ImmutableList.of(environment, "common");
-
-				// copy launchwrapper tweakers
-				if (installerJson.has("launchwrapper")) {
-					JsonObject launchwrapperJson = installerJson.getAsJsonObject("launchwrapper");
-
-					if (launchwrapperJson.has("tweakers")) {
-						JsonObject tweakersJson = launchwrapperJson.getAsJsonObject("tweakers");
-						StringBuilder builder = new StringBuilder();
-
-						for (String s : sideKeys) {
-							if (tweakersJson.has(s)) {
-								for (JsonElement element : tweakersJson.getAsJsonArray(s)) {
-									builder.append(" --tweakClass ").append(element.getAsString());
-								}
-							}
-						}
-
-						runConfig.programArgs += builder.toString();
-					}
-				}
-			}
-		}
+		runConfig.mainClass = "org.quiltmc.devlaunchinjector.Main";
+		runConfig.vmArgs = "-XX:+ShowCodeDetailsInExceptionMessages -Dquilt.dli.config=" + encodeEscaped(extension.getFiles().getDevLauncherConfig().getAbsolutePath()) + " -Dquilt.dli.env=" + environment.toLowerCase();
 	}
 
 	// Turns camelCase/PascalCase into Capital Case
@@ -159,7 +123,7 @@ public class RunConfig {
 	}
 
 	public static RunConfig runConfig(Project project, RunConfigSettings settings) {
-		LoomGradleExtension extension = project.getExtensions().getByType(LoomGradleExtension.class);
+		LoomGradleExtension extension = LoomGradleExtension.get(project);
 		String name = settings.getName();
 
 		String configName = settings.getConfigName();
@@ -244,7 +208,13 @@ public class RunConfig {
 	}
 
 	private static String getMainClass(String side, LoomGradleExtension extension, String defaultMainClass) {
-		JsonObject installerJson = extension.getInstallerJson();
+		InstallerData installerData = extension.getInstallerData();
+
+		if (installerData == null) {
+			return defaultMainClass;
+		}
+
+		JsonObject installerJson = installerData.installerJson();
 
 		if (installerJson != null && installerJson.has("mainClass")) {
 			JsonElement mainClassJson = installerJson.get("mainClass");
@@ -262,11 +232,6 @@ public class RunConfig {
 			}
 
 			return mainClassName;
-		}
-
-		// Fallback to default class names, happens when in a loader dev env
-		if ("launchwrapper".equals(extension.getLoaderLaunchMethod())) {
-			return "net.minecraft.launchwrapper.Launch";
 		}
 
 		return defaultMainClass;

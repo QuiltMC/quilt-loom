@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2016-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,7 @@ import org.zeroturnaround.zip.ZipUtil;
 
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.LoomGradlePlugin;
+import net.fabricmc.loom.extension.LoomFiles;
 
 public abstract class DependencyProvider {
 	private LoomDependencyManager dependencyManager;
@@ -57,7 +58,7 @@ public abstract class DependencyProvider {
 
 	public DependencyProvider(Project project) {
 		this.project = project;
-		this.extension = project.getExtensions().getByType(LoomGradleExtension.class);
+		this.extension = LoomGradleExtension.get(project);
 	}
 
 	public abstract void provide(DependencyInfo dependency, Consumer<Runnable> postPopulationScheduler) throws Exception;
@@ -86,6 +87,10 @@ public abstract class DependencyProvider {
 
 	public LoomGradleExtension getExtension() {
 		return extension;
+	}
+
+	public LoomFiles getDirectories() {
+		return getExtension().getFiles();
 	}
 
 	public boolean isRefreshDeps() {

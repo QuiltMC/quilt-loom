@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ import org.gradle.api.tasks.OutputFile;
 
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.configuration.providers.LaunchProvider;
+import net.fabricmc.loom.extension.LoomFiles;
 import net.fabricmc.loom.util.Constants;
 
 public class UnpickJarTask extends JavaExec {
@@ -47,7 +48,7 @@ public class UnpickJarTask extends JavaExec {
 	public UnpickJarTask() {
 		getOutputs().upToDateWhen(e -> false);
 		classpath(getProject().getConfigurations().getByName(Constants.Configurations.UNPICK_CLASSPATH));
-		setMain("daomephsta.unpick.cli.Main");
+		getMainClass().set("daomephsta.unpick.cli.Main");
 	}
 
 	@Override
@@ -60,15 +61,15 @@ public class UnpickJarTask extends JavaExec {
 		fileArg(getMinecraftDependencies());
 
 		writeUnpickLogConfig();
-		systemProperty("java.util.logging.config.file", getExtension().getUnpickLoggingConfigFile().getAbsolutePath());
+		systemProperty("java.util.logging.config.file", getDirectories().getUnpickLoggingConfigFile().getAbsolutePath());
 
 		super.exec();
 	}
 
 	private void writeUnpickLogConfig() {
 		try (InputStream is = LaunchProvider.class.getClassLoader().getResourceAsStream("unpick-logging.properties")) {
-			Files.deleteIfExists(getExtension().getUnpickLoggingConfigFile().toPath());
-			Files.copy(is, getExtension().getUnpickLoggingConfigFile().toPath());
+			Files.deleteIfExists(getDirectories().getUnpickLoggingConfigFile().toPath());
+			Files.copy(is, getDirectories().getUnpickLoggingConfigFile().toPath());
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to copy unpick logging config", e);
 		}
@@ -121,6 +122,10 @@ public class UnpickJarTask extends JavaExec {
 
 	@Internal
 	protected LoomGradleExtension getExtension() {
-		return getProject().getExtensions().getByType(LoomGradleExtension.class);
+		return LoomGradleExtension.get(getProject());
+	}
+
+	private LoomFiles getDirectories() {
+		return getExtension().getFiles();
 	}
 }

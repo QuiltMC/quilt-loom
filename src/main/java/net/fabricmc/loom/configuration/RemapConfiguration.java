@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package net.fabricmc.loom.configuration;
 import java.io.IOException;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
@@ -62,7 +63,7 @@ public class RemapConfiguration {
 
 	// isDefaultRemap is set to true for the standard remap task, some defaults are left out when this is false.
 	private static void setupRemap(Project project, boolean isDefaultRemap, String jarTaskName, String sourcesJarTaskName, String remapJarTaskName, String remapSourcesJarTaskName, String remapAllJarsTaskName, String remapAllSourcesTaskName) {
-		LoomGradleExtension extension = project.getExtensions().getByType(LoomGradleExtension.class);
+		LoomGradleExtension extension = LoomGradleExtension.get(project);
 		AbstractArchiveTask jarTask = (AbstractArchiveTask) project.getTasks().getByName(jarTaskName);
 		RemapJarTask remapJarTask = (RemapJarTask) project.getTasks().findByName(remapJarTaskName);
 
@@ -96,7 +97,7 @@ public class RemapConfiguration {
 		// TODO what is this for?
 		Task parentTask = project.getTasks().getByName("build");
 
-		if (extension.isShareCaches()) {
+		if (extension.getShareRemapCaches().get()) {
 			Project rootProject = project.getRootProject();
 
 			if (extension.isRootProject()) {
@@ -107,7 +108,6 @@ public class RemapConfiguration {
 
 				rootProject.getTasks().register(remapAllSourcesTaskName, RemapAllSourcesTask.class, task -> {
 					task.sourceRemapper = sourceRemapper;
-					task.doLast(t -> sourceRemapper.remapAll());
 				});
 
 				parentTask = rootProject.getTasks().getByName(remapAllSourcesTaskName);
@@ -144,10 +144,17 @@ public class RemapConfiguration {
 			remapSourcesJarTask.dependsOn(project.getTasks().getByName(sourcesJarTaskName));
 
 			if (isDefaultRemap) {
-				remapSourcesJarTask.doLast(task -> project.getArtifacts().add("archives", remapSourcesJarTask.getOutput()));
+				// Do not use lambda here, see: https://github.com/gradle/gradle/pull/17087
+				//noinspection Convert2Lambda
+				remapSourcesJarTask.doLast(new Action<>() {
+					@Override
+					public void execute(Task task) {
+						project.getArtifacts().add("archives", remapSourcesJarTask.getOutput());
+					}
+				});
 			}
 
-			if (extension.isShareCaches()) {
+			if (extension.getShareRemapCaches().get()) {
 				remapSourcesJarTask.setSourceRemapper(remapper);
 			}
 

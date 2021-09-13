@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2019-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.plugins.JavaPlugin;
 
 import net.fabricmc.loom.configuration.DependencyProvider;
@@ -48,8 +47,6 @@ import net.fabricmc.loom.configuration.RemappedConfigurationEntry;
 import net.fabricmc.loom.util.Constants;
 
 public class LaunchProvider extends DependencyProvider {
-	public Dependency annotationDependency;
-
 	public LaunchProvider(Project project) {
 		super(project);
 	}
@@ -61,13 +58,13 @@ public class LaunchProvider extends DependencyProvider {
 				.property("quilt.remapClasspathFile", getRemapClasspathFile().getAbsolutePath())
 				.property("quilt.launcherName", "Loom")
 				.property("log4j.configurationFile", getAllLog4JConfigFiles())
-				.property("client", "java.library.path", getExtension().getNativesDirectory().getAbsolutePath())
-				.property("client", "org.lwjgl.librarypath", getExtension().getNativesDirectory().getAbsolutePath())
+				.property("client", "java.library.path", getDirectories().getNativesDirectory(getExtension().getMinecraftProvider()).getAbsolutePath())
+				.property("client", "org.lwjgl.librarypath", getDirectories().getNativesDirectory(getExtension().getMinecraftProvider()).getAbsolutePath())
 
 				.argument("client", "--assetIndex")
-				.argument("client", getExtension().getMinecraftProvider().getVersionInfo().assetIndex().fabricId(getExtension().getMinecraftProvider().getMinecraftVersion()))
+				.argument("client", getExtension().getMinecraftProvider().getVersionInfo().assetIndex().fabricId(getExtension().getMinecraftProvider().minecraftVersion()))
 				.argument("client", "--assetsDir")
-				.argument("client", new File(getExtension().getUserCache(), "assets").getAbsolutePath());
+				.argument("client", new File(getDirectories().getUserCache(), "assets").getAbsolutePath());
 
 		//Enable ansi by default for idea and vscode
 		if (new File(getProject().getRootDir(), ".vscode").exists()
@@ -77,17 +74,17 @@ public class LaunchProvider extends DependencyProvider {
 		}
 
 		writeLog4jConfig();
-		FileUtils.writeStringToFile(getExtension().getDevLauncherConfig(), launchConfig.asString(), StandardCharsets.UTF_8);
+		FileUtils.writeStringToFile(getDirectories().getDevLauncherConfig(), launchConfig.asString(), StandardCharsets.UTF_8);
 
 		addDependency(Constants.Dependencies.DEV_LAUNCH_INJECTOR + Constants.Dependencies.Versions.DEV_LAUNCH_INJECTOR, Constants.Configurations.LOOM_DEVELOPMENT_DEPENDENCIES);
 		addDependency(Constants.Dependencies.TERMINAL_CONSOLE_APPENDER + Constants.Dependencies.Versions.TERMINAL_CONSOLE_APPENDER, Constants.Configurations.LOOM_DEVELOPMENT_DEPENDENCIES);
-		annotationDependency = addDependency(Constants.Dependencies.JETBRAINS_ANNOTATIONS + Constants.Dependencies.Versions.JETBRAINS_ANNOTATIONS, JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME);
+		addDependency(Constants.Dependencies.JETBRAINS_ANNOTATIONS + Constants.Dependencies.Versions.JETBRAINS_ANNOTATIONS, JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME);
 
 		postPopulationScheduler.accept(this::writeRemapClassPath);
 	}
 
 	private File getLog4jConfigFile() {
-		return getExtension().getDefaultLog4jConfigFile();
+		return getDirectories().getDefaultLog4jConfigFile();
 	}
 
 	private String getAllLog4JConfigFiles() {
@@ -97,7 +94,7 @@ public class LaunchProvider extends DependencyProvider {
 	}
 
 	private File getRemapClasspathFile() {
-		return new File(getExtension().getDevLauncherConfig().getParentFile(), "remapClasspath.txt");
+		return new File(getDirectories().getDevLauncherConfig().getParentFile(), "remapClasspath.txt");
 	}
 
 	private void writeLog4jConfig() {

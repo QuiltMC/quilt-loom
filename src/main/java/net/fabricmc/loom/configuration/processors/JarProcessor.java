@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2016-2020 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,18 @@ package net.fabricmc.loom.configuration.processors;
 import java.io.File;
 
 public interface JarProcessor {
+	/**
+	 * Returns a unique ID for this jar processor, containing all configuration details.
+	 *
+	 * <p>If the jar processor implementation class supports creating multiple jar processors with different effects,
+	 * the needed configuration should also be included in this ID. Example: {@code path.to.MyJarProcessor#someOption}.
+	 *
+	 * @return the ID of this jar processor
+	 */
+	default String getId() {
+		return getClass().getName();
+	}
+
 	void setup();
 
 	/**

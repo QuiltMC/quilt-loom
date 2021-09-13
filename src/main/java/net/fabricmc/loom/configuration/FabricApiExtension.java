@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2020 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -103,9 +103,17 @@ public class FabricApiExtension {
 	}
 
 	private File getApiMavenPom(String fabricApiVersion) {
-		LoomGradleExtension extension = project.getExtensions().getByType(LoomGradleExtension.class);
+		LoomGradleExtension extension = LoomGradleExtension.get(project);
 
-		File mavenPom = new File(extension.getUserCache(), "fabric-api/" + fabricApiVersion + ".pom");
+		File mavenPom = new File(extension.getFiles().getUserCache(), "fabric-api/" + fabricApiVersion + ".pom");
+
+		if (project.getGradle().getStartParameter().isOffline()) {
+			if (!mavenPom.exists()) {
+				throw new RuntimeException("Cannot retrieve fabric-api pom due to being offline");
+			}
+
+			return mavenPom;
+		}
 
 		try {
 			URL url = new URL(String.format("https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/%1$s/fabric-api-%1$s.pom", fabricApiVersion));

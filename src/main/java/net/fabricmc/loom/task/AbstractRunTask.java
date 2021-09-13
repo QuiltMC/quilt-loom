@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2018-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,13 +35,14 @@ import org.gradle.api.Project;
 import org.gradle.api.tasks.JavaExec;
 
 import net.fabricmc.loom.configuration.ide.RunConfig;
+import net.fabricmc.loom.util.Constants;
 
 public abstract class AbstractRunTask extends JavaExec {
 	private final RunConfig config;
 
 	public AbstractRunTask(Function<Project, RunConfig> configProvider) {
 		super();
-		setGroup("fabric");
+		setGroup(Constants.TaskGroup.FABRIC);
 		this.config = configProvider.apply(getProject());
 
 		setClasspath(config.sourceSet.getRuntimeClasspath());

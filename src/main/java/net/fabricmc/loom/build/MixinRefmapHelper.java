@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2018-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,68 +28,103 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import org.gradle.api.Project;
+import org.jetbrains.annotations.NotNull;
 import org.zeroturnaround.zip.ZipUtil;
 import org.zeroturnaround.zip.transform.StringZipEntryTransformer;
 import org.zeroturnaround.zip.transform.ZipEntryTransformerEntry;
 
+import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.LoomGradlePlugin;
+import net.fabricmc.loom.extension.MixinApExtension;
 
 public final class MixinRefmapHelper {
 	private MixinRefmapHelper() { }
 
-	public static boolean addRefmapName(String filename, Path outputPath) {
-		File output = outputPath.toFile();
-		Set<String> mixinFilenames = findMixins(output, true);
+	private static final String FABRIC_MOD_JSON = "fabric.mod.json";
 
-		if (mixinFilenames.size() > 0) {
-			return ZipUtil.transformEntries(output, mixinFilenames.stream().map((f) -> new ZipEntryTransformerEntry(f, new StringZipEntryTransformer("UTF-8") {
-				@Override
-				protected String transform(ZipEntry zipEntry, String input) throws IOException {
-					JsonObject json = LoomGradlePlugin.GSON.fromJson(input, JsonObject.class);
+	public static boolean addRefmapName(Project project, Path outputPath) {
+		try {
+			MixinApExtension mixin = LoomGradleExtension.get(project).getMixin();
+			File output = outputPath.toFile();
 
-					if (!json.has("refmap")) {
-						json.addProperty("refmap", filename);
+			Collection<String> allMixinConfigs = getMixinConfigurationFiles(readFabricModJson(output));
+
+			return mixin.getMixinSourceSetsStream().map(sourceSet -> {
+				MixinApExtension.MixinInformationContainer container = Objects.requireNonNull(
+						MixinApExtension.getMixinInformationContainer(sourceSet)
+				);
+
+				Stream<String> mixinConfigs = sourceSet.getResources()
+						.matching(container.mixinConfigPattern())
+						.getFiles()
+						.stream()
+						.map(File::getName)
+						.filter(allMixinConfigs::contains);
+
+				String refmapName = container.refmapNameProvider().get();
+
+				return ZipUtil.transformEntries(output, mixinConfigs.map(f -> new ZipEntryTransformerEntry(f, new StringZipEntryTransformer("UTF-8") {
+					@Override
+					protected String transform(ZipEntry zipEntry, String input) {
+						JsonObject json = LoomGradlePlugin.GSON.fromJson(input, JsonObject.class);
+
+						if (!json.has("refmap")) {
+							json.addProperty("refmap", refmapName);
+						}
+
+						return LoomGradlePlugin.GSON.toJson(json);
 					}
-
-					return LoomGradlePlugin.GSON.toJson(json);
-				}
-			})).toArray(ZipEntryTransformerEntry[]::new));
-		} else {
+				})).toArray(ZipEntryTransformerEntry[]::new));
+			}).reduce(false, Boolean::logicalOr);
+		} catch (Exception e) {
+			project.getLogger().error(e.getMessage());
 			return false;
 		}
 	}
 
-	private static Set<String> findMixins(File output, boolean onlyWithoutRefmap) {
-		// first, identify all of the mixin files
-		Set<String> mixinFilename = new HashSet<>();
-		// TODO: this is a lovely hack
-		ZipUtil.iterate(output, (stream, entry) -> {
-			if (!entry.isDirectory() && entry.getName().endsWith(".json") && !entry.getName().contains("/") && !entry.getName().contains("\\")) {
-				// JSON file in root directory
-				try (InputStreamReader inputStreamReader = new InputStreamReader(stream)) {
-					JsonObject json = LoomGradlePlugin.GSON.fromJson(inputStreamReader, JsonObject.class);
+	@NotNull
+	private static JsonObject readFabricModJson(File output) {
+		try (ZipFile zip = new ZipFile(output)) {
+			ZipEntry entry = zip.getEntry(FABRIC_MOD_JSON);
 
-					if (json != null) {
-						boolean hasMixins = json.has("mixins") && json.get("mixins").isJsonArray();
-						boolean hasClient = json.has("client") && json.get("client").isJsonArray();
-						boolean hasServer = json.has("server") && json.get("server").isJsonArray();
-
-						if (json.has("package") && (hasMixins || hasClient || hasServer)) {
-							if (!onlyWithoutRefmap || !json.has("refmap") || !json.has("minVersion")) {
-								mixinFilename.add(entry.getName());
-							}
-						}
-					}
-				} catch (Exception ignored) {
-					// ...
-				}
+			try (InputStreamReader reader = new InputStreamReader(zip.getInputStream(entry))) {
+				return LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class);
 			}
-		});
-		return mixinFilename;
+		} catch (IOException e) {
+			throw new RuntimeException("Cannot read file fabric.mod.json in the output jar.", e);
+		}
+	}
+
+	@NotNull
+	private static Collection<String> getMixinConfigurationFiles(JsonObject fabricModJson) {
+		JsonArray mixins = fabricModJson.getAsJsonArray("mixins");
+
+		if (mixins == null) {
+			return Collections.emptySet();
+		}
+
+		return StreamSupport.stream(mixins.spliterator(), false)
+				.map(e -> {
+					if (e instanceof JsonPrimitive str) {
+						return str.getAsString();
+					} else if (e instanceof JsonObject obj) {
+						return obj.get("config").getAsString();
+					} else {
+						throw new RuntimeException("Incorrect fabric.mod.json format");
+					}
+				}).collect(Collectors.toSet());
 	}
 }

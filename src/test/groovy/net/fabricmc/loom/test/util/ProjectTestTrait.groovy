@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2016-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ import org.gradle.testkit.runner.GradleRunner
 
 trait ProjectTestTrait {
 	final static String DEFAULT_GRADLE = "7.0.1"
-	final static String PRE_RELEASE_GRADLE = "7.2-20210527220045+0000"
+	final static String PRE_RELEASE_GRADLE = "7.3-20210807021145+0000"
 
 	static File gradleHome = File.createTempDir()
 	File testProjectDir = File.createTempDir()
@@ -59,7 +59,7 @@ trait ProjectTestTrait {
 			}
 
 			tempFile.parentFile.mkdirs()
-			tempFile << file.text
+			tempFile.bytes = file.bytes
 		}
 
 		// Disable the CI checks to ensure nothing is skipped
@@ -79,9 +79,17 @@ trait ProjectTestTrait {
 		gradleHome.deleteDir()
 	}
 
+	File buildGradle() {
+		return new File(testProjectDir, "build.gradle")
+	}
+
+	def filesReady() {
+	}
+
 	BuildResult create(String task, String gradleVersion = DEFAULT_GRADLE) {
 		System.setProperty("fabric.loom.test", "true")
 		copyInputFiles()
+		filesReady()
 
 		GradleRunner.create()
 			.withProjectDir(testProjectDir)

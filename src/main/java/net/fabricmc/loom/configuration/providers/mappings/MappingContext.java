@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2016-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,31 +22,31 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.test.integration
+package net.fabricmc.loom.configuration.providers.mappings;
 
-import net.fabricmc.loom.test.util.ProjectTestTrait
-import spock.lang.Specification
-import spock.lang.Unroll
+import java.io.File;
 
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.gradle.api.logging.Logger;
 
-class DependencyResolutionManagementTest extends Specification implements ProjectTestTrait {
-    @Override
-    String name() {
-        "dependencyResolutionManagement"
-    }
+import net.fabricmc.loom.configuration.providers.MinecraftProvider;
 
-    @Unroll
-    def "build (gradle #gradle)"() {
-        when:
-            def result = create("build", gradle)
-        then:
-            result.task(":basic:build").outcome == SUCCESS
-            result.task(":projmap:build").outcome == SUCCESS
+public interface MappingContext {
+	File mavenFile(String mavenNotation);
 
-        where:
-        gradle              | _
-        DEFAULT_GRADLE      | _
-        PRE_RELEASE_GRADLE  | _
-    }
+	MappingsProvider mappingsProvider();
+
+	MinecraftProvider minecraftProvider();
+
+	default String minecraftVersion() {
+		return minecraftProvider().minecraftVersion();
+	}
+
+	File workingDirectory();
+
+	/**
+	 * Creates a temporary working dir to be used to store working files.
+	 */
+	File workingDirectory(String name);
+
+	Logger getLogger();
 }

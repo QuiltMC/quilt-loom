@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2016-2020 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +25,31 @@
 package net.fabricmc.loom.build.mixin;
 
 import java.io.File;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.scala.ScalaCompile;
+
+import net.fabricmc.loom.LoomGradleExtension;
+import net.fabricmc.loom.extension.MixinApExtension;
 
 public class ScalaApInvoker extends AnnotationProcessorInvoker<ScalaCompile> {
 	public ScalaApInvoker(Project project) {
-		super(project,
-						// Scala just uses the java AP configuration afaik. This of course assumes the java AP also gets configured.
-						ImmutableList.of(),
-						project.getTasks().withType(ScalaCompile.class));
+		super(
+				project,
+				// Scala just uses the java AP configuration afaik. This of course assumes the java AP also gets configured.
+				ImmutableList.of(),
+				getInvokerTasks(project));
+	}
+
+	private static Map<SourceSet, ScalaCompile> getInvokerTasks(Project project) {
+		MixinApExtension mixin = LoomGradleExtension.get(project).getMixin();
+		return mixin.getInvokerTasksStream(AnnotationProcessorInvoker.SCALA)
+				.collect(Collectors.toMap(Map.Entry::getKey, entry -> Objects.requireNonNull((ScalaCompile) entry.getValue())));
 	}
 
 	@Override
@@ -44,7 +58,7 @@ public class ScalaApInvoker extends AnnotationProcessorInvoker<ScalaCompile> {
 	}
 
 	@Override
-	protected File getDestinationDir(ScalaCompile task) {
+	protected File getRefmapDestinationDir(ScalaCompile task) {
 		return task.getDestinationDir();
 	}
 }

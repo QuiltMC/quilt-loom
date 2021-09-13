@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2016-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,17 +42,25 @@ class UnpickTest extends Specification implements ProjectTestTrait {
 
 	def "unpick decompile"() {
 		when:
-			def result = create("genSources")
+			def result = create("genSources", gradle)
 		then:
 			result.task(":genSources").outcome == SUCCESS
 			getClassSource("net/minecraft/block/CakeBlock.java").contains("Block.DEFAULT_SET_BLOCK_STATE_FLAG")
+		where:
+			gradle              | _
+			DEFAULT_GRADLE      | _
+			PRE_RELEASE_GRADLE  | _
 	}
 
 	def "unpick build"() {
 		when:
-			def result = create("build")
+			def result = create("build", gradle)
 		then:
 			result.task(":build").outcome == SUCCESS
+		where:
+			gradle              | _
+			DEFAULT_GRADLE      | _
+			PRE_RELEASE_GRADLE  | _
 	}
 
 	String getClassSource(String classname, String mappings = MAPPINGS) {

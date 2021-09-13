@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016, 2017, 2018 FabricMC
+ * Copyright (c) 2019-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -157,8 +157,8 @@ public final class NestedDependencyProvider implements NestedJarProvider {
 
 			//A lib that doesnt have a mod.json, we turn it into a fake mod
 			if (!ZipUtil.containsEntry(file, "fabric.mod.json")) {
-				LoomGradleExtension extension = project.getExtensions().getByType(LoomGradleExtension.class);
-				File tempDir = new File(extension.getUserCache(), "temp/modprocessing");
+				LoomGradleExtension extension = LoomGradleExtension.get(project);
+				File tempDir = new File(extension.getFiles().getUserCache(), "temp/modprocessing");
 
 				if (!tempDir.exists()) {
 					tempDir.mkdirs();
