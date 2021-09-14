@@ -228,8 +228,10 @@ public class SourceRemapper {
 		MappingSet mappings = extension.getOrCreateSrcMappingCache(toNamed ? 1 : 0, () -> {
 			try {
 				TinyTree m = mappingsProvider.getMappings();
-				project.getLogger().info(":loading " + (toNamed ? "intermediary -> named" : "named -> intermediary") + " source mappings");
-				return new TinyMappingsReader(m, toNamed ? "intermediary" : "named", toNamed ? "named" : "intermediary").read();
+				String intermediateNs = Constants.Mappings.INTERMEDIATE_NAMESPACE;
+				String namedNs = Constants.Mappings.NAMED_NAMESPACE;
+				project.getLogger().info(":loading " + (toNamed ? intermediateNs + " -> " + namedNs : namedNs + " -> " + intermediateNs) + " source mappings");
+				return new TinyMappingsReader(m, toNamed ? intermediateNs : namedNs, toNamed ? namedNs : intermediateNs).read();
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
@@ -298,7 +300,7 @@ public class SourceRemapper {
 		}
 
 		classpath.add(extension.getMinecraftMappedProvider().getMappedJar().toPath());
-		classpath.add(extension.getMinecraftMappedProvider().getIntermediaryJar().toPath());
+		classpath.add(extension.getMinecraftMappedProvider().getHashedJar().toPath());
 
 		Set<File> files = project.getConfigurations()
 				.detachedConfiguration(project.getDependencies().create(Constants.Dependencies.JETBRAINS_ANNOTATIONS + Constants.Dependencies.Versions.JETBRAINS_ANNOTATIONS))

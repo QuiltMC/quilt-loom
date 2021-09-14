@@ -51,7 +51,7 @@ public class MinecraftMappedProvider extends DependencyProvider {
 			.build();
 
 	private File minecraftMappedJar;
-	private File minecraftIntermediaryJar;
+	private File minecraftHashedJar;
 
 	private MinecraftProviderImpl minecraftProvider;
 
@@ -69,15 +69,15 @@ public class MinecraftMappedProvider extends DependencyProvider {
 			throw new RuntimeException("input merged jar not found");
 		}
 
-		if (!minecraftMappedJar.exists() || !getIntermediaryJar().exists() || isRefreshDeps()) {
+		if (!minecraftMappedJar.exists() || !getHashedJar().exists() || isRefreshDeps()) {
 			if (minecraftMappedJar.exists()) {
 				minecraftMappedJar.delete();
 			}
 
 			minecraftMappedJar.getParentFile().mkdirs();
 
-			if (minecraftIntermediaryJar.exists()) {
-				minecraftIntermediaryJar.delete();
+			if (minecraftHashedJar.exists()) {
+				minecraftHashedJar.delete();
 			}
 
 			try {
@@ -85,7 +85,7 @@ public class MinecraftMappedProvider extends DependencyProvider {
 			} catch (Throwable t) {
 				// Cleanup some some things that may be in a bad state now
 				minecraftMappedJar.delete();
-				minecraftIntermediaryJar.delete();
+				minecraftHashedJar.delete();
 				getExtension().getMappingsProvider().cleanFiles();
 				throw new RuntimeException("Failed to remap minecraft", t);
 			}
@@ -99,16 +99,16 @@ public class MinecraftMappedProvider extends DependencyProvider {
 	}
 
 	private void mapMinecraftJar() throws IOException {
-		String fromM = "official";
+		String fromM = Constants.Mappings.SOURCE_NAMESPACE;
 
 		MappingsProviderImpl mappingsProvider = getExtension().getMappingsProvider();
 
 		Path input = minecraftProvider.getMergedJar().toPath();
 		Path outputMapped = minecraftMappedJar.toPath();
-		Path outputIntermediary = minecraftIntermediaryJar.toPath();
+		Path outputHashed = minecraftHashedJar.toPath();
 
-		for (String toM : Arrays.asList("named", "intermediary")) {
-			Path output = "named".equals(toM) ? outputMapped : outputIntermediary;
+		for (String toM : Arrays.asList(Constants.Mappings.NAMED_NAMESPACE, Constants.Mappings.INTERMEDIATE_NAMESPACE)) {
+			Path output = Constants.Mappings.NAMED_NAMESPACE.equals(toM) ? outputMapped : outputHashed;
 
 			getProject().getLogger().lifecycle(":remapping minecraft (TinyRemapper, " + fromM + " -> " + toM + ")");
 
@@ -150,7 +150,7 @@ public class MinecraftMappedProvider extends DependencyProvider {
 
 	public void initFiles(MinecraftProviderImpl minecraftProvider, MappingsProviderImpl mappingsProvider) {
 		this.minecraftProvider = minecraftProvider;
-		minecraftIntermediaryJar = new File(getDirectories().getUserCache(), "minecraft-" + getJarVersionString("intermediary") + ".jar");
+		minecraftHashedJar = new File(getDirectories().getUserCache(), "minecraft-" + getJarVersionString(Constants.Mappings.INTERMEDIATE_NAMESPACE) + ".jar");
 		minecraftMappedJar = new File(getJarDirectory(getDirectories().getUserCache(), "mapped"), "minecraft-" + getJarVersionString("mapped") + ".jar");
 	}
 
@@ -162,8 +162,8 @@ public class MinecraftMappedProvider extends DependencyProvider {
 		return String.format("%s-%s-%s-%s", minecraftProvider.minecraftVersion(), type, getExtension().getMappingsProvider().mappingsName, getExtension().getMappingsProvider().mappingsVersion);
 	}
 
-	public File getIntermediaryJar() {
-		return minecraftIntermediaryJar;
+	public File getHashedJar() {
+		return minecraftHashedJar;
 	}
 
 	public File getMappedJar() {

@@ -73,7 +73,7 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 
 	private final Path mappingsDir;
 	private final Path mappingsStepsDir;
-	private Path intermediaryTiny;
+	private Path hashedTiny;
 	private boolean hasRefreshed = false;
 	// The mappings that gradle gives us
 	private Path baseTinyMappings;
@@ -86,8 +86,8 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 
 	public MappingsProviderImpl(Project project) {
 		super(project);
-		mappingsDir = getDirectories().getUserCache().toPath().resolve("mappings");
-		mappingsStepsDir = mappingsDir.resolve("steps");
+		mappingsDir = getDirectories().getUserCache().toPath().resolve(Constants.Mappings.MAPPINGS_CACHE_DIR);
+		mappingsStepsDir = mappingsDir.resolve(Constants.Mappings.MAPPINGS_STEPS_CACHE_DIR);
 	}
 
 	public void clean() throws IOException {
@@ -105,7 +105,7 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 		getProject().getLogger().info(":setting up mappings (" + dependency.getDependency().getName() + " " + dependency.getResolvedVersion() + ")");
 
 		String version = dependency.getResolvedVersion();
-		File mappingsJar = dependency.resolveFile().orElseThrow(() -> new RuntimeException("Could not find yarn mappings: " + dependency));
+		File mappingsJar = dependency.resolveFile().orElseThrow(() -> new RuntimeException("Could not find quilt mappings: " + dependency));
 
 		this.mappingsName = StringUtils.removeSuffix(dependency.getDependency().getGroup() + "." + dependency.getDependency().getName(), "-unmerged");
 		this.minecraftVersion = minecraftProvider.minecraftVersion();
@@ -159,7 +159,7 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 		}
 
 		if (!tinyMappingsJar.exists() || isRefreshDeps()) {
-			ZipUtil.pack(new ZipEntrySource[] {new FileSource("mappings/mappings.tiny", tinyMappings)}, tinyMappingsJar);
+			ZipUtil.pack(new ZipEntrySource[] {new FileSource(Constants.Mappings.MAPPINGS_FILE_PATH, tinyMappings)}, tinyMappingsJar);
 		}
 
 		if (hasUnpickDefinitions()) {
@@ -198,17 +198,17 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 		mappedProvider.provide(dependency, postPopulationScheduler);
 	}
 
-	private void storeMappings(Project project, MinecraftProviderImpl minecraftProvider, Path yarnJar) throws IOException {
-		project.getLogger().info(":extracting " + yarnJar.getFileName());
+	private void storeMappings(Project project, MinecraftProviderImpl minecraftProvider, Path mappingsJar) throws IOException {
+		project.getLogger().info(":extracting " + mappingsJar.getFileName());
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(yarnJar, (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(mappingsJar, (ClassLoader) null)) {
 			extractMappings(fileSystem, baseTinyMappings);
 			extractUnpickDefinitions(fileSystem, unpickDefinitionsFile.toPath());
 		}
 
 		if (baseMappingsAreV2()) {
 			// These are unmerged v2 mappings
-			mergeAndSaveMappings(project, yarnJar);
+			mergeAndSaveMappings(project, mappingsJar);
 		} else {
 			// These are merged v1 mappings
 			if (tinyMappings.exists()) {
@@ -232,7 +232,7 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 
 	private boolean doesJarContainV2Mappings(Path path) throws IOException {
 		try (FileSystem fs = FileSystems.newFileSystem(path, (ClassLoader) null)) {
-			try (BufferedReader reader = Files.newBufferedReader(fs.getPath("mappings", "mappings.tiny"))) {
+			try (BufferedReader reader = Files.newBufferedReader(fs.getPath(Constants.Mappings.MAPPINGS_FILE_DIR, Constants.Mappings.MAPPINGS_FILE))) {
 				TinyV2Factory.readMetadata(reader);
 				return true;
 			} catch (IllegalArgumentException e) {
@@ -242,7 +242,7 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 	}
 
 	public static void extractMappings(FileSystem jar, Path extractTo) throws IOException {
-		Files.copy(jar.getPath("mappings/mappings.tiny"), extractTo, StandardCopyOption.REPLACE_EXISTING);
+		Files.copy(jar.getPath(Constants.Mappings.MAPPINGS_FILE_PATH), extractTo, StandardCopyOption.REPLACE_EXISTING);
 	}
 
 	private void extractUnpickDefinitions(FileSystem jar, Path extractTo) throws IOException {
@@ -279,28 +279,28 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 		);
 	}
 
-	private void extractIntermediary(Path intermediaryJar, Path intermediaryTiny) throws IOException {
-		getProject().getLogger().info(":extracting " + intermediaryJar.getFileName());
+	private void extractHashedMojmap(Path hashedMojmapJar, Path hashedMojmapTiny) throws IOException {
+		getProject().getLogger().info(":extracting " + hashedMojmapJar.getFileName());
 
-		try (FileSystem unmergedIntermediaryFs = FileSystems.newFileSystem(intermediaryJar, (ClassLoader) null)) {
-			extractMappings(unmergedIntermediaryFs, intermediaryTiny);
+		try (FileSystem unmergedHashedFs = FileSystems.newFileSystem(hashedMojmapJar, (ClassLoader) null)) {
+			extractMappings(unmergedHashedFs, hashedMojmapTiny);
 		}
 	}
 
-	private void mergeAndSaveMappings(Project project, Path unmergedYarnJar) throws IOException {
-		Path unmergedYarn = Paths.get(mappingsStepsDir.toString(), "unmerged-yarn.tiny");
-		project.getLogger().info(":extracting " + unmergedYarnJar.getFileName());
+	private void mergeAndSaveMappings(Project project, Path unmergedMappingsJar) throws IOException {
+		Path unmergedYarn = Paths.get(mappingsStepsDir.toString(), Constants.Mappings.UNMERGED_MAPPINGS_FILE);
+		project.getLogger().info(":extracting " + unmergedMappingsJar.getFileName());
 
-		try (FileSystem unmergedYarnJarFs = FileSystems.newFileSystem(unmergedYarnJar, (ClassLoader) null)) {
-			extractMappings(unmergedYarnJarFs, unmergedYarn);
+		try (FileSystem unmergedMappingsJarFs = FileSystems.newFileSystem(unmergedMappingsJar, (ClassLoader) null)) {
+			extractMappings(unmergedMappingsJarFs, unmergedYarn);
 		}
 
-		Path invertedIntermediary = Paths.get(mappingsStepsDir.toString(), "inverted-intermediary.tiny");
-		reorderMappings(getIntermediaryTiny(), invertedIntermediary, "intermediary", "official");
-		Path unorderedMergedMappings = Paths.get(mappingsStepsDir.toString(), "unordered-merged.tiny");
+		Path invertedHashed = Paths.get(mappingsStepsDir.toString(), Constants.Mappings.INVERTED_HASHED_FILE);
+		reorderMappings(getHashedTiny(), invertedHashed, Constants.Mappings.INTERMEDIATE_NAMESPACE, Constants.Mappings.SOURCE_NAMESPACE);
+		Path unorderedMergedMappings = Paths.get(mappingsStepsDir.toString(), Constants.Mappings.UNORDERED_MERGED_MAPPINGS_FILE);
 		project.getLogger().info(":merging");
-		mergeMappings(invertedIntermediary, unmergedYarn, unorderedMergedMappings);
-		reorderMappings(unorderedMergedMappings, tinyMappings.toPath(), "official", "intermediary", "named");
+		mergeMappings(invertedHashed, unmergedYarn, unorderedMergedMappings);
+		reorderMappings(unorderedMergedMappings, tinyMappings.toPath(), Constants.Mappings.SOURCE_NAMESPACE, Constants.Mappings.INTERMEDIATE_NAMESPACE, Constants.Mappings.NAMED_NAMESPACE);
 	}
 
 	private void reorderMappings(Path oldMappings, Path newMappings, String... newOrder) {
@@ -312,16 +312,16 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 		runCommand(command, args);
 	}
 
-	private void mergeMappings(Path intermediaryMappings, Path yarnMappings, Path newMergedMappings) {
+	private void mergeMappings(Path hashedMappings, Path mappings, Path newMergedMappings) {
 		try {
 			Command command = new CommandMergeTinyV2();
-			runCommand(command, intermediaryMappings.toAbsolutePath().toString(),
-							yarnMappings.toAbsolutePath().toString(),
+			runCommand(command, hashedMappings.toAbsolutePath().toString(),
+							mappings.toAbsolutePath().toString(),
 							newMergedMappings.toAbsolutePath().toString(),
-							"intermediary", "official");
+							Constants.Mappings.INTERMEDIATE_NAMESPACE, Constants.Mappings.SOURCE_NAMESPACE);
 		} catch (Exception e) {
-			throw new RuntimeException("Could not merge mappings from " + intermediaryMappings.toString()
-							+ " with mappings from " + yarnMappings, e);
+			throw new RuntimeException("Could not merge mappings from " + hashedMappings.toString()
+							+ " with mappings from " + mappings, e);
 		}
 	}
 
@@ -376,27 +376,28 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 		return mappingsDir;
 	}
 
-	public Path getIntermediaryTiny() throws IOException {
-		if (intermediaryTiny == null) {
+	public Path getHashedTiny() throws IOException {
+		if (hashedTiny == null) {
 			minecraftVersion = getExtension().getMinecraftProvider().minecraftVersion();
 			Preconditions.checkNotNull(minecraftVersion, "Minecraft version cannot be null");
 
-			intermediaryTiny = mappingsDir.resolve(String.format("intermediary-%s-v2.tiny", minecraftVersion));
+			hashedTiny = mappingsDir.resolve(String.format(Constants.Mappings.HASHED_TINY_FORMAT, minecraftVersion));
 
-			if (!Files.exists(intermediaryTiny) || (isRefreshDeps() && !hasRefreshed)) {
+			if (!Files.exists(hashedTiny) || (isRefreshDeps() && !hasRefreshed)) {
 				hasRefreshed = true;
 
-				// Download and extract intermediary
+				// Download and extract hashed mojmap
 				String encodedMinecraftVersion = UrlEscapers.urlFragmentEscaper().escape(minecraftVersion);
-				String intermediaryArtifactUrl = getExtension().getIntermediaryUrl(encodedMinecraftVersion);
-				Path intermediaryJar = mappingsDir.resolve("v2-intermediary-" + minecraftVersion + ".jar");
-				DownloadUtil.downloadIfChanged(new URL(intermediaryArtifactUrl), intermediaryJar.toFile(), getProject().getLogger());
+				String hashedMojmapArtifactUrl = getExtension().getHashedMojmapUrl(encodedMinecraftVersion);
+				Path hashedJar = mappingsDir.resolve(String.format(Constants.Mappings.HASHED_JAR_FORMAT, minecraftVersion));
 
-				extractIntermediary(intermediaryJar, intermediaryTiny);
+				DownloadUtil.downloadIfChanged(new URL(hashedMojmapArtifactUrl), hashedJar.toFile(), getProject().getLogger());
+
+				extractHashedMojmap(hashedJar, hashedTiny);
 			}
 		}
 
-		return intermediaryTiny;
+		return hashedTiny;
 	}
 
 	public String getMappingsKey() {
@@ -412,11 +413,11 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 	}
 
 	@Override
-	public File intermediaryTinyFile() {
+	public File hashedMojmapTinyFile() {
 		try {
-			return getIntermediaryTiny().toFile();
+			return getHashedTiny().toFile();
 		} catch (IOException e) {
-			throw new RuntimeException("Failed to get intermediary", e);
+			throw new RuntimeException("Failed to get hashed mojmap", e);
 		}
 	}
 

@@ -30,7 +30,7 @@ import java.util.List;
 
 import org.gradle.api.Action;
 
-import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingsSpec;
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingsSpec;
 import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec;
 import net.fabricmc.loom.configuration.providers.mappings.parchment.ParchmentMappingsSpecBuilder;
 
@@ -64,8 +64,8 @@ public class LayeredMappingSpecBuilder {
 		}
 
 		List<MappingsSpec<?>> builtLayers = new LinkedList<>();
-		// Intermediary is always the base layer
-		builtLayers.add(new IntermediaryMappingsSpec());
+		// Hashed mojmap is always the base layer
+		builtLayers.add(new HashedMojmapMappingsSpec());
 		builtLayers.addAll(layers);
 
 		return new LayeredMappingSpec(Collections.unmodifiableList(builtLayers));

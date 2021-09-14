@@ -22,14 +22,14 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.configuration.providers.mappings.intermediary;
+package net.fabricmc.loom.configuration.providers.mappings.hashed;
 
 import net.fabricmc.loom.configuration.providers.mappings.MappingContext;
 import net.fabricmc.loom.configuration.providers.mappings.MappingsSpec;
 
-public record IntermediaryMappingsSpec() implements MappingsSpec<IntermediaryMappingLayer> {
+public record HashedMojmapMappingsSpec() implements MappingsSpec<HashedMojmapMappingLayer> {
 	@Override
-	public IntermediaryMappingLayer createLayer(MappingContext context) {
-		return new IntermediaryMappingLayer(context.mappingsProvider().intermediaryTinyFile());
+	public HashedMojmapMappingLayer createLayer(MappingContext context) {
+		return new HashedMojmapMappingLayer(context.mappingsProvider().hashedMojmapTinyFile());
 	}
 }

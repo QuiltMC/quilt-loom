@@ -26,6 +26,8 @@ package net.fabricmc.loom.extension;
 
 import java.io.File;
 
+import net.fabricmc.loom.util.Constants;
+
 import org.gradle.api.Project;
 
 import net.fabricmc.loom.configuration.providers.MinecraftProvider;
@@ -43,12 +45,12 @@ public final class LoomFilesImpl implements LoomFiles {
 	public LoomFilesImpl(Project project) {
 		this.project = project;
 
-		this.userCache = createFile(project.getGradle().getGradleUserHomeDir(), "caches" + File.separator + "fabric-loom");
-		this.rootProjectPersistentCache = createFile(project.getRootProject().file(".gradle"), "loom-cache");
-		this.projectPersistentCache = createFile(project.file(".gradle"), "loom-cache");
-		this.projectBuildCache = createFile(project.getBuildDir(), "loom-cache");
-		this.remappedModCache = createFile(getRootProjectPersistentCache(), "remapped_mods");
-		this.nativesJarStore = createFile(getUserCache(), "natives/jars");
+		this.userCache = createFile(project.getGradle().getGradleUserHomeDir(), "caches" + File.separator + Constants.Directories.USER_CACHE_DIR);
+		this.rootProjectPersistentCache = createFile(project.getRootProject().file(".gradle"), Constants.Directories.CACHE_DIR);
+		this.projectPersistentCache = createFile(project.file(".gradle"), Constants.Directories.CACHE_DIR);
+		this.projectBuildCache = createFile(project.getBuildDir(), Constants.Directories.CACHE_DIR);
+		this.remappedModCache = createFile(getRootProjectPersistentCache(), Constants.Directories.REMAPPED_MOD_CACHE_DIR);
+		this.nativesJarStore = createFile(getUserCache(), Constants.Directories.NATIVES_JAR_DIR);
 	}
 
 	private File createFile(File parent, String child) {
@@ -102,7 +104,7 @@ public final class LoomFilesImpl implements LoomFiles {
 			return new File((String) project.property("fabric.loom.natives.dir"));
 		}
 
-		File natives = new File(getUserCache(), "natives/" + minecraftProvider.minecraftVersion());
+		File natives = new File(getUserCache(), Constants.Directories.NATIVES_DIR + "/" + minecraftProvider.minecraftVersion());
 
 		if (!natives.exists()) {
 			natives.mkdirs();

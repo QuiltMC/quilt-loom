@@ -128,13 +128,13 @@ public class ModProcessor {
 
 	private static void remapJars(Project project, List<ModDependencyInfo> processList) throws IOException {
 		LoomGradleExtension extension = LoomGradleExtension.get(project);
-		String fromM = "intermediary";
-		String toM = "named";
+		String fromM = Constants.Mappings.INTERMEDIATE_NAMESPACE;
+		String toM = Constants.Mappings.NAMED_NAMESPACE;
 
 		MinecraftMappedProvider mappedProvider = extension.getMinecraftMappedProvider();
 		MappingsProviderImpl mappingsProvider = extension.getMappingsProvider();
 
-		Path mc = mappedProvider.getIntermediaryJar().toPath();
+		Path mc = mappedProvider.getHashedJar().toPath();
 		Path[] mcDeps = project.getConfigurations().getByName(Constants.Configurations.LOADER_DEPENDENCIES).getFiles()
 							.stream().map(File::toPath).toArray(Path[]::new);
 

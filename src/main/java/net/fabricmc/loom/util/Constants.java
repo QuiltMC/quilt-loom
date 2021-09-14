@@ -101,8 +101,8 @@ public class Constants {
 	}
 
 	public static final class MixinArguments {
-		public static final String IN_MAP_FILE_NAMED_INTERMEDIARY = "inMapFileNamedIntermediary";
-		public static final String OUT_MAP_FILE_NAMED_INTERMEDIARY = "outMapFileNamedIntermediary";
+		public static final String IN_MAP_FILE_NAMED_HASHED = "inMapFileNamedHashed";
+		public static final String OUT_MAP_FILE_NAMED_HASHED = "outMapFileNamedHashed";
 		public static final String OUT_REFMAP_FILE = "outRefMapFile";
 		public static final String DEFAULT_OBFUSCATION_ENV = "defaultObfuscationEnv";
 
@@ -119,10 +119,50 @@ public class Constants {
 	}
 
 	public static final class TaskGroup {
-		public static final String FABRIC = "fabric";
+		public static final String QUILT = "quilt";
 		public static final String IDE = "ide";
 
 		private TaskGroup() {
+		}
+	}
+
+	/**
+	 * Constants related to directories.
+	 */
+	public static final class Directories {
+		public static final String USER_CACHE_DIR = "quilt-loom";
+		public static final String CACHE_DIR = "loom-cache";
+		public static final String REMAPPED_MOD_CACHE_DIR = "remapped_mods";
+		public static final String NESTED_MOD_CACHE_DIR = "nested_mods";
+		public static final String NATIVES_DIR = "natives";
+		public static final String NATIVES_JAR_DIR = NATIVES_DIR + "/jars";
+
+		private Directories() {
+		}
+	}
+
+	/**
+	 * Constants related to mappings.
+	 */
+	public static final class Mappings {
+		// Files & dirs
+		public static final String MAPPINGS_FILE = "mappings.tiny";
+		public static final String MAPPINGS_FILE_DIR = "hashed";
+		public static final String MAPPINGS_FILE_PATH = MAPPINGS_FILE_DIR + "/" + MAPPINGS_FILE;
+		public static final String UNMERGED_MAPPINGS_FILE = "unmerged-mappings.tiny";
+		public static final String MAPPINGS_CACHE_DIR = "mappings";
+		public static final String MAPPINGS_STEPS_CACHE_DIR = "steps";
+		public static final String INVERTED_HASHED_FILE = "inverted-hashed.tiny";
+		public static final String UNORDERED_MERGED_MAPPINGS_FILE = "unordered-merged.tiny";
+		public static final String HASHED_TINY_FORMAT = "hashed-%s.tiny";
+		public static final String HASHED_JAR_FORMAT = "hashed-%s.jar";
+
+		// Namespaces
+		public static final String SOURCE_NAMESPACE = "official";
+		public static final String INTERMEDIATE_NAMESPACE = "hashed";
+		public static final String NAMED_NAMESPACE = "named";
+
+		private Mappings() {
 		}
 	}
 }

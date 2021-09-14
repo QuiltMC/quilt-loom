@@ -26,6 +26,8 @@ package net.fabricmc.loom;
 
 import java.io.File;
 
+import net.fabricmc.loom.util.Constants;
+
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -119,7 +121,7 @@ final class Cache {
 			throw new IllegalArgumentException("Expected target to be a Project or Settings, but was a " + target.getClass());
 		}
 
-		File userCache = new File(gradleUserHomeDir, "caches" + File.separator + "fabric-loom");
+		File userCache = new File(gradleUserHomeDir, "caches" + File.separator + Constants.Directories.USER_CACHE_DIR);
 
 		if (!userCache.exists()) {
 			userCache.mkdirs();
@@ -139,7 +141,7 @@ final class Cache {
 			throw new IllegalArgumentException("Expected target to be a Project or Settings, but was a " + target.getClass());
 		}
 
-		File persistentCache = new File(rootDir, ".gradle" + File.separator + "loom-cache");
+		File persistentCache = new File(rootDir, ".gradle" + File.separator + Constants.Directories.CACHE_DIR);
 
 		if (!persistentCache.exists()) {
 			persistentCache.mkdirs();
@@ -159,7 +161,7 @@ final class Cache {
 			throw new IllegalArgumentException("Expected target to be a Project or Settings, but was a " + target.getClass());
 		}
 
-		File buildCache = new File(rootDir, "build" + File.separator + "loom-cache");
+		File buildCache = new File(rootDir, "build" + File.separator + Constants.Directories.CACHE_DIR);
 
 		if (!buildCache.exists()) {
 			buildCache.mkdirs();
@@ -169,7 +171,7 @@ final class Cache {
 	}
 
 	public File getRemappedModCache() {
-		File remappedModCache = new File(getRootPersistentCache(), "remapped_mods");
+		File remappedModCache = new File(getRootPersistentCache(), Constants.Directories.REMAPPED_MOD_CACHE_DIR);
 
 		if (!remappedModCache.exists()) {
 			remappedModCache.mkdir();
@@ -179,7 +181,7 @@ final class Cache {
 	}
 
 	public File getNestedModCache() {
-		File nestedModCache = new File(getRootPersistentCache(), "nested_mods");
+		File nestedModCache = new File(getRootPersistentCache(), Constants.Directories.NESTED_MOD_CACHE_DIR);
 
 		if (!nestedModCache.exists()) {
 			nestedModCache.mkdir();
@@ -189,7 +191,7 @@ final class Cache {
 	}
 
 	public File getNativesJarStore() {
-		File natives = new File(getUserCache(), "natives/jars");
+		File natives = new File(getUserCache(), Constants.Directories.NATIVES_JAR_DIR);
 
 		if (!natives.exists()) {
 			natives.mkdirs();

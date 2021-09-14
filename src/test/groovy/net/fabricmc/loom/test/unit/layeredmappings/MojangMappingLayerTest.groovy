@@ -30,7 +30,7 @@ import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsS
 class MojangMappingLayerTest extends LayeredMappingsSpecification {
     def "Read mojang mappings" () {
         setup:
-            mockMappingsProvider.intermediaryTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_17_URL, "intermediary.jar"), "mappings/mappings.tiny")
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_17_URL, "intermediary.jar"), "mappings/mappings.tiny")
             mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_17
         when:
             def mappings = getLayeredMappings(

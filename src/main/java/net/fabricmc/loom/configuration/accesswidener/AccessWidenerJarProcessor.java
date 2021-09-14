@@ -92,7 +92,7 @@ public class AccessWidenerJarProcessor implements JarProcessor {
 		}
 
 		//Remap accessWidener if its not named, allows for AE's to be written in intermediary
-		if (!accessWidener.getNamespace().equals("named")) {
+		if (!accessWidener.getNamespace().equals(Constants.Mappings.NAMED_NAMESPACE)) {
 			try {
 				List<String> validNamespaces = loomGradleExtension.getMappingsProvider().getMappings().getMetadata().getNamespaces();
 
@@ -100,10 +100,10 @@ public class AccessWidenerJarProcessor implements JarProcessor {
 					throw new UnsupportedOperationException(String.format("Access Widener namespace '%s' is not a valid namespace, it must be one of: '%s'", accessWidener.getNamespace(), String.join(", ", validNamespaces)));
 				}
 
-				TinyRemapper tinyRemapper = loomGradleExtension.getMinecraftMappedProvider().getTinyRemapper("official", "named");
+				TinyRemapper tinyRemapper = loomGradleExtension.getMinecraftMappedProvider().getTinyRemapper(Constants.Mappings.SOURCE_NAMESPACE, Constants.Mappings.NAMED_NAMESPACE);
 				tinyRemapper.readClassPath(loomGradleExtension.getMinecraftMappedProvider().getRemapClasspath());
 
-				AccessWidenerRemapper remapper = new AccessWidenerRemapper(accessWidener, tinyRemapper.getRemapper(), "named");
+				AccessWidenerRemapper remapper = new AccessWidenerRemapper(accessWidener, tinyRemapper.getRemapper(), Constants.Mappings.NAMED_NAMESPACE);
 				accessWidener = remapper.remap();
 
 				tinyRemapper.finish();
@@ -160,7 +160,7 @@ public class AccessWidenerJarProcessor implements JarProcessor {
 	}
 
 	public byte[] getRemappedAccessWidener(Remapper asmRemapper) throws IOException {
-		AccessWidenerRemapper remapper = new AccessWidenerRemapper(accessWidener, asmRemapper, "intermediary");
+		AccessWidenerRemapper remapper = new AccessWidenerRemapper(accessWidener, asmRemapper, Constants.Mappings.INTERMEDIATE_NAMESPACE);
 		AccessWidener remapped = remapper.remap();
 		AccessWidenerWriter accessWidenerWriter = new AccessWidenerWriter(remapped);
 

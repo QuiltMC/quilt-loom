@@ -28,7 +28,7 @@ import java.util.Locale;
 
 public enum MappingNamespace {
 	OFFICIAL,
-	INTERMEDIARY,
+	HASHED,
 	NAMED;
 
 	public String stringValue() {

@@ -27,12 +27,11 @@ package net.fabricmc.loom.test.unit.layeredmappings
 import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.parchment.ParchmentMappingsSpec
-import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta
 
 class ParchmentMappingLayerTest extends LayeredMappingsSpecification {
     def "Read parchment mappings" () {
         setup:
-            mockMappingsProvider.intermediaryTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
             mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_16_5
         when:
             withMavenFile(PARCHMENT_NOTATION, downloadFile(PARCHMENT_URL, "parchment.zip"))
@@ -53,7 +52,7 @@ class ParchmentMappingLayerTest extends LayeredMappingsSpecification {
 
     def "Read parchment mappings remove prefix" () {
         setup:
-            mockMappingsProvider.intermediaryTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
             mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_16_5
         when:
             withMavenFile(PARCHMENT_NOTATION, downloadFile(PARCHMENT_URL, "parchment.zip"))

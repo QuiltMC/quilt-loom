@@ -30,5 +30,5 @@ import java.nio.file.Path;
 public interface MappingsProvider {
 	Path getMappingsDir();
 
-	File intermediaryTinyFile();
+	File hashedMojmapTinyFile();
 }

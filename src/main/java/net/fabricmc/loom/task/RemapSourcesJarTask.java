@@ -26,6 +26,8 @@ package net.fabricmc.loom.task;
 
 import java.io.File;
 
+import net.fabricmc.loom.util.Constants;
+
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -37,7 +39,7 @@ import net.fabricmc.loom.util.SourceRemapper;
 public class RemapSourcesJarTask extends AbstractLoomTask {
 	private Object input;
 	private Object output;
-	private String direction = "intermediary";
+	private String direction = Constants.Mappings.INTERMEDIATE_NAMESPACE;
 	private SourceRemapper sourceRemapper = null;
 	private boolean preserveFileTimestamps = true;
 	private boolean reproducibleFileOrder = false;

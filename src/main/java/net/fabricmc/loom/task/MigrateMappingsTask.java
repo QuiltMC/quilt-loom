@@ -36,6 +36,9 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+
+import net.fabricmc.loom.util.Constants;
+
 import org.cadixdev.lorenz.MappingSet;
 import org.cadixdev.mercury.Mercury;
 import org.cadixdev.mercury.remapper.MercuryRemapper;
@@ -166,9 +169,9 @@ public class MigrateMappingsTask extends AbstractLoomTask {
 		project.getLogger().info(":joining mappings");
 
 		MappingSet mappingSet = new TinyMappingsJoiner(
-				currentMappings, "named",
-				targetMappings, "named",
-				"intermediary"
+				currentMappings, Constants.Mappings.NAMED_NAMESPACE,
+				targetMappings, Constants.Mappings.NAMED_NAMESPACE,
+				Constants.Mappings.INTERMEDIATE_NAMESPACE
 		).read();
 
 		project.getLogger().lifecycle(":remapping");
@@ -183,7 +186,7 @@ public class MigrateMappingsTask extends AbstractLoomTask {
 		mercury.setSourceCompatibility(javaVersion.toString());
 
 		mercury.getClassPath().add(minecraftMappedProvider.getMappedJar().toPath());
-		mercury.getClassPath().add(minecraftMappedProvider.getIntermediaryJar().toPath());
+		mercury.getClassPath().add(minecraftMappedProvider.getHashedJar().toPath());
 
 		mercury.getProcessors().add(MercuryRemapper.create(mappingSet));
 

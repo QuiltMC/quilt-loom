@@ -82,10 +82,10 @@ public abstract class AnnotationProcessorInvoker<T extends Task> {
 			LoomGradleExtension loom = LoomGradleExtension.get(project);
 			String refmapName = Objects.requireNonNull(MixinApExtension.getMixinInformationContainer(sourceSet)).refmapNameProvider().get();
 			Map<String, String> args = new HashMap<>() {{
-					put(Constants.MixinArguments.IN_MAP_FILE_NAMED_INTERMEDIARY, loom.getMappingsProvider().tinyMappings.getCanonicalPath());
-					put(Constants.MixinArguments.OUT_MAP_FILE_NAMED_INTERMEDIARY, loom.getNextMixinMappings().getCanonicalPath());
+					put(Constants.MixinArguments.IN_MAP_FILE_NAMED_HASHED, loom.getMappingsProvider().tinyMappings.getCanonicalPath());
+					put(Constants.MixinArguments.OUT_MAP_FILE_NAMED_HASHED, loom.getNextMixinMappings().getCanonicalPath());
 					put(Constants.MixinArguments.OUT_REFMAP_FILE, getRefmapDestination(task, refmapName));
-					put(Constants.MixinArguments.DEFAULT_OBFUSCATION_ENV, "named:intermediary");
+					put(Constants.MixinArguments.DEFAULT_OBFUSCATION_ENV, Constants.Mappings.NAMED_NAMESPACE + ":" + Constants.Mappings.INTERMEDIATE_NAMESPACE);
 				}};
 
 			project.getLogger().debug("Outputting refmap to dir: " + getRefmapDestinationDir(task) + " for compile task: " + task);

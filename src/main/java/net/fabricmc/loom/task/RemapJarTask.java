@@ -124,8 +124,8 @@ public class RemapJarTask extends Jar {
 
 		MappingsProviderImpl mappingsProvider = extension.getMappingsProvider();
 
-		String fromM = "named";
-		String toM = "intermediary";
+		String fromM = Constants.Mappings.NAMED_NAMESPACE;
+		String toM = Constants.Mappings.INTERMEDIATE_NAMESPACE;
 
 		if (isMainRemapTask) {
 			jarRemapper.addToClasspath(getRemapClasspath());
