@@ -67,6 +67,7 @@ import net.fabricmc.loom.configuration.JarManifestConfiguration;
 import net.fabricmc.loom.configuration.accesswidener.AccessWidenerJarProcessor;
 import net.fabricmc.loom.configuration.providers.mappings.MappingsProviderImpl;
 import net.fabricmc.loom.util.Constants;
+import net.fabricmc.loom.util.ModUtils;
 import net.fabricmc.loom.util.TinyRemapperMappingsHelper;
 import net.fabricmc.loom.util.ZipReprocessorUtil;
 import net.fabricmc.stitch.util.Pair;
@@ -158,7 +159,12 @@ public class RemapJarTask extends Jar {
 						}
 
 						String awPath = accessWidenerJarProcessor.getAccessWidenerPath(remapData.input);
-						Preconditions.checkNotNull(awPath, "Failed to find accessWidener in fabric.mod.json: " + remapData.input);
+						boolean isQuiltMod = ModUtils.isQuiltMod(remapData.input.toFile());
+						if (isQuiltMod) {
+							Preconditions.checkNotNull(awPath, "Failed to find access_widener in quilt.mod.json: " + remapData.input);
+						} else {
+							Preconditions.checkNotNull(awPath, "Failed to find accessWidener in fabric.mod.json: " + remapData.input);
+						}
 
 						return Pair.of(awPath, data);
 					}

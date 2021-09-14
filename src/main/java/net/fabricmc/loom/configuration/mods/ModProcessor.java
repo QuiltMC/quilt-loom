@@ -59,6 +59,7 @@ import net.fabricmc.loom.configuration.processors.dependency.ModDependencyInfo;
 import net.fabricmc.loom.configuration.providers.mappings.MappingsProviderImpl;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMappedProvider;
 import net.fabricmc.loom.util.Constants;
+import net.fabricmc.loom.util.ModUtils;
 import net.fabricmc.loom.util.TinyRemapperMappingsHelper;
 import net.fabricmc.tinyremapper.InputTag;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
@@ -96,12 +97,14 @@ public class ModProcessor {
 	}
 
 	private static void stripNestedJars(File file) {
+		boolean isQuiltMod = ModUtils.isQuiltMod(file);
+
 		// Strip out all contained jar info as we dont want loader to try and load the jars contained in dev.
-		ZipUtil.transformEntries(file, new ZipEntryTransformerEntry[] {(new ZipEntryTransformerEntry("fabric.mod.json", new StringZipEntryTransformer() {
+		ZipUtil.transformEntries(file, new ZipEntryTransformerEntry[] {(new ZipEntryTransformerEntry(isQuiltMod ? "quilt.mod.json" : "1fabric.mod.json", new StringZipEntryTransformer() {
 			@Override
 			protected String transform(ZipEntry zipEntry, String input) {
 				JsonObject json = LoomGradlePlugin.GSON.fromJson(input, JsonObject.class);
-				json.remove("jars");
+				(isQuiltMod ? json.getAsJsonObject("quilt_loader") : json).remove("jars");
 				return LoomGradlePlugin.GSON.toJson(json);
 			}
 		}))});

@@ -49,10 +49,12 @@ import org.zeroturnaround.zip.transform.ZipEntryTransformerEntry;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.extension.MixinApExtension;
+import net.fabricmc.loom.util.ModUtils;
 
 public final class MixinRefmapHelper {
 	private MixinRefmapHelper() { }
 
+	private static final String QUILT_MOD_JSON = "quilt.mod.json";
 	private static final String FABRIC_MOD_JSON = "fabric.mod.json";
 
 	public static boolean addRefmapName(Project project, Path outputPath) {
@@ -60,7 +62,8 @@ public final class MixinRefmapHelper {
 			MixinApExtension mixin = LoomGradleExtension.get(project).getMixin();
 			File output = outputPath.toFile();
 
-			Collection<String> allMixinConfigs = getMixinConfigurationFiles(readFabricModJson(output));
+			boolean isQuiltMod = ModUtils.isQuiltMod(output);
+			Collection<String> allMixinConfigs = getMixinConfigurationFiles(output, isQuiltMod);
 
 			return mixin.getMixinSourceSetsStream().map(sourceSet -> {
 				MixinApExtension.MixinInformationContainer container = Objects.requireNonNull(
@@ -96,6 +99,19 @@ public final class MixinRefmapHelper {
 	}
 
 	@NotNull
+	private static JsonObject readQuiltModJson(File output) {
+		try (ZipFile zip = new ZipFile(output)) {
+			ZipEntry entry = zip.getEntry(QUILT_MOD_JSON);
+
+			try (InputStreamReader reader = new InputStreamReader(zip.getInputStream(entry))) {
+				return LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Cannot read file quilt.mod.json in the output jar.", e);
+		}
+	}
+
+	@NotNull
 	private static JsonObject readFabricModJson(File output) {
 		try (ZipFile zip = new ZipFile(output)) {
 			ZipEntry entry = zip.getEntry(FABRIC_MOD_JSON);
@@ -109,8 +125,9 @@ public final class MixinRefmapHelper {
 	}
 
 	@NotNull
-	private static Collection<String> getMixinConfigurationFiles(JsonObject fabricModJson) {
-		JsonArray mixins = fabricModJson.getAsJsonArray("mixins");
+	private static Collection<String> getMixinConfigurationFiles(File output, boolean isQuiltMod) {
+		JsonObject modJson = isQuiltMod ? readQuiltModJson(output) : readFabricModJson(output);
+		JsonArray mixins = modJson.getAsJsonArray(isQuiltMod ? "mixin" : "mixins");
 
 		if (mixins == null) {
 			return Collections.emptySet();
@@ -120,10 +137,10 @@ public final class MixinRefmapHelper {
 				.map(e -> {
 					if (e instanceof JsonPrimitive str) {
 						return str.getAsString();
-					} else if (e instanceof JsonObject obj) {
+					} else if (!isQuiltMod && e instanceof JsonObject obj) {
 						return obj.get("config").getAsString();
 					} else {
-						throw new RuntimeException("Incorrect fabric.mod.json format");
+						throw new RuntimeException("Incorrect " + (isQuiltMod ? "quilt" : "fabric") + ".mod.json format");
 					}
 				}).collect(Collectors.toSet());
 	}

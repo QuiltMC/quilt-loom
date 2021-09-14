@@ -53,13 +53,16 @@ public class JarNester {
 
 		ZipUtil.addEntries(modJar, jars.stream().map(file -> new FileSource("META-INF/jars/" + file.getName(), file)).toArray(ZipEntrySource[]::new));
 
-		boolean didNest = ZipUtil.transformEntries(modJar, single(new ZipEntryTransformerEntry("fabric.mod.json", new StringZipEntryTransformer() {
+		boolean isQuiltMod = ModUtils.isQuiltMod(modJar);
+
+		boolean didNest = ZipUtil.transformEntries(modJar, single(new ZipEntryTransformerEntry(isQuiltMod ? "quilt.mod.json" : "fabric.mod.json", new StringZipEntryTransformer() {
 			@Override
 			protected String transform(ZipEntry zipEntry, String input) {
 				JsonObject json = LoomGradlePlugin.GSON.fromJson(input, JsonObject.class);
-				JsonArray nestedJars = json.getAsJsonArray("jars");
+				JsonObject jarsObjectContainer = isQuiltMod ? json.getAsJsonObject("quilt_loader") : json;
+				JsonArray nestedJars = jarsObjectContainer.getAsJsonArray("jars");
 
-				if (nestedJars == null || !json.has("jars")) {
+				if (nestedJars == null || !jarsObjectContainer.has("jars")) {
 					nestedJars = new JsonArray();
 				}
 
@@ -67,21 +70,31 @@ public class JarNester {
 					String nestedJarPath = "META-INF/jars/" + file.getName();
 
 					for (JsonElement nestedJar : nestedJars) {
-						JsonObject jsonObject = nestedJar.getAsJsonObject();
+						String path;
+						if (isQuiltMod) {
+							path = nestedJar.getAsString();
+						} else {
+							JsonObject jsonObject = nestedJar.getAsJsonObject();
+							path = jsonObject.has("file") ? jsonObject.get("file").getAsString() : null;
+						}
 
-						if (jsonObject.has("file") && jsonObject.get("file").getAsString().equals(nestedJarPath)) {
+						if (path != null && path.equals(nestedJarPath)) {
 							throw new IllegalStateException("Cannot nest 2 jars at the same path: " + nestedJarPath);
 						}
 					}
 
-					JsonObject jsonObject = new JsonObject();
-					jsonObject.addProperty("file", nestedJarPath);
-					nestedJars.add(jsonObject);
+					if (isQuiltMod) {
+						nestedJars.add(nestedJarPath);
+					} else {
+						JsonObject jsonObject = new JsonObject();
+						jsonObject.addProperty("file", nestedJarPath);
+						nestedJars.add(jsonObject);
+					}
 
 					logger.debug("Nested " + nestedJarPath + " into " + modJar.getName());
 				}
 
-				json.add("jars", nestedJars);
+				jarsObjectContainer.add("jars", nestedJars);
 
 				return LoomGradlePlugin.GSON.toJson(json);
 			}

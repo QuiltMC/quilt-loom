@@ -50,6 +50,7 @@ import org.zeroturnaround.zip.ZipUtil;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.extension.LoomFiles;
+import net.fabricmc.loom.util.ModUtils;
 
 public abstract class DependencyProvider {
 	private LoomDependencyManager dependencyManager;
@@ -232,11 +233,33 @@ public abstract class DependencyProvider {
 				name = dependency.getName();
 				version = dependency.getVersion();
 			} else {
-				group = "net.fabricmc.synthetic";
 				File root = classifierToFile.get(""); //We've built the classifierToFile map, now to try find a name and version for our dependency
 
-				if ("jar".equals(FilenameUtils.getExtension(root.getName())) && ZipUtil.containsEntry(root, "fabric.mod.json")) {
+				if ("jar".equals(FilenameUtils.getExtension(root.getName())) && ModUtils.isQuiltMod(root)) {
+					//It's a Quilt mod, see how much we can extract out
+					JsonObject json = new Gson().fromJson(new String(ZipUtil.unpackEntry(root, "quilt.mod.json"), StandardCharsets.UTF_8), JsonObject.class);
+
+					if (json == null || !json.has("schema_version") || !json.has("quilt_loader")) {
+						throw new IllegalArgumentException("Invalid Quilt mod jar: " + root + " (malformed json: " + json + ')');
+					}
+
+					JsonObject modLoaderInfo = json.getAsJsonObject("quilt_loader");
+					if (!modLoaderInfo.has("id") || !modLoaderInfo.has("group") || !modLoaderInfo.has("version")) {
+						throw new IllegalArgumentException("Invalid Quilt mod jar: " + root +  " (invalid Quilt loader information: " + modLoaderInfo + ')');
+					}
+
+					group = modLoaderInfo.get("group").getAsString();
+
+					if (modLoaderInfo.has("metadata") && modLoaderInfo.getAsJsonObject("metadata").has("name")) {
+						name = modLoaderInfo.getAsJsonObject("metadata").get("name").getAsString();
+					} else {
+						name = modLoaderInfo.get("id").getAsString();
+					}
+
+					version = modLoaderInfo.get("version").getAsString();
+				} else if ("jar".equals(FilenameUtils.getExtension(root.getName())) && ModUtils.isFabricMod(root)) {
 					//It's a Fabric mod, see how much we can extract out
+					group = "net.fabricmc.synthetic";
 					JsonObject json = new Gson().fromJson(new String(ZipUtil.unpackEntry(root, "fabric.mod.json"), StandardCharsets.UTF_8), JsonObject.class);
 
 					if (json == null || !json.has("id") || !json.has("version")) {
@@ -251,7 +274,8 @@ public abstract class DependencyProvider {
 
 					version = json.get("version").getAsString();
 				} else {
-					//Not a Fabric mod, just have to make something up
+					//Not a Quilt or Fabric mod, just have to make something up
+					group = "org.quiltmc.synthetic";
 					name = FilenameUtils.removeExtension(root.getName());
 					version = "1.0";
 				}

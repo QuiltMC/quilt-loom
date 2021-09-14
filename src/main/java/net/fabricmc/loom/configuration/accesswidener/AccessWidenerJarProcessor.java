@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.gradle.api.Project;
 import org.objectweb.asm.ClassReader;
@@ -57,6 +58,7 @@ import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.configuration.processors.JarProcessor;
 import net.fabricmc.loom.util.Checksum;
 import net.fabricmc.loom.util.Constants;
+import net.fabricmc.loom.util.ModUtils;
 import net.fabricmc.tinyremapper.TinyRemapper;
 
 public class AccessWidenerJarProcessor implements JarProcessor {
@@ -144,12 +146,17 @@ public class AccessWidenerJarProcessor implements JarProcessor {
 
 	//Called when remapping the mod
 	public void remapAccessWidener(Path modJarPath, Remapper asmRemapper) throws IOException {
+		boolean isQuiltMod = ModUtils.isQuiltMod(modJarPath.toFile());
 		byte[] bytes = getRemappedAccessWidener(asmRemapper);
 
 		String path = getAccessWidenerPath(modJarPath);
 
 		if (path == null) {
-			throw new RuntimeException("Failed to find accessWidener in fabric.mod.json");
+			if (isQuiltMod) {
+				throw new RuntimeException("Failed to find access_widener in quilt.mod.json");
+			} else {
+				throw new RuntimeException("Failed to find accessWidener in fabric.mod.json");
+			}
 		}
 
 		boolean replaced = ZipUtil.replaceEntry(modJarPath.toFile(), path, bytes);
@@ -171,19 +178,34 @@ public class AccessWidenerJarProcessor implements JarProcessor {
 	}
 
 	public String getAccessWidenerPath(Path modJarPath) {
-		byte[] modJsonBytes = ZipUtil.unpackEntry(modJarPath.toFile(), "fabric.mod.json");
+		File modJar = modJarPath.toFile();
+		boolean isQuiltMod = ModUtils.isQuiltMod(modJar);
+		byte[] modJsonBytes = ZipUtil.unpackEntry(modJar, isQuiltMod ? "quilt.mod.json" : "fabric.mod.json");
 
 		if (modJsonBytes == null) {
 			return null;
 		}
 
-		JsonObject jsonObject = new Gson().fromJson(new String(modJsonBytes, StandardCharsets.UTF_8), JsonObject.class);
+		JsonObject modJson = new Gson().fromJson(new String(modJsonBytes, StandardCharsets.UTF_8), JsonObject.class);
+		if (isQuiltMod) {
+			if (!modJson.has("access_widener")) {
+				return null;
+			}
 
-		if (!jsonObject.has("accessWidener")) {
-			return null;
+			JsonElement accessWidener = modJson.get("access_widener");
+			if (accessWidener.isJsonPrimitive()) {
+				return accessWidener.getAsString();
+			} else {
+				// TODO: Multiple access wideners support
+				throw new RuntimeException("Multiple access wideners aren't supported yet");
+			}
+		} else {
+			if (!modJson.has("accessWidener")) {
+				return null;
+			}
+
+			return modJson.get("accessWidener").getAsString();
 		}
-
-		return jsonObject.get("accessWidener").getAsString();
 	}
 
 	@Override
