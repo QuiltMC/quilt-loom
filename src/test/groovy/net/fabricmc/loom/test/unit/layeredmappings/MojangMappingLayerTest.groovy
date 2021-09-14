@@ -24,26 +24,26 @@
 
 package net.fabricmc.loom.test.unit.layeredmappings
 
-import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingsSpec
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec
 
 class MojangMappingLayerTest extends LayeredMappingsSpecification {
     def "Read mojang mappings" () {
         setup:
-            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_17_URL, "intermediary.jar"), "mappings/mappings.tiny")
-            mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_17
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(HASHED_MOJMAP_1_17_1_URL, "hashed-mojmap.jar"), "hashed/mappings.tiny")
+            mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_17_1
         when:
             def mappings = getLayeredMappings(
-                    new IntermediaryMappingsSpec(),
+                    new HashedMojmapMappingsSpec(),
                     new MojangMappingsSpec()
             )
             def tiny = getTiny(mappings)
         then:
             mappings.srcNamespace == "named"
-            mappings.dstNamespaces == ["intermediary", "official"]
+            mappings.dstNamespaces == ["hashed", "official"]
             mappings.classes.size() == 6113
-            mappings.classes[0].srcName.hashCode() == 1869546970 // MojMap name, just check the hash
-            mappings.classes[0].getDstName(0) == "net/minecraft/class_2354"
+            mappings.classes[0].srcName == "com/mojang/math/Constants"
+            mappings.classes[0].getDstName(0) == "net/minecraft/unmapped/C_lctoxfsg"
             mappings.classes[0].methods[0].args.size() == 0 // No Args
     }
 }

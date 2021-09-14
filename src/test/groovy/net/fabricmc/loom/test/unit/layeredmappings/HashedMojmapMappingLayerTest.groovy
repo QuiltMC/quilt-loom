@@ -24,20 +24,20 @@
 
 package net.fabricmc.loom.test.unit.layeredmappings
 
-import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingsSpec
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingsSpec
 
-class IntermediaryMappingLayerTest extends LayeredMappingsSpecification {
-    def "Read intermediary mappings" () {
+class HashedMojmapMappingLayerTest extends LayeredMappingsSpecification {
+    def "Read hashed mojmap mappings" () {
         setup:
-            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_17_URL, "intermediary.jar"), "mappings/mappings.tiny")
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(HASHED_MOJMAP_1_17_1_URL, "hashed-mojmap.jar"), "hashed/mappings.tiny")
         when:
-            def mappings = getSingleMapping(new IntermediaryMappingsSpec())
+            def mappings = getSingleMapping(new HashedMojmapMappingsSpec())
             def tiny = getTiny(mappings)
         then:
             mappings.srcNamespace == "official"
-            mappings.dstNamespaces == ["intermediary", "named"]
-            mappings.classes.size() == 6107
-            mappings.getClass("abc").getDstName(0) == "net/minecraft/class_3191"
-            mappings.getClass("abc").getDstName(1) == "net/minecraft/class_3191"
+            mappings.dstNamespaces == ["hashed", "named"]
+            mappings.classes.size() == 6104
+            mappings.getClass("abc").getDstName(0) == "net/minecraft/unmapped/C_ydlvhulh"
+            mappings.getClass("abc").getDstName(1) == "net/minecraft/unmapped/C_ydlvhulh"
     }
 }

@@ -26,7 +26,7 @@ package net.fabricmc.loom.test.unit.layeredmappings
 
 import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingSpec
 import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingSpecBuilder
-import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingsSpec
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.parchment.ParchmentMappingsSpec
 import org.gradle.api.Action
@@ -43,7 +43,7 @@ class LayeredMappingSpecBuilderTest extends LayeredMappingsSpecification {
         then:
             spec.getVersion(mappingContext) == "layered.961.minecraft.null"
             layers.size() == 2
-            layers[0].class == IntermediaryMappingsSpec
+            layers[0].class == HashedMojmapMappingsSpec
             layers[1].class == MojangMappingsSpec
     }
 
@@ -58,7 +58,7 @@ class LayeredMappingSpecBuilderTest extends LayeredMappingsSpecification {
         then:
             spec.getVersion(mappingContext) == "layered.863714404.minecraft.null"
             layers.size() == 3
-            layers[0].class == IntermediaryMappingsSpec
+            layers[0].class == HashedMojmapMappingsSpec
             layers[1].class == MojangMappingsSpec
             layers[2].class == ParchmentMappingsSpec
             parchment.mavenNotation() == "I like cake"
@@ -78,7 +78,7 @@ class LayeredMappingSpecBuilderTest extends LayeredMappingsSpecification {
         then:
             spec.getVersion(mappingContext) == "layered.863714410.minecraft.null"
             layers.size() == 3
-            layers[0].class == IntermediaryMappingsSpec
+            layers[0].class == HashedMojmapMappingsSpec
             layers[1].class == MojangMappingsSpec
             layers[2].class == ParchmentMappingsSpec
             parchment.mavenNotation() == "I like cake"
@@ -98,7 +98,7 @@ class LayeredMappingSpecBuilderTest extends LayeredMappingsSpecification {
         then:
             spec.getVersion(mappingContext) == "layered.1144465487.minecraft.null"
             layers.size() == 3
-            layers[0].class == IntermediaryMappingsSpec
+            layers[0].class == HashedMojmapMappingsSpec
             layers[1].class == MojangMappingsSpec
             layers[2].class == ParchmentMappingsSpec
             parchment.mavenNotation() == "I really like cake"

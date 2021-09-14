@@ -24,50 +24,50 @@
 
 package net.fabricmc.loom.test.unit.layeredmappings
 
-import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingsSpec
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.parchment.ParchmentMappingsSpec
 
 class ParchmentMappingLayerTest extends LayeredMappingsSpecification {
     def "Read parchment mappings" () {
         setup:
-            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
-            mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_16_5
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(HASHED_MOJMAP_1_17_1_URL, "hashed-mojmap.jar"), "hashed/mappings.tiny")
+            mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_17_1
         when:
             withMavenFile(PARCHMENT_NOTATION, downloadFile(PARCHMENT_URL, "parchment.zip"))
             def mappings = getLayeredMappings(
-                    new IntermediaryMappingsSpec(),
+                    new HashedMojmapMappingsSpec(),
                     new MojangMappingsSpec(),
                     new ParchmentMappingsSpec(PARCHMENT_NOTATION, false)
             )
             def tiny = getTiny(mappings)
         then:
             mappings.srcNamespace == "named"
-            mappings.dstNamespaces == ["intermediary", "official"]
-            mappings.classes.size() == 5747
-            mappings.classes[0].srcName.hashCode() == -1112444138 // MojMap name, just check the hash
-            mappings.classes[0].getDstName(0) == "net/minecraft/class_2573"
-            mappings.classes[0].methods[0].args[0].srcName == "pStack"
+            mappings.dstNamespaces == ["hashed", "official"]
+            mappings.classes.size() == 6113
+            mappings.classes[2].srcName == "com/mojang/math/Matrix3f"
+            mappings.classes[2].getDstName(0) == "net/minecraft/unmapped/C_ffukturc"
+            mappings.classes[2].methods[1].args[0].srcName == "multiplier" // Apparently parameter names don't have a prefix anymore
     }
 
     def "Read parchment mappings remove prefix" () {
         setup:
-            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
-            mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_16_5
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(HASHED_MOJMAP_1_17_1_URL, "hashed-mojmap.jar"), "hashed/mappings.tiny")
+            mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_17_1
         when:
             withMavenFile(PARCHMENT_NOTATION, downloadFile(PARCHMENT_URL, "parchment.zip"))
             def mappings = getLayeredMappings(
-                    new IntermediaryMappingsSpec(),
+                    new HashedMojmapMappingsSpec(),
                     new MojangMappingsSpec(),
                     new ParchmentMappingsSpec(PARCHMENT_NOTATION, true)
             )
             def tiny = getTiny(mappings)
         then:
             mappings.srcNamespace == "named"
-            mappings.dstNamespaces == ["intermediary", "official"]
-            mappings.classes.size() == 5747
-            mappings.classes[0].srcName.hashCode() == -1112444138 // MojMap name, just check the hash
-            mappings.classes[0].getDstName(0) == "net/minecraft/class_2573"
-            mappings.classes[0].methods[0].args[0].srcName == "stack"
+            mappings.dstNamespaces == ["hashed", "official"]
+            mappings.classes.size() == 6113
+            mappings.classes[2].srcName == "com/mojang/math/Matrix3f"
+            mappings.classes[2].getDstName(0) == "net/minecraft/unmapped/C_ffukturc"
+            mappings.classes[2].methods[1].args[0].srcName == "multiplier"
     }
 }
