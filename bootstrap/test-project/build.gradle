@@ -1,8 +1,8 @@
 plugins {
-	id 'fabric-loom' version '0.9.local'
+	id 'org.quiltmc.loom' version '0.9.local'
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.16.5"
+	minecraft "com.mojang:minecraft:1.17.1"
 	mappings loom.officialMojangMappings()
 }

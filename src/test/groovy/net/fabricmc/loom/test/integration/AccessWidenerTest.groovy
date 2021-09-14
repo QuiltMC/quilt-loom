@@ -43,6 +43,7 @@ class AccessWidenerTest extends Specification implements ProjectTestTrait, Archi
 			def result = create("build", gradle)
 		then:
 			result.task(":build").outcome == SUCCESS
+			// TODO: field appears as named instead of hashed
 			getArchiveEntry("fabric-example-mod-1.0.0.jar", "modid.accesswidener") == expected().replaceAll('\r', '')
 		where:
 			gradle              | _

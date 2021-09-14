@@ -25,11 +25,13 @@
 package net.fabricmc.loom.test.integration
 
 import net.fabricmc.loom.test.util.ProjectTestTrait
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Ignore
 class ExperimentalVersionsTest extends Specification implements ProjectTestTrait {
     @Override
     String name() {
@@ -42,7 +44,7 @@ class ExperimentalVersionsTest extends Specification implements ProjectTestTrait
             dependencies {
                 minecraft "com.mojang:minecraft:1.18_experimental-snapshot-1"
                 mappings "net.fabricmc:yarn:1.18_experimental-snapshot-1+build.2:v2"
-                modImplementation "net.fabricmc:fabric-loader:0.11.6"
+                modImplementation "org.quiltmc:quilt-loader:0.13.2"
             }
         '''
     }

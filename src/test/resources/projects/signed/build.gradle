@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom'
+	id 'org.quiltmc.loom'
 	id 'maven-publish'
 	id 'signing'
 }
@@ -9,9 +9,9 @@ version = "1.0.0"
 group = "com.example"
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.16.5"
-	mappings "net.fabricmc:yarn:1.16.5+build.5:v2"
-	modImplementation "net.fabricmc:fabric-loader:0.11.2"
+	minecraft "com.mojang:minecraft:1.17.1"
+	mappings "org.quiltmc:quilt-mappings:1.17.1+build.8:v2"
+	modImplementation "org.quiltmc:quilt-loader:0.13.2"
 }
 
 processResources {
