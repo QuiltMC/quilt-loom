@@ -155,7 +155,7 @@ public class MigrateMappingsTask extends AbstractLoomTask {
 		Path temp = Files.createTempFile("mappings", ".tiny");
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(mappings.toPath(), (ClassLoader) null)) {
-			Files.copy(fileSystem.getPath("mappings/mappings.tiny"), temp, StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(fileSystem.getPath(Constants.Mappings.MAPPINGS_FILE_PATH), temp, StandardCopyOption.REPLACE_EXISTING);
 		}
 
 		try (BufferedReader reader = Files.newBufferedReader(temp)) {

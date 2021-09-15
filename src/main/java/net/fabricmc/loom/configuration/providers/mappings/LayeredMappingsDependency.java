@@ -43,6 +43,7 @@ import org.zeroturnaround.zip.ZipEntrySource;
 import org.zeroturnaround.zip.ZipUtil;
 
 import net.fabricmc.loom.LoomGradlePlugin;
+import net.fabricmc.loom.util.Constants;
 import net.fabricmc.mappingio.adapter.MappingDstNsReorder;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.format.Tiny2Writer;
@@ -81,7 +82,7 @@ public class LayeredMappingsDependency implements SelfResolvingDependency {
 					Files.deleteIfExists(mappingsJar);
 
 					ZipUtil.pack(new ZipEntrySource[] {
-							new ByteSource("mappings/mappings.tiny", writer.toString().getBytes(StandardCharsets.UTF_8))
+							new ByteSource(Constants.Mappings.MAPPINGS_FILE_PATH, writer.toString().getBytes(StandardCharsets.UTF_8))
 					}, mappingsJar.toFile());
 				}
 			} catch (IOException e) {
