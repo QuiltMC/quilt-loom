@@ -4,6 +4,6 @@ plugins {
 
 dependencies {
 	minecraft "com.mojang:minecraft:1.17.1"
-	mappings "org.quiltmc:quilt-mappings:1.17.1+build.8:v2"
+	mappings "org.quiltmc:quilt-mappings:1.17.1+build.9:v2"
 	modImplementation "org.quiltmc:quilt-loader:0.13.2"
 }
