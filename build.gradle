@@ -82,7 +82,8 @@ dependencies {
 	}
 
 	// tinyfile management
-	implementation ('org.quiltmc:tiny-remapper:0.4.3')
+	// TODO: Fix Quilt Tiny Remapper
+	implementation ('net.fabricmc:tiny-remapper:0.6.0')
 	implementation ('org.quiltmc:tiny-mappings-parser:0.3.0')
 
 	// TODO: Fork mapping-io and mercury, publish to Quilt Maven
