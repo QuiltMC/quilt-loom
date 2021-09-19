@@ -35,6 +35,8 @@ public interface MappingContext {
 
 	MappingsProvider mappingsProvider();
 
+	MappingsProvider intermediateMappingsProvider();
+
 	MinecraftProvider minecraftProvider();
 
 	default String minecraftVersion() {

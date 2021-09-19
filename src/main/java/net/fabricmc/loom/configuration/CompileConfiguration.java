@@ -32,7 +32,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.jvm.tasks.Jar;
 
-import net.fabricmc.loom.extension.MixinApExtension;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.build.mixin.JavaApInvoker;
 import net.fabricmc.loom.build.mixin.KaptApInvoker;
@@ -40,7 +39,9 @@ import net.fabricmc.loom.build.mixin.ScalaApInvoker;
 import net.fabricmc.loom.configuration.ide.SetupIntelijRunConfigs;
 import net.fabricmc.loom.configuration.providers.LaunchProvider;
 import net.fabricmc.loom.configuration.providers.MinecraftProviderImpl;
+import net.fabricmc.loom.configuration.providers.mappings.IntermediateMappingsProviderImpl;
 import net.fabricmc.loom.configuration.providers.mappings.MappingsProviderImpl;
+import net.fabricmc.loom.extension.MixinApExtension;
 import net.fabricmc.loom.util.Constants;
 
 public final class CompileConfiguration {
@@ -64,6 +65,7 @@ public final class CompileConfiguration {
 		extendsFrom(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME, Constants.Configurations.MAPPING_CONSTANTS, project);
 
 		extension.createLazyConfiguration(Constants.Configurations.MAPPINGS);
+		extension.createLazyConfiguration(Constants.Configurations.INTERMEDIATE_MAPPINGS);
 		extension.createLazyConfiguration(Constants.Configurations.MAPPINGS_FINAL);
 		extension.createLazyConfiguration(Constants.Configurations.LOOM_DEVELOPMENT_DEPENDENCIES);
 		extension.createLazyConfiguration(Constants.Configurations.UNPICK_CLASSPATH);
@@ -113,6 +115,7 @@ public final class CompileConfiguration {
 			extension.setDependencyManager(dependencyManager);
 
 			dependencyManager.addProvider(new MinecraftProviderImpl(project));
+			dependencyManager.addProvider(new IntermediateMappingsProviderImpl(project));
 			dependencyManager.addProvider(new MappingsProviderImpl(project));
 			dependencyManager.addProvider(new LaunchProvider(project));
 

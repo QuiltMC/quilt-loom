@@ -57,6 +57,11 @@ public class GradleMappingContext implements MappingContext {
 	}
 
 	@Override
+	public MappingsProvider intermediateMappingsProvider() {
+		return extension.getIntermediateMappingsProvider();
+	}
+
+	@Override
 	public MinecraftProvider minecraftProvider() {
 		return extension.getMinecraftProvider();
 	}

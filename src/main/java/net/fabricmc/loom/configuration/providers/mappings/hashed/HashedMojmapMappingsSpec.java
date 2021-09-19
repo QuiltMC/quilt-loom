@@ -30,6 +30,6 @@ import net.fabricmc.loom.configuration.providers.mappings.MappingsSpec;
 public record HashedMojmapMappingsSpec() implements MappingsSpec<HashedMojmapMappingLayer> {
 	@Override
 	public HashedMojmapMappingLayer createLayer(MappingContext context) {
-		return new HashedMojmapMappingLayer(context.mappingsProvider().hashedMojmapTinyFile());
+		return new HashedMojmapMappingLayer(context.intermediateMappingsProvider().getTinyMappings());
 	}
 }

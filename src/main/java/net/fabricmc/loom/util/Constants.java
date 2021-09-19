@@ -64,6 +64,7 @@ public class Constants {
 		public static final String MINECRAFT_REMAP_CLASSPATH = "minecraftRemapClasspath";
 		public static final String MINECRAFT_NAMED = "minecraftNamed";
 		public static final String MAPPINGS = "mappings";
+		public static final String INTERMEDIATE_MAPPINGS = "intermediateMappings";
 		public static final String MAPPINGS_FINAL = "mappingsFinal";
 		public static final String LOADER_DEPENDENCIES = "loaderLibraries";
 		public static final String LOOM_DEVELOPMENT_DEPENDENCIES = "loomDevelopmentDependencies";
@@ -154,6 +155,7 @@ public class Constants {
 		public static final String MAPPINGS_STEPS_CACHE_DIR = "steps";
 		public static final String INVERTED_HASHED_FILE = "inverted-hashed.tiny";
 		public static final String UNORDERED_MERGED_MAPPINGS_FILE = "unordered-merged.tiny";
+		public static final String UNORDERED_INTERMEDIATE_MAPPINGS_FILE = "unordered-intermediate-merged.tiny";
 		public static final String HASHED_TINY_FORMAT = "hashed-%s.tiny";
 		public static final String HASHED_JAR_FORMAT = "hashed-%s.jar";
 
