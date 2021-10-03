@@ -36,8 +36,8 @@ public class Constants {
 	public static final String LIBRARIES_BASE = "https://libraries.minecraft.net/";
 	public static final String RESOURCES_BASE = "https://resources.download.minecraft.net/";
 	public static final String VERSION_MANIFESTS = "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
-	public static final String EXPERIMENTAL_VERSIONS = "https://maven.fabricmc.net/net/minecraft/experimental_versions.json";
-	public static final String FABRIC_REPOSITORY = "https://maven.fabricmc.net/";
+	public static final String EXPERIMENTAL_VERSIONS = "https://maven.quiltmc.org/repository/fabricmc/net/minecraft/experimental_versions.json";
+	public static final String FABRIC_REPOSITORY = "https://maven.quiltmc.org/repository/fabricmc/";
 
 	public static final String SYSTEM_ARCH = System.getProperty("os.arch").equals("64") ? "64" : "32";
 
@@ -82,7 +82,7 @@ public class Constants {
 	 */
 	public static final class Dependencies {
 		public static final String MIXIN_COMPILE_EXTENSIONS = "net.fabricmc:fabric-mixin-compile-extensions:";
-		public static final String DEV_LAUNCH_INJECTOR = "net.fabricmc:dev-launch-injector:";
+		public static final String DEV_LAUNCH_INJECTOR = "org.quiltmc:dev-launch-injector:";
 		public static final String TERMINAL_CONSOLE_APPENDER = "net.minecrell:terminalconsoleappender:";
 		public static final String JETBRAINS_ANNOTATIONS = "org.jetbrains:annotations:";
 

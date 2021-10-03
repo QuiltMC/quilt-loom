@@ -34,7 +34,7 @@ if (ENV.BUILD_NUMBER) {
 repositories {
 	maven {
 		name = 'Fabric'
-		url = 'https://maven.fabricmc.net/'
+		url = 'https://maven.quiltmc.org/repository/fabricmc'
 	}
 	mavenCentral()
 	mavenLocal()
@@ -148,9 +148,9 @@ codenarc {
 
 gradlePlugin {
 	plugins {
-		fabricLoom {
-			id = 'fabric-loom'
-			implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
+		quiltLoom {
+			id = "org.quiltmc.loom"
+			implementationClass = "net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap"
 		}
 	}
 }

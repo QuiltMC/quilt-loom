@@ -212,7 +212,7 @@ public class ModProcessor {
 			String jsonStr;
 
 			try (JarFile jarFile = new JarFile(file)) {
-				ZipEntry entry = jarFile.getEntry("fabric-installer.json");
+				ZipEntry entry = jarFile.getEntry("quilt-installer.json");
 
 				if (entry == null) {
 					return null;

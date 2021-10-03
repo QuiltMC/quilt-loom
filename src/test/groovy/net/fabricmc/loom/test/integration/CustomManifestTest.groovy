@@ -38,6 +38,7 @@ class CustomManifestTest extends Specification implements GradleProjectTestTrait
             def gradle = gradleProject(project: "minimalBase", version: version)
             gradle.buildGradle << '''
                 loom {
+                    // have to use fabric maven here because Nexus can't mirror random files strewn about the maven server
                     customMinecraftManifest = "https://maven.fabricmc.net/net/minecraft/1_18_experimental-snapshot-1.json"
                 }
 

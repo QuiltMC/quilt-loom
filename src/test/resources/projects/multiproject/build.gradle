@@ -1,11 +1,11 @@
 plugins {
 	id "java"
 	id "java-library"
-	id 'fabric-loom' apply false
+	id 'org.quiltmc.loom' apply false
 }
 
 allprojects {
-	apply plugin: "fabric-loom"
+	apply plugin: "org.quiltmc.loom"
 
 	version = "1.0.0"
 

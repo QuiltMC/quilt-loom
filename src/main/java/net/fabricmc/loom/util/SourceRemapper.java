@@ -125,7 +125,7 @@ public class SourceRemapper {
 		if (!source.isDirectory()) {
 			// create tmp directory
 			isSrcTmp = true;
-			srcPath = Files.createTempDirectory("fabric-loom-src");
+			srcPath = Files.createTempDirectory("org.quiltmc.loom-src");
 			ZipUtil.unpack(source, srcPath.toFile());
 		}
 

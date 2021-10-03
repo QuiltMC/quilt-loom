@@ -1,11 +1,11 @@
 pluginManagement {
     plugins {
-        id 'fabric-loom'
+        id 'org.quiltmc.loom'
     }
 }
 
 plugins {
-    id 'fabric-loom'
+    id 'org.quiltmc.loom'
 }
 
 dependencyResolutionManagement {

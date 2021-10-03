@@ -109,8 +109,8 @@ public class RunConfig {
 		runConfig.vmArgs = "";
 		runConfig.programArgs = "";
 
-		runConfig.mainClass = "net.fabricmc.devlaunchinjector.Main";
-		runConfig.vmArgs = "-Dfabric.dli.config=" + encodeEscaped(extension.getFiles().getDevLauncherConfig().getAbsolutePath()) + " -Dfabric.dli.env=" + environment.toLowerCase();
+		runConfig.mainClass = "org.quiltmc.devlaunchinjector.Main";
+		runConfig.vmArgs = "-Dquilt.dli.config=" + encodeEscaped(extension.getFiles().getDevLauncherConfig().getAbsolutePath()) + " -Dquilt.dli.env=" + environment.toLowerCase();
 	}
 
 	// Turns camelCase/PascalCase into Capital Case
@@ -173,7 +173,7 @@ public class RunConfig {
 			runConfig.vmArgs += " " + vmArg;
 		}
 
-		runConfig.vmArgs += " -Dfabric.dli.main=" + getMainClass(environment, extension, defaultMain);
+		runConfig.vmArgs += " -Dquilt.dli.main=" + getMainClass(environment, extension, defaultMain);
 
 		// Remove unnecessary leading/trailing whitespaces we might have generated
 		runConfig.programArgs = runConfig.programArgs.trim();

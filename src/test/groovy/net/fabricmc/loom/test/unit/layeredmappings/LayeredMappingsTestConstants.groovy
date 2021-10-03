@@ -27,8 +27,8 @@ package net.fabricmc.loom.test.unit.layeredmappings
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta
 
 interface LayeredMappingsTestConstants {
-    public static final String INTERMEDIARY_1_17_URL = "https://maven.fabricmc.net/net/fabricmc/intermediary/1.17/intermediary-1.17-v2.jar"
-    public static final String INTERMEDIARY_1_16_5_URL = "https://maven.fabricmc.net/net/fabricmc/intermediary/1.16.5/intermediary-1.16.5-v2.jar"
+    public static final String INTERMEDIARY_1_17_URL = "https://maven.quiltmc.org/repository/fabricmc/net/fabricmc/intermediary/1.17/intermediary-1.17-v2.jar"
+    public static final String INTERMEDIARY_1_16_5_URL = "https://maven.quiltmc.org/repository/fabricmc/net/fabricmc/intermediary/1.16.5/intermediary-1.16.5-v2.jar"
 
     public static final Map<String, MinecraftVersionMeta.Download> DOWNLOADS_1_17 = [
             client_mappings: new MinecraftVersionMeta.Download(null, "227d16f520848747a59bef6f490ae19dc290a804", 6431705, "https://launcher.mojang.com/v1/objects/227d16f520848747a59bef6f490ae19dc290a804/client.txt"),
