@@ -1,0 +1,35 @@
+name: Sync Fork
+
+on:
+  schedule:
+    - cron: '0 0 * * 5'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [0.10]
+      max-parallel: 1
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0 # is this needed?
+      - uses: repo-sync/github-sync@v2
+        with:
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          source_repo: FabricMC/fabric-loom
+          source_branch: dev/${{ matrix.branch }}
+          destination_branch: upstream/${{ matrix.branch }}
+      - uses: repo-sync/pull-request@v2
+        with:
+          source_branch: upstream/${{ matrix.branch }}
+          destination_branch: dev/${{ matrix.branch }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_title: Merge upstream to ${{ secrets.GITHUB_TOKEN }}
+          pr_body: "This PR was made automatically. **DO NOT** push any changes to this branch, or you will break the action! Instead, create a new branch and fix any errors there."
+          pr_draft: true
+          pr_label: "automated,upstream-update"
