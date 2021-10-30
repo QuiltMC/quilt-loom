@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2018-2020 FabricMC
+ * Copyright (c) 2018-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +22,32 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.decompilers.fernflower;
+package net.fabricmc.loom.test.integration
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
+import net.fabricmc.loom.test.util.GradleProjectTestTrait
+import spock.lang.Specification
+import spock.lang.Unroll
 
-import org.jetbrains.java.decompiler.main.Fernflower;
-import org.jetbrains.java.decompiler.main.extern.IFernflowerLogger;
-import org.jetbrains.java.decompiler.main.extern.IResultSaver;
+import static net.fabricmc.loom.test.LoomTestConstants.STANDARD_TEST_VERSIONS
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-import net.fabricmc.fernflower.api.IFabricJavadocProvider;
+class LocalRuntimeTest extends Specification implements GradleProjectTestTrait {
+	@Unroll
+	def "build (gradle #version)"() {
+		setup:
+			def gradle = gradleProject(project: "localRuntime", version: version)
 
-public class FabricForkedFFExecutor extends AbstractForkedFFExecutor {
-	public static void main(String[] args) {
-		AbstractForkedFFExecutor.decompile(args, new FabricForkedFFExecutor());
-	}
+		when:
+			def result = gradle.run(tasks: ["build", "publishToMavenLocal"])
 
-	@Override
-	public void runFF(Map<String, Object> options, List<File> libraries, File input, File output, File lineMap, File mappings) {
-		options.put(IFabricJavadocProvider.PROPERTY_NAME, new TinyJavadocProvider(mappings));
+		then:
+			result.task(":build").outcome == SUCCESS
+			def pomFile = new File(gradle.getProjectDir(), "build/publications/mavenJava/pom-default.xml")
+			def pom = pomFile.text
+			!pom.contains("fabric-api")
+			!pom.contains("enigma")
 
-		IResultSaver saver = new ThreadSafeResultSaver(() -> output, () -> lineMap);
-		IFernflowerLogger logger = new ThreadIDFFLogger();
-		Fernflower ff = new Fernflower(FernFlowerUtils::getBytecode, saver, options, logger);
-
-		for (File library : libraries) {
-			ff.addLibrary(library);
-		}
-
-		ff.addSource(input);
-		ff.decompileContext();
+		where:
+			version << STANDARD_TEST_VERSIONS
 	}
 }
