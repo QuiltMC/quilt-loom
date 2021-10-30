@@ -164,8 +164,10 @@ public class SourceRemapper {
 		MappingSet mappings = extension.getOrCreateSrcMappingCache(toNamed ? 1 : 0, () -> {
 			try {
 				MemoryMappingTree m = mappingsProvider.getMappings();
-				project.getLogger().info(":loading " + (toNamed ? "intermediary -> named" : "named -> intermediary") + " source mappings");
-				return new TinyMappingsReader(m, toNamed ? MappingsNamespace.INTERMEDIARY.toString() : MappingsNamespace.NAMED.toString(), toNamed ? MappingsNamespace.NAMED.toString() : MappingsNamespace.INTERMEDIARY.toString()).read();
+				String hashedNs = MappingsNamespace.HASHED.toString();
+				String namedNs = MappingsNamespace.NAMED.toString();
+				project.getLogger().info(":loading " + (toNamed ? hashedNs + " -> " + namedNs : namedNs + " -> " + hashedNs) + " source mappings");
+				return new TinyMappingsReader(m, toNamed ? hashedNs : namedNs, toNamed ? namedNs : hashedNs).read();
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
@@ -183,7 +185,7 @@ public class SourceRemapper {
 			}
 
 			m.getClassPath().add(extension.getMinecraftMappedProvider().getMappedJar().toPath());
-			m.getClassPath().add(extension.getMinecraftMappedProvider().getIntermediaryJar().toPath());
+			m.getClassPath().add(extension.getMinecraftMappedProvider().getHashedJar().toPath());
 
 			Set<File> files = project.getConfigurations()
 					.detachedConfiguration(project.getDependencies().create(Constants.Dependencies.JETBRAINS_ANNOTATIONS + Constants.Dependencies.Versions.JETBRAINS_ANNOTATIONS))

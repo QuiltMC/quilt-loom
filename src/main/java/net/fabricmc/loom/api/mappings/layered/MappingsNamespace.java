@@ -36,13 +36,13 @@ public enum MappingsNamespace {
 	OFFICIAL,
 
 	/**
-	 * Intermediary mappings have been generated to provide a stable set of names across minecraft versions.
+	 * Hashed Mojmap mappings have been generated to provide a stable set of names across minecraft versions.
 	 *
-	 * <p>Intermediary is used in a production runtime (outside a dev env) allowing mods to run across multiple versions of the game. Mods are remapped from "named" at build time.
+	 * <p>Hashed Mojmap is used in a production runtime (outside a dev env) allowing mods to run across multiple versions of the game. Mods are remapped from "named" at build time.
 	 *
-	 * @see <a href="https://github.com/FabricMC/intermediary/">github.com/FabricMC/intermediary/</a>
+	 * @see <a href="https://github.com/QuiltMC/mappings-hasher/">github.com/QuiltMC/mappings-hasher/</a>
 	 */
-	INTERMEDIARY,
+	HASHED,
 
 	/**
 	 * Named mappings are the developer friendly names used to develop mods against.

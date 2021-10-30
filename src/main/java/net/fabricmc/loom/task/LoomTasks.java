@@ -50,12 +50,12 @@ public final class LoomTasks {
 		});
 
 		tasks.register("remapJar", RemapJarTask.class, t -> {
-			t.setDescription("Remaps the built project jar to intermediary mappings.");
-			t.setGroup(Constants.TaskGroup.FABRIC);
+			t.setDescription("Remaps the built project jar to hashed mappings.");
+			t.setGroup(Constants.TaskGroup.QUILT);
 		});
 
 		tasks.register("downloadAssets", DownloadAssetsTask.class, t -> t.setDescription("Downloads required assets for Fabric."));
-		tasks.register("remapSourcesJar", RemapSourcesJarTask.class, t -> t.setDescription("Remaps the project sources jar to intermediary names."));
+		tasks.register("remapSourcesJar", RemapSourcesJarTask.class, t -> t.setDescription("Remaps the project sources jar to Hashed Mojmap names."));
 
 		tasks.getByName("check").dependsOn(
 				tasks.register("validateAccessWidener", ValidateAccessWidenerTask.class, t -> {

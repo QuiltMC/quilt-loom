@@ -98,9 +98,8 @@ public interface LoomGradleExtension extends LoomGradleExtensionAPI {
 		return Boolean.parseBoolean(System.getProperty("idea.sync.active", "false"));
 	}
 
-	default String getIntermediaryUrl(String minecraftVersion) {
-		// TODO reimplement a way to change this, was never really supported api anyway
-		return String.format("https://maven.quiltmc.org/repository/fabricmc/net/fabricmc/intermediary/%1$s/intermediary-%1$s-v2.jar", minecraftVersion);
+	default String getHashedMojmapUrl(String minecraftVersion) {
+		return String.format("https://maven.quiltmc.org/repository/release/org/quiltmc/hashed-mojmap/%1$s/hashed-mojmap-%1$s.jar", minecraftVersion);
 	}
 
 	@Override

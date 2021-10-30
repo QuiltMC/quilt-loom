@@ -65,6 +65,7 @@ public final class CompileConfiguration {
 		extendsFrom(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME, Constants.Configurations.MAPPING_CONSTANTS, project);
 
 		extension.createLazyConfiguration(Constants.Configurations.MAPPINGS);
+		extension.createLazyConfiguration(Constants.Configurations.INTERMEDIATE_MAPPINGS);
 		extension.createLazyConfiguration(Constants.Configurations.MAPPINGS_FINAL);
 		extension.createLazyConfiguration(Constants.Configurations.LOOM_DEVELOPMENT_DEPENDENCIES);
 		extension.createLazyConfiguration(Constants.Configurations.UNPICK_CLASSPATH);

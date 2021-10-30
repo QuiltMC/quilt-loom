@@ -52,12 +52,12 @@ public final class TransitiveAccessWidenerMappingsProcessor {
 		MemoryMappingTree mappingTree = new MemoryMappingTree();
 
 		try (Reader reader = Files.newBufferedReader(inputMappings, StandardCharsets.UTF_8)) {
-			MappingReader.read(reader, new MappingSourceNsSwitch(mappingTree, MappingsNamespace.INTERMEDIARY.toString()));
+			MappingReader.read(reader, new MappingSourceNsSwitch(mappingTree, MappingsNamespace.HASHED.toString()));
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to read mappings", e);
 		}
 
-		if (!MappingsNamespace.INTERMEDIARY.toString().equals(mappingTree.getSrcNamespace())) {
+		if (!MappingsNamespace.HASHED.toString().equals(mappingTree.getSrcNamespace())) {
 			throw new IllegalStateException("Mapping tree must have intermediary src mappings not " + mappingTree.getSrcNamespace());
 		}
 

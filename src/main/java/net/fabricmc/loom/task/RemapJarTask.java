@@ -68,6 +68,7 @@ import net.fabricmc.loom.configuration.accesswidener.AccessWidenerFile;
 import net.fabricmc.loom.configuration.accesswidener.AccessWidenerJarProcessor;
 import net.fabricmc.loom.configuration.providers.mappings.MappingsProviderImpl;
 import net.fabricmc.loom.util.Constants;
+import net.fabricmc.loom.util.ModUtils;
 import net.fabricmc.loom.util.TinyRemapperHelper;
 import net.fabricmc.loom.util.ZipReprocessorUtil;
 import net.fabricmc.loom.util.ZipUtils;
@@ -133,7 +134,7 @@ public class RemapJarTask extends Jar {
 		MappingsProviderImpl mappingsProvider = extension.getMappingsProvider();
 
 		String fromM = MappingsNamespace.NAMED.toString();
-		String toM = MappingsNamespace.INTERMEDIARY.toString();
+		String toM = MappingsNamespace.HASHED.toString();
 
 		if (isMainRemapTask) {
 			jarRemapper.addToClasspath(getRemapClasspath());
@@ -166,7 +167,12 @@ public class RemapJarTask extends Jar {
 						}
 
 						AccessWidenerFile awFile = AccessWidenerFile.fromModJar(remapData.input);
-						Preconditions.checkNotNull(awFile, "Failed to find accessWidener in fabric.mod.json: " + remapData.input);
+						boolean isQuiltMod = ModUtils.isQuiltMod(remapData.input);
+						if (isQuiltMod) {
+							Preconditions.checkNotNull(awFile, "Failed to find access_widener in quilt.mod.json: " + remapData.input);
+						} else {
+							Preconditions.checkNotNull(awFile, "Failed to find accessWidener in fabric.mod.json: " + remapData.input);
+						}
 
 						return Pair.of(awFile.name(), data);
 					}

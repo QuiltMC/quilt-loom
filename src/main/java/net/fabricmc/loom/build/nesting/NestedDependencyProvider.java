@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -53,6 +52,7 @@ import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.task.RemapJarTask;
 import net.fabricmc.loom.util.Constants;
+import net.fabricmc.loom.util.ModUtils;
 import net.fabricmc.loom.util.ZipUtils;
 
 public final class NestedDependencyProvider implements NestedJarProvider {
@@ -158,7 +158,7 @@ public final class NestedDependencyProvider implements NestedJarProvider {
 			File file = metaFile.file;
 
 			//A lib that doesnt have a mod.json, we turn it into a fake mod
-			if (!ZipUtils.contains(file.toPath(), "fabric.mod.json")) {
+			if (!ModUtils.isMod(file)) {
 				LoomGradleExtension extension = LoomGradleExtension.get(project);
 				File tempDir = new File(extension.getFiles().getUserCache(), "temp/modprocessing");
 
@@ -179,7 +179,7 @@ public final class NestedDependencyProvider implements NestedJarProvider {
 				}
 
 				try {
-					ZipUtils.add(tempFile.toPath(), "fabric.mod.json", generateModForDependency(metaFile).getBytes());
+					ZipUtils.add(tempFile.toPath(), "quilt.mod.json", generateModForDependency(metaFile).getBytes());
 				} catch (IOException e) {
 					throw new UncheckedIOException("Failed to add dummy mod while including %s".formatted(file), e);
 				}
@@ -199,22 +199,20 @@ public final class NestedDependencyProvider implements NestedJarProvider {
 		DependencyMetaExtractor<D> metaExtractor = info.metaExtractor;
 		D dependency = info.dependency;
 
-		JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty("schemaVersion", 1);
+		JsonObject json = new JsonObject();
+		json.addProperty("schema_version", 1);
 
-		jsonObject.addProperty("id",
-				(metaExtractor.group(dependency) + "_" + metaExtractor.name(dependency) + info.getClassifierSuffix())
-						.replaceAll("\\.", "_")
-						.toLowerCase(Locale.ENGLISH)
-		);
-		jsonObject.addProperty("version", metaExtractor.version(dependency));
-		jsonObject.addProperty("name", metaExtractor.name(dependency));
+		JsonObject quiltLoaderInfo = new JsonObject();
+		quiltLoaderInfo.addProperty("group", metaExtractor.group(dependency));
+		quiltLoaderInfo.addProperty("id", metaExtractor.name(dependency).replace(".", "_"));
+		quiltLoaderInfo.addProperty("version", metaExtractor.version(dependency));
+		json.add("quilt_loader", json);
 
-		JsonObject custom = new JsonObject();
-		custom.addProperty("fabric-loom:generated", true);
-		jsonObject.add("custom", custom);
+		JsonObject quiltLoomMeta = new JsonObject();
+		quiltLoomMeta.addProperty("generated", true);
+		json.add("quilt_loom", quiltLoomMeta);
 
-		return LoomGradlePlugin.GSON.toJson(jsonObject);
+		return LoomGradlePlugin.GSON.toJson(json);
 	}
 
 	private record DependencyInfo<D>(D dependency, DependencyMetaExtractor<D> metaExtractor, File file, @Nullable String classifier) {

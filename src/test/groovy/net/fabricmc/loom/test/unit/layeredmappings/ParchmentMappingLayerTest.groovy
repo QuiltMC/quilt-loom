@@ -25,19 +25,19 @@
 package net.fabricmc.loom.test.unit.layeredmappings
 
 import net.fabricmc.loom.api.mappings.layered.spec.FileSpec
-import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingsSpec
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.parchment.ParchmentMappingsSpec
 
 class ParchmentMappingLayerTest extends LayeredMappingsSpecification {
     def "Read parchment mappings" () {
         setup:
-            mockMappingsProvider.intermediaryTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
             mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_16_5
         when:
             withMavenFile(PARCHMENT_NOTATION, downloadFile(PARCHMENT_URL, "parchment.zip"))
             def mappings = getLayeredMappings(
-                    new IntermediaryMappingsSpec(),
+                    new HashedMojmapMappingsSpec(),
                     new MojangMappingsSpec(),
                     new ParchmentMappingsSpec(FileSpec.create(PARCHMENT_NOTATION), false)
             )
@@ -55,12 +55,12 @@ class ParchmentMappingLayerTest extends LayeredMappingsSpecification {
 
     def "Read parchment mappings remove prefix" () {
         setup:
-            mockMappingsProvider.intermediaryTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
             mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_16_5
         when:
             withMavenFile(PARCHMENT_NOTATION, downloadFile(PARCHMENT_URL, "parchment.zip"))
             def mappings = getLayeredMappings(
-                    new IntermediaryMappingsSpec(),
+                    new HashedMojmapMappingsSpec(),
                     new MojangMappingsSpec(),
                     new ParchmentMappingsSpec(FileSpec.create(PARCHMENT_NOTATION), true)
             )

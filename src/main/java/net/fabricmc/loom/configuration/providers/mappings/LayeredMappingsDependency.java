@@ -48,6 +48,7 @@ import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.api.mappings.layered.MappingContext;
 import net.fabricmc.loom.api.mappings.layered.MappingLayer;
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.ZipUtils;
 import net.fabricmc.mappingio.adapter.MappingDstNsReorder;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
@@ -99,11 +100,11 @@ public class LayeredMappingsDependency implements SelfResolvingDependency, FileC
 			Tiny2Writer tiny2Writer = new Tiny2Writer(writer, false);
 
 			MappingDstNsReorder nsReorder = new MappingDstNsReorder(tiny2Writer, Collections.singletonList(MappingsNamespace.NAMED.toString()));
-			MappingSourceNsSwitch nsSwitch = new MappingSourceNsSwitch(nsReorder, MappingsNamespace.INTERMEDIARY.toString(), true);
+			MappingSourceNsSwitch nsSwitch = new MappingSourceNsSwitch(nsReorder, MappingsNamespace.HASHED.toString(), true);
 			mappings.accept(nsSwitch);
 
 			Files.deleteIfExists(mappingsFile);
-			ZipUtils.add(mappingsFile, "mappings/mappings.tiny", writer.toString().getBytes(StandardCharsets.UTF_8));
+			ZipUtils.add(mappingsFile, Constants.Mappings.MAPPINGS_FILE_PATH, writer.toString().getBytes(StandardCharsets.UTF_8));
 		}
 	}
 

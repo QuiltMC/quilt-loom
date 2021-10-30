@@ -52,6 +52,7 @@ import net.fabricmc.loom.api.mappings.layered.spec.LayeredMappingSpecBuilder;
 import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingsDependency;
 import net.fabricmc.loom.configuration.providers.mappings.MappingsProviderImpl;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMappedProvider;
+import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.SourceRemapper;
 import net.fabricmc.lorenztiny.TinyMappingsJoiner;
 import net.fabricmc.mappingio.MappingReader;
@@ -151,7 +152,7 @@ public class MigrateMappingsTask extends AbstractLoomTask {
 		MemoryMappingTree mappingTree = new MemoryMappingTree();
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(mappings.toPath(), (ClassLoader) null)) {
-			MappingReader.read(fileSystem.getPath("mappings/mappings.tiny"), mappingTree);
+			MappingReader.read(fileSystem.getPath(Constants.Mappings.MAPPINGS_FILE_PATH), mappingTree);
 		}
 
 		return mappingTree;
@@ -165,7 +166,7 @@ public class MigrateMappingsTask extends AbstractLoomTask {
 		MappingSet mappingSet = new TinyMappingsJoiner(
 				currentMappings, MappingsNamespace.NAMED.toString(),
 				targetMappings, MappingsNamespace.NAMED.toString(),
-				MappingsNamespace.INTERMEDIARY.toString()
+				MappingsNamespace.HASHED.toString()
 		).read();
 
 		project.getLogger().lifecycle(":remapping");
@@ -180,7 +181,7 @@ public class MigrateMappingsTask extends AbstractLoomTask {
 		mercury.setSourceCompatibility(javaVersion.toString());
 
 		mercury.getClassPath().add(minecraftMappedProvider.getMappedJar().toPath());
-		mercury.getClassPath().add(minecraftMappedProvider.getIntermediaryJar().toPath());
+		mercury.getClassPath().add(minecraftMappedProvider.getHashedJar().toPath());
 
 		mercury.getProcessors().add(MercuryRemapper.create(mappingSet));
 

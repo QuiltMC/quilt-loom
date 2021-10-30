@@ -38,7 +38,7 @@ import net.fabricmc.loom.util.SourceRemapper;
 public class RemapSourcesJarTask extends AbstractLoomTask {
 	private final RegularFileProperty input = getProject().getObjects().fileProperty();
 	private final RegularFileProperty output = getProject().getObjects().fileProperty().convention(input);
-	private final Property<String> targetNamespace = getProject().getObjects().property(String.class).convention(MappingsNamespace.INTERMEDIARY.toString());
+	private final Property<String> targetNamespace = getProject().getObjects().property(String.class).convention(MappingsNamespace.HASHED.toString());
 	private SourceRemapper sourceRemapper = null;
 	private final Property<Boolean> preserveFileTimestamps = getProject().getObjects().property(Boolean.class).convention(true);
 	private final Property<Boolean> reproducibleFileOrder = getProject().getObjects().property(Boolean.class).convention(false);

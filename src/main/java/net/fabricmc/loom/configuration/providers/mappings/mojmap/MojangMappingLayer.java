@@ -36,8 +36,8 @@ import org.gradle.api.logging.Logger;
 
 import net.fabricmc.loom.api.mappings.layered.MappingLayer;
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingLayer;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta;
-import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingLayer;
 import net.fabricmc.loom.util.HashedDownloadUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
@@ -96,6 +96,6 @@ public record MojangMappingLayer(MinecraftVersionMeta.Download clientDownload,
 
 	@Override
 	public List<Class<? extends MappingLayer>> dependsOn() {
-		return List.of(IntermediaryMappingLayer.class);
+		return List.of(HashedMojmapMappingLayer.class);
 	}
 }

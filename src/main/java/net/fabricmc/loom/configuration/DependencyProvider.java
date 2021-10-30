@@ -52,6 +52,7 @@ import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.configuration.providers.MinecraftProvider;
 import net.fabricmc.loom.extension.LoomFiles;
+import net.fabricmc.loom.util.ModUtils;
 import net.fabricmc.loom.util.ZipUtils;
 
 public abstract class DependencyProvider {
@@ -201,37 +202,37 @@ public abstract class DependencyProvider {
 			Set<File> files = dependency.resolve();
 			this.resolvedFiles = files;
 			switch (files.size()) {
-			case 0 -> //Don't think Gradle would ever let you do this
-					throw new IllegalStateException("Empty dependency?");
-			case 1 -> //Single file dependency
-					classifierToFile.put("", Iterables.getOnlyElement(files));
-			default -> { //File collection, try work out the classifiers
-				List<File> sortedFiles = files.stream().sorted(Comparator.comparing(File::getName, Comparator.comparingInt(String::length))).collect(Collectors.toList());
-				//First element in sortedFiles is the one with the shortest name, we presume all the others are different classifier types of this
-				File shortest = sortedFiles.remove(0);
-				String shortestName = FilenameUtils.removeExtension(shortest.getName()); //name.jar -> name
+				case 0 -> //Don't think Gradle would ever let you do this
+						throw new IllegalStateException("Empty dependency?");
+				case 1 -> //Single file dependency
+						classifierToFile.put("", Iterables.getOnlyElement(files));
+				default -> { //File collection, try work out the classifiers
+					List<File> sortedFiles = files.stream().sorted(Comparator.comparing(File::getName, Comparator.comparingInt(String::length))).collect(Collectors.toList());
+					//First element in sortedFiles is the one with the shortest name, we presume all the others are different classifier types of this
+					File shortest = sortedFiles.remove(0);
+					String shortestName = FilenameUtils.removeExtension(shortest.getName()); //name.jar -> name
 
-				for (File file : sortedFiles) {
-					if (!file.getName().startsWith(shortestName)) {
-						//If there is another file which doesn't start with the same name as the presumed classifier-less one we're out of our depth
-						throw new IllegalArgumentException("Unable to resolve classifiers for " + this + " (failed to sort " + files + ')');
+					for (File file : sortedFiles) {
+						if (!file.getName().startsWith(shortestName)) {
+							//If there is another file which doesn't start with the same name as the presumed classifier-less one we're out of our depth
+							throw new IllegalArgumentException("Unable to resolve classifiers for " + this + " (failed to sort " + files + ')');
+						}
+					}
+
+					//We appear to be right, therefore this is the normal dependency file we want
+					classifierToFile.put("", shortest);
+					int start = shortestName.length();
+
+					for (File file : sortedFiles) {
+						//Now we just have to work out what classifier type the other files are, this shouldn't even return an empty string
+						String classifier = FilenameUtils.removeExtension(file.getName()).substring(start);
+
+						//The classifier could well be separated with a dash (thing name.jar and name-sources.jar), we don't want that leading dash
+						if (classifierToFile.put(classifier.charAt(0) == '-' ? classifier.substring(1) : classifier, file) != null) {
+							throw new InvalidUserDataException("Duplicate classifiers for " + this + " (\"" + file.getName().substring(start) + "\" in " + files + ')');
+						}
 					}
 				}
-
-				//We appear to be right, therefore this is the normal dependency file we want
-				classifierToFile.put("", shortest);
-				int start = shortestName.length();
-
-				for (File file : sortedFiles) {
-					//Now we just have to work out what classifier type the other files are, this shouldn't even return an empty string
-					String classifier = FilenameUtils.removeExtension(file.getName()).substring(start);
-
-					//The classifier could well be separated with a dash (thing name.jar and name-sources.jar), we don't want that leading dash
-					if (classifierToFile.put(classifier.charAt(0) == '-' ? classifier.substring(1) : classifier, file) != null) {
-						throw new InvalidUserDataException("Duplicate classifiers for " + this + " (\"" + file.getName().substring(start) + "\" in " + files + ')');
-					}
-				}
-			}
 			}
 
 			if (dependency.getGroup() != null && dependency.getVersion() != null) {
@@ -239,13 +240,37 @@ public abstract class DependencyProvider {
 				name = dependency.getName();
 				version = dependency.getVersion();
 			} else {
-				group = "net.fabricmc.synthetic";
 				File root = classifierToFile.get(""); //We've built the classifierToFile map, now to try find a name and version for our dependency
 				byte[] modJson;
 
 				try {
-					if ("jar".equals(FilenameUtils.getExtension(root.getName())) && (modJson = ZipUtils.unpackNullable(root.toPath(), "fabric.mod.json")) != null) {
+					if ("jar".equals(FilenameUtils.getExtension(root.getName())) && ModUtils.isQuiltMod(root.toPath())) {
+						//It's a Quilt mod, see how much we can extract out
+						modJson = ZipUtils.unpack(root.toPath(), "quilt.mod.json");
+						JsonObject json = new Gson().fromJson(new String(modJson, StandardCharsets.UTF_8), JsonObject.class);
+
+						if (json == null || !json.has("schema_version") || !json.has("quilt_loader")) {
+							throw new IllegalArgumentException("Invalid Quilt mod jar: " + root + " (malformed json: " + json + ')');
+						}
+
+						JsonObject modLoaderInfo = json.getAsJsonObject("quilt_loader");
+						if (!modLoaderInfo.has("id") || !modLoaderInfo.has("group") || !modLoaderInfo.has("version")) {
+							throw new IllegalArgumentException("Invalid Quilt mod jar: " + root +  " (invalid Quilt loader information: " + modLoaderInfo + ')');
+						}
+
+						group = modLoaderInfo.get("group").getAsString();
+
+						if (modLoaderInfo.has("metadata") && modLoaderInfo.getAsJsonObject("metadata").has("name")) {
+							name = modLoaderInfo.getAsJsonObject("metadata").get("name").getAsString();
+						} else {
+							name = modLoaderInfo.get("id").getAsString();
+						}
+
+						version = modLoaderInfo.get("version").getAsString();
+					} else if ("jar".equals(FilenameUtils.getExtension(root.getName())) && ModUtils.isFabricMod(root.toPath())) {
 						//It's a Fabric mod, see how much we can extract out
+						group = "net.fabricmc.synthetic";
+						modJson = ZipUtils.unpack(root.toPath(), "fabric.mod.json");
 						JsonObject json = new Gson().fromJson(new String(modJson, StandardCharsets.UTF_8), JsonObject.class);
 
 						if (json == null || !json.has("id") || !json.has("version")) {
@@ -260,7 +285,8 @@ public abstract class DependencyProvider {
 
 						version = json.get("version").getAsString();
 					} else {
-						//Not a Fabric mod, just have to make something up
+						//Not a Quilt or Fabric mod, just have to make something up
+						group = "org.quiltmc.synthetic";
 						name = FilenameUtils.removeExtension(root.getName());
 						version = "1.0";
 					}

@@ -20,7 +20,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 
-group = 'net.fabricmc'
+group = 'org.quiltmc'
 archivesBaseName = project.name
 def baseVersion = '0.10'
 
@@ -32,6 +32,10 @@ if (ENV.BUILD_NUMBER) {
 }
 
 repositories {
+	maven {
+		name = 'Quilt Releases'
+		url = 'https://maven.quiltmc.org/repository/release'
+	}
 	maven {
 		name = 'Fabric'
 		url = 'https://maven.quiltmc.org/repository/fabricmc'
@@ -77,7 +81,7 @@ dependencies {
 	}
 
 	// tinyfile management
-	implementation ('net.fabricmc:tiny-remapper:0.7.0')
+	implementation ('org.quiltmc:tiny-remapper:0.7.1')
 	implementation 'net.fabricmc:access-widener:2.0.1'
 	implementation 'net.fabricmc:mapping-io:0.2.1'
 
@@ -86,7 +90,7 @@ dependencies {
 	}
 
 	// decompilers
-	implementation ('net.fabricmc:fabric-fernflower:1.4.1')
+	implementation ('org.quiltmc:quiltflower:1.5.0')
 	implementation ('net.fabricmc:cfr:0.0.8')
 
 	// source code remapping
@@ -224,8 +228,8 @@ publishing {
 
 		// Manually crate the plugin marker for snapshot versions
 		snapshotPlugin(MavenPublication) { publication ->
-			groupId 'fabric-loom'
-			artifactId 'fabric-loom.gradle.plugin'
+			groupId 'org.quiltmc.loom'
+			artifactId 'org.quiltmc.loom.gradle.plugin'
 			version baseVersion + '-SNAPSHOT'
 
 			pom.withXml({
@@ -235,9 +239,9 @@ publishing {
 				Node dependencies = root.appendChild(document.createElement('dependencies'))
 				Node dependency = dependencies.appendChild(document.createElement('dependency'))
 				Node groupId = dependency.appendChild(document.createElement('groupId'))
-				groupId.setTextContent('net.fabricmc')
+				groupId.setTextContent('org.quiltmc')
 				Node artifactId = dependency.appendChild(document.createElement('artifactId'))
-				artifactId.setTextContent('fabric-loom')
+				artifactId.setTextContent('quilt-loom')
 				Node version = dependency.appendChild(document.createElement('version'))
 				version.setTextContent(baseVersion + '-SNAPSHOT')
 			})

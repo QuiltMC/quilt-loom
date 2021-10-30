@@ -32,12 +32,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.artifacts.Configuration;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.loom.LoomGradlePlugin;
+import net.fabricmc.loom.util.ModUtils;
 
 public class ModDependencyInfo {
 	private final String group;
@@ -148,8 +150,13 @@ public class ModDependencyInfo {
 	}
 
 	public String getAccessWidener() throws IOException {
+		if (!ModUtils.isMod(getInputFile())) {
+			return null;
+		}
+		boolean isQuiltMod = ModUtils.isQuiltMod(getInputFile().toPath());
+
 		try (JarFile jarFile = new JarFile(getInputFile())) {
-			JarEntry modJsonEntry = jarFile.getJarEntry("fabric.mod.json");
+			JarEntry modJsonEntry = jarFile.getJarEntry(isQuiltMod ? "quilt.mod.json" : "fabric.mod.json");
 
 			if (modJsonEntry == null) {
 				return null;
@@ -158,11 +165,24 @@ public class ModDependencyInfo {
 			try (InputStream inputStream = jarFile.getInputStream(modJsonEntry)) {
 				JsonObject json = LoomGradlePlugin.GSON.fromJson(new InputStreamReader(inputStream), JsonObject.class);
 
-				if (!json.has("accessWidener")) {
-					return null;
-				}
+				if (isQuiltMod) {
+					if (!json.has("access_widener")) {
+						return null;
+					}
 
-				return json.get("accessWidener").getAsString();
+					JsonElement accessWidener = json.get("access_widener");
+					if (accessWidener.isJsonPrimitive()) {
+						return accessWidener.getAsString();
+					} else {
+						throw new RuntimeException("Multiple access wideners aren't supported yet");
+					}
+				} else {
+					if (!json.has("accessWidener")) {
+						return null;
+					}
+
+					return json.get("accessWidener").getAsString();
+				}
 			}
 		}
 	}

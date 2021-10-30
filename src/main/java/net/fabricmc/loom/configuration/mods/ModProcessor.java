@@ -95,7 +95,10 @@ public class ModProcessor {
 	private static void stripNestedJars(File file) {
 		// Strip out all contained jar info as we dont want loader to try and load the jars contained in dev.
 		try {
-			ZipUtils.transformJson(JsonObject.class, file.toPath(), Map.of("fabric.mod.json", json -> {
+			ZipUtils.transformJson(JsonObject.class, file.toPath(), Map.of("quilt.mod.json", json -> {
+				json.getAsJsonObject("quilt_loader").remove("jars");
+				return json;
+			}, "fabric.mod.json", json -> {
 				json.remove("jars");
 				return json;
 			}));
@@ -114,7 +117,7 @@ public class ModProcessor {
 		AccessWidenerRemapper awRemapper = new AccessWidenerRemapper(
 				writer,
 				remapper,
-				MappingsNamespace.INTERMEDIARY.toString(),
+				MappingsNamespace.HASHED.toString(),
 				MappingsNamespace.NAMED.toString()
 		);
 		AccessWidenerReader reader = new AccessWidenerReader(awRemapper);
@@ -124,13 +127,13 @@ public class ModProcessor {
 
 	private static void remapJars(Project project, List<ModDependencyInfo> processList) throws IOException {
 		LoomGradleExtension extension = LoomGradleExtension.get(project);
-		String fromM = MappingsNamespace.INTERMEDIARY.toString();
+		String fromM = MappingsNamespace.HASHED.toString();
 		String toM = MappingsNamespace.NAMED.toString();
 
 		MinecraftMappedProvider mappedProvider = extension.getMinecraftMappedProvider();
 		MappingsProviderImpl mappingsProvider = extension.getMappingsProvider();
 
-		Path mc = mappedProvider.getIntermediaryJar().toPath();
+		Path mc = mappedProvider.getHashedJar().toPath();
 		Path[] mcDeps = project.getConfigurations().getByName(Constants.Configurations.LOADER_DEPENDENCIES).getFiles()
 				.stream().map(File::toPath).toArray(Path[]::new);
 

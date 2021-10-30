@@ -51,7 +51,7 @@ import net.fabricmc.tinyremapper.api.TrClass;
 
 public class MinecraftMappedProvider extends DependencyProvider {
 	private File minecraftMappedJar;
-	private File minecraftIntermediaryJar;
+	private File minecraftHashedJar;
 
 	private MinecraftProviderImpl minecraftProvider;
 
@@ -69,15 +69,15 @@ public class MinecraftMappedProvider extends DependencyProvider {
 			throw new RuntimeException("input merged jar not found");
 		}
 
-		if (!minecraftMappedJar.exists() || !getIntermediaryJar().exists() || isRefreshDeps()) {
+		if (!minecraftMappedJar.exists() || !getHashedJar().exists() || isRefreshDeps()) {
 			if (minecraftMappedJar.exists()) {
 				minecraftMappedJar.delete();
 			}
 
 			minecraftMappedJar.getParentFile().mkdirs();
 
-			if (minecraftIntermediaryJar.exists()) {
-				minecraftIntermediaryJar.delete();
+			if (minecraftHashedJar.exists()) {
+				minecraftHashedJar.delete();
 			}
 
 			try {
@@ -85,7 +85,7 @@ public class MinecraftMappedProvider extends DependencyProvider {
 			} catch (Throwable t) {
 				// Cleanup some some things that may be in a bad state now
 				minecraftMappedJar.delete();
-				minecraftIntermediaryJar.delete();
+				minecraftHashedJar.delete();
 				getExtension().getMappingsProvider().cleanFiles();
 				throw new RuntimeException("Failed to remap minecraft", t);
 			}
@@ -105,13 +105,13 @@ public class MinecraftMappedProvider extends DependencyProvider {
 
 		Path input = minecraftProvider.getMergedJar().toPath();
 		Path outputMapped = minecraftMappedJar.toPath();
-		Path outputIntermediary = minecraftIntermediaryJar.toPath();
+		Path outputHashed = minecraftHashedJar.toPath();
 
-		for (String toM : Arrays.asList(MappingsNamespace.NAMED.toString(), MappingsNamespace.INTERMEDIARY.toString())) {
+		for (String toM : Arrays.asList(MappingsNamespace.NAMED.toString(), MappingsNamespace.HASHED.toString())) {
 			final boolean toNamed = MappingsNamespace.NAMED.toString().equals(toM);
-			final boolean toIntermediary = MappingsNamespace.INTERMEDIARY.toString().equals(toM);
+			final boolean toHashed = MappingsNamespace.HASHED.toString().equals(toM);
 			final boolean fixSignatures = mappingsProvider.getSignatureFixes() != null;
-			final Path output = toNamed ? outputMapped : outputIntermediary;
+			final Path output = toNamed ? outputMapped : outputHashed;
 
 			getProject().getLogger().lifecycle(":remapping minecraft (TinyRemapper, " + fromM + " -> " + toM + ")");
 
@@ -148,13 +148,13 @@ public class MinecraftMappedProvider extends DependencyProvider {
 			});
 
 			if (fixSignatures) {
-				if (toIntermediary) {
+				if (toHashed) {
 					// No need to remap, as these are already intermediary
 					remappedSignatures.set(mappingsProvider.getSignatureFixes());
 				} else {
 					// Remap the sig fixes from intermediary to the target namespace
 					final Map<String, String> remapped = new HashMap<>();
-					final TinyRemapper sigTinyRemapper = TinyRemapperHelper.getTinyRemapper(getProject(), MappingsNamespace.INTERMEDIARY.toString(), toM);
+					final TinyRemapper sigTinyRemapper = TinyRemapperHelper.getTinyRemapper(getProject(), MappingsNamespace.HASHED.toString(), toM);
 					final Remapper sigAsmRemapper = sigTinyRemapper.getRemapper();
 
 					// Remap the class names and the signatures using a new tiny remapper instance.
@@ -190,7 +190,7 @@ public class MinecraftMappedProvider extends DependencyProvider {
 
 	public void initFiles(MinecraftProviderImpl minecraftProvider, MappingsProviderImpl mappingsProvider) {
 		this.minecraftProvider = minecraftProvider;
-		minecraftIntermediaryJar = new File(getExtension().getMappingsProvider().mappingsWorkingDir().toFile(), "minecraft-intermediary.jar");
+		minecraftHashedJar = new File(getExtension().getMappingsProvider().mappingsWorkingDir().toFile(), "minecraft-hashed.jar");
 		minecraftMappedJar = new File(getExtension().getMappingsProvider().mappingsWorkingDir().toFile(), "minecraft-mapped.jar");
 	}
 
@@ -202,8 +202,8 @@ public class MinecraftMappedProvider extends DependencyProvider {
 		return String.format("%s-%s", type, getExtension().getMappingsProvider().mappingsIdentifier());
 	}
 
-	public File getIntermediaryJar() {
-		return minecraftIntermediaryJar;
+	public File getHashedJar() {
+		return minecraftHashedJar;
 	}
 
 	public File getMappedJar() {

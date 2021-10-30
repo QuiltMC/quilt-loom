@@ -24,17 +24,17 @@
 
 package net.fabricmc.loom.test.unit.layeredmappings
 
-import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingsSpec
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec
 
 class MojangMappingLayerTest extends LayeredMappingsSpecification {
     def "Read mojang mappings" () {
         setup:
-            mockMappingsProvider.intermediaryTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_17_URL, "intermediary.jar"), "mappings/mappings.tiny")
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_17_URL, "intermediary.jar"), "mappings/mappings.tiny")
             mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_17
         when:
             def mappings = getLayeredMappings(
-                    new IntermediaryMappingsSpec(),
+                    new HashedMojmapMappingsSpec(),
                     new MojangMappingsSpec()
             )
             def tiny = getTiny(mappings)

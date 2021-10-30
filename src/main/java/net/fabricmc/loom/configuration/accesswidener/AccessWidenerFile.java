@@ -30,8 +30,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import net.fabricmc.loom.util.ModUtils;
 import net.fabricmc.loom.util.ZipUtils;
 
 public record AccessWidenerFile(
@@ -43,10 +45,11 @@ public record AccessWidenerFile(
 	 * Reads the access-widener contained in a mod jar, or returns null if there is none.
 	 */
 	public static AccessWidenerFile fromModJar(Path modJarPath) {
+		boolean isQuiltMod = ModUtils.isQuiltMod(modJarPath);
 		byte[] modJsonBytes;
 
 		try {
-			modJsonBytes = ZipUtils.unpackNullable(modJarPath, "fabric.mod.json");
+			modJsonBytes = ZipUtils.unpackNullable(modJarPath, isQuiltMod ? "quilt.mod.json" : "fabric.mod.json");
 		} catch (IOException e) {
 			throw new UncheckedIOException("Failed to read access-widener file from: " + modJarPath.toAbsolutePath(), e);
 		}
@@ -57,19 +60,35 @@ public record AccessWidenerFile(
 
 		JsonObject jsonObject = new Gson().fromJson(new String(modJsonBytes, StandardCharsets.UTF_8), JsonObject.class);
 
-		if (!jsonObject.has("accessWidener")) {
+		if (isQuiltMod && !jsonObject.has("access_widener")) {
+			return null;
+		} else if (!jsonObject.has("accessWidener")) {
 			return null;
 		}
 
-		String awPath = jsonObject.get("accessWidener").getAsString();
-		String modId = jsonObject.get("id").getAsString();
+		String awPath;
+		String modId;
+		if (isQuiltMod) {
+			JsonElement accessWidener = jsonObject.get("access_widener");
+			if (accessWidener.isJsonPrimitive()) {
+				awPath = accessWidener.getAsString();
+			} else {
+				// TODO: Multiple access wideners support
+				throw new RuntimeException("Multiple access wideners aren't supported yet");
+			}
+			JsonObject quiltLoaderMeta = jsonObject.getAsJsonObject("quilt_loader");
+			modId = quiltLoaderMeta.get("id").getAsString();
+		} else {
+			awPath = jsonObject.get("accessWidener").getAsString();
+			modId = jsonObject.get("id").getAsString();
+		}
 
 		byte[] content;
 
 		try {
 			content = ZipUtils.unpack(modJarPath, awPath);
 		} catch (IOException e) {
-			throw new UncheckedIOException("Could not find access widener file (%s) defined in the fabric.mod.json file of %s".formatted(awPath, modJarPath.toAbsolutePath()), e);
+			throw new UncheckedIOException("Could not find access widener file (%s) defined in the mod.json file of %s".formatted(awPath, modJarPath.toAbsolutePath()), e);
 		}
 
 		return new AccessWidenerFile(

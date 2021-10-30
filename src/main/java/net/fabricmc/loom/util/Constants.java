@@ -38,6 +38,8 @@ public class Constants {
 	public static final String VERSION_MANIFESTS = "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
 	public static final String EXPERIMENTAL_VERSIONS = "https://maven.quiltmc.org/repository/fabricmc/net/minecraft/experimental_versions.json";
 	public static final String FABRIC_REPOSITORY = "https://maven.quiltmc.org/repository/fabricmc/";
+	public static final String QUILT_REPOSITORY = "https://maven.quiltmc.org/repository/release/";
+	public static final String QUILT_SNAPSHOT_REPOSITORY = "https://maven.quiltmc.org/repository/snapshot/";
 
 	public static final String SYSTEM_ARCH = System.getProperty("os.arch").equals("64") ? "64" : "32";
 
@@ -68,6 +70,7 @@ public class Constants {
 		public static final String MINECRAFT_REMAP_CLASSPATH = "minecraftRemapClasspath";
 		public static final String MINECRAFT_NAMED = "minecraftNamed";
 		public static final String MAPPINGS = "mappings";
+		public static final String INTERMEDIATE_MAPPINGS = "intermediateMappings";
 		public static final String MAPPINGS_FINAL = "mappingsFinal";
 		public static final String LOADER_DEPENDENCIES = "loaderLibraries";
 		public static final String LOOM_DEVELOPMENT_DEPENDENCIES = "loomDevelopmentDependencies";
@@ -89,7 +92,7 @@ public class Constants {
 	 * Constants related to dependencies.
 	 */
 	public static final class Dependencies {
-		public static final String MIXIN_COMPILE_EXTENSIONS = "net.fabricmc:fabric-mixin-compile-extensions:";
+		public static final String MIXIN_COMPILE_EXTENSIONS = "org.quiltmc:sponge-mixin-compile-extensions:";
 		public static final String DEV_LAUNCH_INJECTOR = "org.quiltmc:dev-launch-injector:";
 		public static final String TERMINAL_CONSOLE_APPENDER = "net.minecrell:terminalconsoleappender:";
 		public static final String JETBRAINS_ANNOTATIONS = "org.jetbrains:annotations:";
@@ -101,7 +104,8 @@ public class Constants {
 		 * Constants for versions of dependencies.
 		 */
 		public static final class Versions {
-			public static final String MIXIN_COMPILE_EXTENSIONS = "0.4.6";
+			// TODO: Remove local prefix once published
+			public static final String MIXIN_COMPILE_EXTENSIONS = "1.0.2+local";
 			public static final String DEV_LAUNCH_INJECTOR = "0.2.1+build.8";
 			public static final String TERMINAL_CONSOLE_APPENDER = "1.2.0";
 			public static final String JETBRAINS_ANNOTATIONS = "22.0.0";
@@ -112,8 +116,8 @@ public class Constants {
 	}
 
 	public static final class MixinArguments {
-		public static final String IN_MAP_FILE_NAMED_INTERMEDIARY = "inMapFileNamedIntermediary";
-		public static final String OUT_MAP_FILE_NAMED_INTERMEDIARY = "outMapFileNamedIntermediary";
+		public static final String IN_MAP_FILE_NAMED_HASHED = "inMapFileNamedHashed";
+		public static final String OUT_MAP_FILE_NAMED_HASHED = "outMapFileNamedHashed";
 		public static final String OUT_REFMAP_FILE = "outRefMapFile";
 		public static final String DEFAULT_OBFUSCATION_ENV = "defaultObfuscationEnv";
 
@@ -130,10 +134,53 @@ public class Constants {
 	}
 
 	public static final class TaskGroup {
-		public static final String FABRIC = "fabric";
+		public static final String QUILT = "quilt";
 		public static final String IDE = "ide";
 
 		private TaskGroup() {
+		}
+	}
+
+	/**
+	 * Constants related to directories.
+	 */
+	public static final class Directories {
+		public static final String USER_CACHE_DIR = "quilt-loom";
+		public static final String CACHE_DIR = "loom-cache";
+		public static final String REMAPPED_MOD_CACHE_DIR = "remapped_mods";
+		public static final String NESTED_MOD_CACHE_DIR = "nested_mods";
+		public static final String NATIVES_DIR = "natives";
+		public static final String NATIVES_JAR_DIR = NATIVES_DIR + "/jars";
+		public static final String DEFAULT_LOG4J_CONFIG_FILE = "log4j.xml";
+		public static final String DEV_LAUNCHER_CONFIG = "launch.cfg";
+		public static final String UNPICK_LOGGING_CONFIG = "unpick-logging.properties";
+
+		private Directories() {
+		}
+	}
+
+	/**
+	 * Constants related to mappings.
+	 */
+	public static final class Mappings {
+		public static final boolean USE_SNAPSHOT_HASHES = true;
+		// Files & dirs
+		public static final String MAPPINGS_FILE = "mappings.tiny";
+		public static final String BASE_MAPPINGS_FILE = "mappings-base.tiny";
+		public static final String MAPPINGS_JAR = "mappings.jar";
+		public static final String UNPICK_FILE = "mappings.unpick";
+		public static final String MAPPINGS_FILE_DIR = "hashed";
+		// TODO: Support for mappings/mappings.tiny
+		public static final String MAPPINGS_FILE_PATH = MAPPINGS_FILE_DIR + "/" + MAPPINGS_FILE;
+		public static final String HASHED_TINY_FILE = "hashed.tiny";
+		public static final String HASHED_JAR = "hashed.jar";
+
+		// Namespaces
+		public static final String SOURCE_NAMESPACE = "official";
+		public static final String INTERMEDIATE_NAMESPACE = "hashed";
+		public static final String NAMED_NAMESPACE = "named";
+
+		private Mappings() {
 		}
 	}
 }

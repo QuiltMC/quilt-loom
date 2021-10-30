@@ -71,7 +71,7 @@ public final class TinyRemapperHelper {
 			throw new IllegalStateException("Mappings src namespace must match remap src namespace");
 		}
 
-		int intermediaryNsId = mappingTree.getNamespaceId(MappingsNamespace.INTERMEDIARY.toString());
+		int intermediaryNsId = mappingTree.getNamespaceId(MappingsNamespace.HASHED.toString());
 
 		TinyRemapper.Builder builder = TinyRemapper.newRemapper()
 				.withMappings(create(mappingTree, fromM, toM, true))

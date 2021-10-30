@@ -153,7 +153,7 @@ public class TransitiveAccessWidenerJarProcessor implements JarProcessor {
 			AccessWidenerRemapper remappingVisitor = new AccessWidenerRemapper(
 					accessWidener,
 					tinyRemapper.getRemapper(),
-					MappingsNamespace.INTERMEDIARY.toString(),
+					MappingsNamespace.HASHED.toString(),
 					MappingsNamespace.NAMED.toString()
 			);
 			AccessWidenerReader transitiveReader = new AccessWidenerReader(new TransitiveOnlyFilter(remappingVisitor));
@@ -170,15 +170,18 @@ public class TransitiveAccessWidenerJarProcessor implements JarProcessor {
 	}
 
 	private TinyRemapper createTinyRemapper() {
+		String from = Constants.Mappings.INTERMEDIATE_NAMESPACE;
+		String to = Constants.Mappings.NAMED_NAMESPACE;
+
 		try {
-			TinyRemapper tinyRemapper = TinyRemapperHelper.getTinyRemapper(project, "intermediary", "named");
+			TinyRemapper tinyRemapper = TinyRemapperHelper.getTinyRemapper(project, from, to);
 
 			tinyRemapper.readClassPath(TinyRemapperHelper.getMinecraftDependencies(project));
-			tinyRemapper.readClassPath(extension.getMinecraftMappedProvider().getIntermediaryJar().toPath());
+			tinyRemapper.readClassPath(extension.getMinecraftMappedProvider().getHashedJar().toPath());
 
 			return tinyRemapper;
 		} catch (IOException e) {
-			throw new RuntimeException("Failed to create tiny remapper for intermediary->named", e);
+			throw new RuntimeException("Failed to create tiny remapper for " + from + "->" + to, e);
 		}
 	}
 

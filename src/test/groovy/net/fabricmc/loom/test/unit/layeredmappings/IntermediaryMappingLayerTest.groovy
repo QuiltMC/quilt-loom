@@ -24,14 +24,14 @@
 
 package net.fabricmc.loom.test.unit.layeredmappings
 
-import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingsSpec
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingsSpec
 
 class IntermediaryMappingLayerTest extends LayeredMappingsSpecification {
     def "Read intermediary mappings" () {
         setup:
-            mockMappingsProvider.intermediaryTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_17_URL, "intermediary.jar"), "mappings/mappings.tiny")
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_17_URL, "intermediary.jar"), "mappings/mappings.tiny")
         when:
-            def mappings = getSingleMapping(new IntermediaryMappingsSpec())
+            def mappings = getSingleMapping(new HashedMojmapMappingsSpec())
             def tiny = getTiny(mappings)
         then:
             mappings.srcNamespace == "official"

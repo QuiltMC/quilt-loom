@@ -35,7 +35,7 @@ import net.fabricmc.loom.api.mappings.layered.spec.LayeredMappingSpecBuilder;
 import net.fabricmc.loom.api.mappings.layered.spec.MappingsSpec;
 import net.fabricmc.loom.api.mappings.layered.spec.ParchmentMappingsSpecBuilder;
 import net.fabricmc.loom.configuration.providers.mappings.extras.signatures.SignatureFixesSpec;
-import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingsSpec;
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingsSpec;
 import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec;
 import net.fabricmc.loom.configuration.providers.mappings.parchment.ParchmentMappingsSpecBuilderImpl;
 
@@ -67,8 +67,8 @@ public class LayeredMappingSpecBuilderImpl implements LayeredMappingSpecBuilder 
 
 	public LayeredMappingSpec build() {
 		List<MappingsSpec<?>> builtLayers = new LinkedList<>();
-		// Intermediary is always the base layer
-		builtLayers.add(new IntermediaryMappingsSpec());
+		// Hashed mojmap is always the base layer
+		builtLayers.add(new HashedMojmapMappingsSpec());
 		builtLayers.addAll(layers);
 
 		return new LayeredMappingSpec(Collections.unmodifiableList(builtLayers));

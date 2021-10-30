@@ -25,6 +25,7 @@
 package net.fabricmc.loom.extension;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,12 +36,19 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.cadixdev.lorenz.MappingSet;
 import org.cadixdev.mercury.Mercury;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.configuration.InstallerData;
@@ -181,5 +189,30 @@ public class LoomGradleExtensionImpl extends LoomGradleExtensionApiImpl implemen
 	@Override
 	public void addTransitiveAccessWideners(List<AccessWidenerFile> accessWidenerFiles) {
 		transitiveAccessWideners.addAll(accessWidenerFiles);
+	}
+
+	// Get hashed mojmap from the snapshot repository. TODO: Move remove this after moving hashed to release repo
+	@Override
+	public String getHashedMojmapUrl(String minecraftVersion) {
+		String prefix = "https://maven.quiltmc.org/repository/snapshot/org/quiltmc/hashed-mojmap/" + minecraftVersion + "-SNAPSHOT/";
+
+		// Read maven-metadata.xml to get the latest version
+		String uri = prefix + "maven-metadata.xml";
+		try {
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+			Document document = documentBuilder.parse(uri);
+			document.getDocumentElement().normalize();
+
+			Element versioningElement = (Element) document.getElementsByTagName("versioning").item(0);
+			Element snapshotElement = (Element) versioningElement.getElementsByTagName("snapshot").item(0);
+			String timestamp = snapshotElement.getElementsByTagName("timestamp").item(0).getTextContent();
+			String buildNumber = snapshotElement.getElementsByTagName("buildNumber").item(0).getTextContent();
+
+			String version = minecraftVersion + "-" + timestamp + "-" + buildNumber;
+			return prefix + "hashed-mojmap-" + version + ".jar";
+		} catch (IOException | ParserConfigurationException | SAXException e) {
+			throw new RuntimeException("Failed to get the latest hashed mojmap version", e);
+		}
 	}
 }

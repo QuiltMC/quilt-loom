@@ -60,7 +60,33 @@ public class JarNester {
 				}
 			}).collect(Collectors.toList()));
 
-			int count = ZipUtils.transformJson(JsonObject.class, modJar.toPath(), Stream.of(new Pair<>("fabric.mod.json", json -> {
+			int count = ZipUtils.transformJson(JsonObject.class, modJar.toPath(), Stream.of(new Pair<>("quilt.mod.json", json -> {
+				JsonArray nestedJars = json.getAsJsonObject("quilt_loader").getAsJsonArray("jars");
+
+				if (nestedJars == null || !json.getAsJsonObject("quilt_loader").has("jars")) {
+					nestedJars = new JsonArray();
+				}
+
+				for (File file : jars) {
+					String nestedJarPath = "META-INF/jars/" + file.getName();
+
+					for (JsonElement nestedJar : nestedJars) {
+						String path = nestedJar.getAsString();
+
+						if (path.equals(nestedJarPath)) {
+							throw new IllegalStateException("Cannot nest 2 jars at the same path: " + nestedJarPath);
+						}
+					}
+
+					nestedJars.add(nestedJarPath);
+
+					logger.debug("Nested " + nestedJarPath + " into " + modJar.getName());
+				}
+
+				json.getAsJsonObject("quilt_loader").add("jars", nestedJars);
+
+				return json;
+			}), new Pair<>("fabric.mod.json", json -> {
 				JsonArray nestedJars = json.getAsJsonArray("jars");
 
 				if (nestedJars == null || !json.has("jars")) {

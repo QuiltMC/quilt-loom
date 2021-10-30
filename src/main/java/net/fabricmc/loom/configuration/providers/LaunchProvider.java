@@ -121,7 +121,7 @@ public class LaunchProvider extends DependencyProvider {
 			remapClasspath.addAll(getProject().getConfigurations().getByName(inputConfiguration).getFiles());
 		}
 
-		remapClasspath.add(getExtension().getMinecraftMappedProvider().getIntermediaryJar());
+		remapClasspath.add(getExtension().getMinecraftMappedProvider().getHashedJar());
 
 		String str = remapClasspath.stream()
 				.map(File::getAbsolutePath)

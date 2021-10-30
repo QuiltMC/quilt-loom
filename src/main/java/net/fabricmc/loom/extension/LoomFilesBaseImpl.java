@@ -26,6 +26,8 @@ package net.fabricmc.loom.extension;
 
 import java.io.File;
 
+import net.fabricmc.loom.util.Constants;
+
 public abstract class LoomFilesBaseImpl implements LoomFiles {
 	protected abstract File getGradleUserHomeDir();
 	protected abstract File getRootDir();
@@ -46,46 +48,46 @@ public abstract class LoomFilesBaseImpl implements LoomFiles {
 
 	@Override
 	public File getUserCache() {
-		return createFile(getGradleUserHomeDir(), "caches" + File.separator + "fabric-loom");
+		return createFile(getGradleUserHomeDir(), "caches" + File.separator + Constants.Directories.USER_CACHE_DIR);
 	}
 
 	@Override
 	public File getRootProjectPersistentCache() {
-		return createFile(getRootDir(), ".gradle" + File.separator + "loom-cache");
+		return createFile(getRootDir(), ".gradle" + File.separator + Constants.Directories.CACHE_DIR);
 	}
 
 	@Override
 	public File getProjectPersistentCache() {
-		return createFile(getProjectDir(), ".gradle" + File.separator + "loom-cache");
+		return createFile(getProjectDir(), ".gradle" + File.separator + Constants.Directories.CACHE_DIR);
 	}
 
 	@Override
 	public File getProjectBuildCache() {
-		return createFile(getBuildDir(), "loom-cache");
+		return createFile(getBuildDir(), Constants.Directories.CACHE_DIR);
 	}
 
 	@Override
 	public File getRemappedModCache() {
-		return createFile(getRootProjectPersistentCache(), "remapped_mods");
+		return createFile(getRootProjectPersistentCache(), Constants.Directories.REMAPPED_MOD_CACHE_DIR);
 	}
 
 	@Override
 	public File getNativesJarStore() {
-		return createFile(getUserCache(), "natives/jars");
+		return createFile(getUserCache(), Constants.Directories.NATIVES_JAR_DIR);
 	}
 
 	@Override
 	public File getDefaultLog4jConfigFile() {
-		return new File(getProjectPersistentCache(), "log4j.xml");
+		return new File(getProjectPersistentCache(), Constants.Directories.DEFAULT_LOG4J_CONFIG_FILE);
 	}
 
 	@Override
 	public File getDevLauncherConfig() {
-		return new File(getProjectPersistentCache(), "launch.cfg");
+		return new File(getProjectPersistentCache(), Constants.Directories.DEV_LAUNCHER_CONFIG);
 	}
 
 	@Override
 	public File getUnpickLoggingConfigFile() {
-		return new File(getProjectPersistentCache(), "unpick-logging.properties");
+		return new File(getProjectPersistentCache(), Constants.Directories.UNPICK_LOGGING_CONFIG);
 	}
 }

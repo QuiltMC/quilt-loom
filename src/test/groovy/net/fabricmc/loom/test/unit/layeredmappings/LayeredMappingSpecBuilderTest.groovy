@@ -24,12 +24,12 @@
 
 package net.fabricmc.loom.test.unit.layeredmappings
 
-import net.fabricmc.loom.configuration.providers.mappings.utils.MavenFileSpec
 import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingSpec
 import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingSpecBuilderImpl
-import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingsSpec
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec
 import net.fabricmc.loom.configuration.providers.mappings.parchment.ParchmentMappingsSpec
+import net.fabricmc.loom.configuration.providers.mappings.utils.MavenFileSpec
 import org.gradle.api.Action
 import org.gradle.util.ConfigureUtil
 import spock.lang.Specification
@@ -44,7 +44,7 @@ class LayeredMappingSpecBuilderTest extends Specification {
         then:
             spec.version == "layered+hash.961"
             layers.size() == 2
-            layers[0].class == IntermediaryMappingsSpec
+            layers[0].class == HashedMojmapMappingsSpec
             layers[1].class == MojangMappingsSpec
     }
 
@@ -59,7 +59,7 @@ class LayeredMappingSpecBuilderTest extends Specification {
         then:
             spec.version == "layered+hash.863714404"
             layers.size() == 3
-            layers[0].class == IntermediaryMappingsSpec
+            layers[0].class == HashedMojmapMappingsSpec
             layers[1].class == MojangMappingsSpec
             layers[2].class == ParchmentMappingsSpec
             (parchment.fileSpec() as MavenFileSpec).dependencyNotation() == "I like cake"
@@ -79,7 +79,7 @@ class LayeredMappingSpecBuilderTest extends Specification {
         then:
             spec.version == "layered+hash.863714410"
             layers.size() == 3
-            layers[0].class == IntermediaryMappingsSpec
+            layers[0].class == HashedMojmapMappingsSpec
             layers[1].class == MojangMappingsSpec
             layers[2].class == ParchmentMappingsSpec
             (parchment.fileSpec() as MavenFileSpec).dependencyNotation() == "I like cake"
@@ -99,7 +99,7 @@ class LayeredMappingSpecBuilderTest extends Specification {
         then:
             spec.version == "layered+hash.1144465487"
             layers.size() == 3
-            layers[0].class == IntermediaryMappingsSpec
+            layers[0].class == HashedMojmapMappingsSpec
             layers[1].class == MojangMappingsSpec
             layers[2].class == ParchmentMappingsSpec
             (parchment.fileSpec() as MavenFileSpec).dependencyNotation() == "I really like cake"
