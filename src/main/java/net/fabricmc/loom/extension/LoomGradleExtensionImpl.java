@@ -25,6 +25,7 @@
 package net.fabricmc.loom.extension;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -194,7 +195,7 @@ public class LoomGradleExtensionImpl extends LoomGradleExtensionApiImpl implemen
 	// Get hashed mojmap from the snapshot repository. TODO: Move remove this after moving hashed to release repo
 	@Override
 	public String getHashedMojmapUrl(String minecraftVersion) {
-		String prefix = "https://maven.quiltmc.org/repository/snapshot/org/quiltmc/hashed-mojmap/" + minecraftVersion + "-SNAPSHOT/";
+		String prefix = "https://maven.quiltmc.org/repository/snapshot/org/quiltmc/hashed/" + minecraftVersion + "-SNAPSHOT/";
 
 		// Read maven-metadata.xml to get the latest version
 		String uri = prefix + "maven-metadata.xml";
@@ -211,7 +212,9 @@ public class LoomGradleExtensionImpl extends LoomGradleExtensionApiImpl implemen
 			String buildNumber = snapshotElement.getElementsByTagName("buildNumber").item(0).getTextContent();
 
 			String version = minecraftVersion + "-" + timestamp + "-" + buildNumber;
-			return prefix + "hashed-mojmap-" + version + ".jar";
+			return prefix + "hashed-" + version + ".jar";
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("Hashed mojmap does not exist for " + minecraftVersion);
 		} catch (IOException | ParserConfigurationException | SAXException e) {
 			throw new RuntimeException("Failed to get the latest hashed mojmap version", e);
 		}

@@ -39,9 +39,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.net.UrlEscapers;
@@ -278,8 +280,13 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 
 	private static boolean doesJarContainV2Mappings(Path path) throws IOException {
 		try (FileSystem fs = FileSystems.newFileSystem(path, (ClassLoader) null)) {
-			// TODO: Also check for mappings/mappings.tiny
-			try (BufferedReader reader = Files.newBufferedReader(fs.getPath(Constants.Mappings.MAPPINGS_FILE_DIR, Constants.Mappings.MAPPINGS_FILE))) {
+			Path file = getMappingsFilePath(fs);
+
+			if (file == null) {
+				return false;
+			}
+
+			try (BufferedReader reader = Files.newBufferedReader(fs.getPath(file.toString()))) {
 				return MappingReader.detectFormat(reader) == MappingFormat.TINY_2;
 			}
 		}
@@ -292,7 +299,27 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 	}
 
 	public static void extractMappings(FileSystem jar, Path extractTo) throws IOException {
-		Files.copy(jar.getPath(Constants.Mappings.MAPPINGS_FILE_PATH), extractTo, StandardCopyOption.REPLACE_EXISTING);
+		Path file = getMappingsFilePath(jar);
+
+		if (file != null) {
+			Files.copy(jar.getPath(file.toString()), extractTo, StandardCopyOption.REPLACE_EXISTING);
+		}
+	}
+
+	public static Path getMappingsFilePath(FileSystem jar) {
+		for (Path rootDir : jar.getRootDirectories()) {
+			try (Stream<Path> stream = Files.find(rootDir, 1, (path, attrs) -> path.getFileName() != null && path.getFileName().toString().equals(Constants.Mappings.MAPPINGS_FILE))) {
+				Optional<Path> optional = stream.findFirst();
+
+				if (optional.isPresent()) {
+					return optional.get();
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		return null;
 	}
 
 	private void extractExtras(FileSystem jar) throws IOException {
