@@ -39,7 +39,7 @@ public class Constants {
 	public static final String EXPERIMENTAL_VERSIONS = "https://maven.quiltmc.org/repository/fabricmc/net/minecraft/experimental_versions.json";
 	public static final String FABRIC_REPOSITORY = "https://maven.quiltmc.org/repository/fabricmc/";
 	public static final String QUILT_REPOSITORY = "https://maven.quiltmc.org/repository/release/";
-	public static final String QUILT_SNAPSHOT_REPOSITORY = "https://maven.quiltmc.org/repository/snapshot/";
+	public static final String QUILT_SNAPSHOTS_REPOSITORY = "https://maven.quiltmc.org/repository/snapshot/";
 
 	public static final String SYSTEM_ARCH = System.getProperty("os.arch").equals("64") ? "64" : "32";
 

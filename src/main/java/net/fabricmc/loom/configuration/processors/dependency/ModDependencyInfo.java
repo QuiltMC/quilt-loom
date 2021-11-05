@@ -153,6 +153,7 @@ public class ModDependencyInfo {
 		if (!ModUtils.isMod(getInputFile())) {
 			return null;
 		}
+
 		boolean isQuiltMod = ModUtils.isQuiltMod(getInputFile().toPath());
 
 		try (JarFile jarFile = new JarFile(getInputFile())) {
@@ -171,6 +172,7 @@ public class ModDependencyInfo {
 					}
 
 					JsonElement accessWidener = json.get("access_widener");
+
 					if (accessWidener.isJsonPrimitive()) {
 						return accessWidener.getAsString();
 					} else {

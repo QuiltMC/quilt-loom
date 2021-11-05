@@ -67,12 +67,12 @@ public class MirrorUtil {
 		return Constants.QUILT_REPOSITORY;
 	}
 
-	public static String getQuiltSnapshotRepository(ExtensionAware aware) {
-		if (aware.getExtensions().getExtraProperties().has("loom_quilt_snapshot_repository")) {
-			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_quilt_snapshot_repository"));
+	public static String getQuiltSnapshotsRepository(ExtensionAware aware) {
+		if (aware.getExtensions().getExtraProperties().has("loom_quilt_snapshots_repository")) {
+			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_quilt_snapshots_repository"));
 		}
 
-		return Constants.QUILT_SNAPSHOT_REPOSITORY;
+		return Constants.QUILT_SNAPSHOTS_REPOSITORY;
 	}
 
 	public static String getFabricRepository(ExtensionAware aware) {

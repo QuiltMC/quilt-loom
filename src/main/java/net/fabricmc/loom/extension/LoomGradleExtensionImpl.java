@@ -198,6 +198,7 @@ public class LoomGradleExtensionImpl extends LoomGradleExtensionApiImpl implemen
 
 		// Read maven-metadata.xml to get the latest version
 		String uri = prefix + "maven-metadata.xml";
+
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder documentBuilder = dbf.newDocumentBuilder();

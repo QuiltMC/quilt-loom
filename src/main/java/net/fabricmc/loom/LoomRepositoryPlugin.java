@@ -68,8 +68,8 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
 			repo.setUrl(MirrorUtil.getQuiltRepository(target));
 		});
 		repositories.maven(repo -> {
-			repo.setName("Quilt Snapshot");
-			repo.setUrl(MirrorUtil.getQuiltSnapshotRepository(target));
+			repo.setName("Quilt Snapshots");
+			repo.setUrl(MirrorUtil.getQuiltSnapshotsRepository(target));
 		});
 		repositories.maven(repo -> {
 			repo.setName("Fabric");

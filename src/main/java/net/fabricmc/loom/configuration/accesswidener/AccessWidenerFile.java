@@ -68,14 +68,17 @@ public record AccessWidenerFile(
 
 		String awPath;
 		String modId;
+
 		if (isQuiltMod) {
 			JsonElement accessWidener = jsonObject.get("access_widener");
+
 			if (accessWidener.isJsonPrimitive()) {
 				awPath = accessWidener.getAsString();
 			} else {
 				// TODO: Multiple access wideners support
 				throw new RuntimeException("Multiple access wideners aren't supported yet");
 			}
+
 			JsonObject quiltLoaderMeta = jsonObject.getAsJsonObject("quilt_loader");
 			modId = quiltLoaderMeta.get("id").getAsString();
 		} else {

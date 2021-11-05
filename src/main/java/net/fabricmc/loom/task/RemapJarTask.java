@@ -168,6 +168,7 @@ public class RemapJarTask extends Jar {
 
 						AccessWidenerFile awFile = AccessWidenerFile.fromModJar(remapData.input);
 						boolean isQuiltMod = ModUtils.isQuiltMod(remapData.input);
+
 						if (isQuiltMod) {
 							Preconditions.checkNotNull(awFile, "Failed to find access_widener in quilt.mod.json: " + remapData.input);
 						} else {

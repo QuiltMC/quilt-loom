@@ -112,6 +112,7 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 		MinecraftProviderImpl minecraftProvider = getDependencyManager().getProvider(MinecraftProviderImpl.class);
 
 		Set<ResolvedDependency> resolvedDependencies = getProject().getConfigurations().getByName(getTargetConfig()).getResolvedConfiguration().getFirstLevelModuleDependencies();
+
 		if (resolvedDependencies.size() != 1) {
 			throw new IllegalStateException("There isn't only one resolved " + getTargetConfig() + " dependency");
 		}
@@ -194,6 +195,7 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 		DependencyHandler dependencies = getProject().getDependencies();
 
 		Set<ResolvedDependency> mappingsDependencyChildren = mappingsDependency.getChildren();
+
 		if (mappingsDependencyChildren.size() > 1) {
 			throw new IllegalArgumentException("The specified " + getTargetConfig() + " dependency has more than one dependency");
 		} else if (mappingsDependencyChildren.size() == 1) {

@@ -202,37 +202,37 @@ public abstract class DependencyProvider {
 			Set<File> files = dependency.resolve();
 			this.resolvedFiles = files;
 			switch (files.size()) {
-				case 0 -> //Don't think Gradle would ever let you do this
-						throw new IllegalStateException("Empty dependency?");
-				case 1 -> //Single file dependency
-						classifierToFile.put("", Iterables.getOnlyElement(files));
-				default -> { //File collection, try work out the classifiers
-					List<File> sortedFiles = files.stream().sorted(Comparator.comparing(File::getName, Comparator.comparingInt(String::length))).collect(Collectors.toList());
-					//First element in sortedFiles is the one with the shortest name, we presume all the others are different classifier types of this
-					File shortest = sortedFiles.remove(0);
-					String shortestName = FilenameUtils.removeExtension(shortest.getName()); //name.jar -> name
+			case 0 -> //Don't think Gradle would ever let you do this
+					throw new IllegalStateException("Empty dependency?");
+			case 1 -> //Single file dependency
+					classifierToFile.put("", Iterables.getOnlyElement(files));
+			default -> { //File collection, try work out the classifiers
+				List<File> sortedFiles = files.stream().sorted(Comparator.comparing(File::getName, Comparator.comparingInt(String::length))).collect(Collectors.toList());
+				//First element in sortedFiles is the one with the shortest name, we presume all the others are different classifier types of this
+				File shortest = sortedFiles.remove(0);
+				String shortestName = FilenameUtils.removeExtension(shortest.getName()); //name.jar -> name
 
-					for (File file : sortedFiles) {
-						if (!file.getName().startsWith(shortestName)) {
-							//If there is another file which doesn't start with the same name as the presumed classifier-less one we're out of our depth
-							throw new IllegalArgumentException("Unable to resolve classifiers for " + this + " (failed to sort " + files + ')');
-						}
-					}
-
-					//We appear to be right, therefore this is the normal dependency file we want
-					classifierToFile.put("", shortest);
-					int start = shortestName.length();
-
-					for (File file : sortedFiles) {
-						//Now we just have to work out what classifier type the other files are, this shouldn't even return an empty string
-						String classifier = FilenameUtils.removeExtension(file.getName()).substring(start);
-
-						//The classifier could well be separated with a dash (thing name.jar and name-sources.jar), we don't want that leading dash
-						if (classifierToFile.put(classifier.charAt(0) == '-' ? classifier.substring(1) : classifier, file) != null) {
-							throw new InvalidUserDataException("Duplicate classifiers for " + this + " (\"" + file.getName().substring(start) + "\" in " + files + ')');
-						}
+				for (File file : sortedFiles) {
+					if (!file.getName().startsWith(shortestName)) {
+						//If there is another file which doesn't start with the same name as the presumed classifier-less one we're out of our depth
+						throw new IllegalArgumentException("Unable to resolve classifiers for " + this + " (failed to sort " + files + ')');
 					}
 				}
+
+				//We appear to be right, therefore this is the normal dependency file we want
+				classifierToFile.put("", shortest);
+				int start = shortestName.length();
+
+				for (File file : sortedFiles) {
+					//Now we just have to work out what classifier type the other files are, this shouldn't even return an empty string
+					String classifier = FilenameUtils.removeExtension(file.getName()).substring(start);
+
+					//The classifier could well be separated with a dash (thing name.jar and name-sources.jar), we don't want that leading dash
+					if (classifierToFile.put(classifier.charAt(0) == '-' ? classifier.substring(1) : classifier, file) != null) {
+						throw new InvalidUserDataException("Duplicate classifiers for " + this + " (\"" + file.getName().substring(start) + "\" in " + files + ')');
+					}
+				}
+			}
 			}
 
 			if (dependency.getGroup() != null && dependency.getVersion() != null) {
@@ -254,8 +254,9 @@ public abstract class DependencyProvider {
 						}
 
 						JsonObject modLoaderInfo = json.getAsJsonObject("quilt_loader");
+
 						if (!modLoaderInfo.has("id") || !modLoaderInfo.has("group") || !modLoaderInfo.has("version")) {
-							throw new IllegalArgumentException("Invalid Quilt mod jar: " + root +  " (invalid Quilt loader information: " + modLoaderInfo + ')');
+							throw new IllegalArgumentException("Invalid Quilt mod jar: " + root + " (invalid Quilt loader information: " + modLoaderInfo + ')');
 						}
 
 						group = modLoaderInfo.get("group").getAsString();
