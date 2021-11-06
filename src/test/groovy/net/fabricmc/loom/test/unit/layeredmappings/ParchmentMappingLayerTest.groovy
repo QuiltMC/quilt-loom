@@ -32,8 +32,8 @@ import net.fabricmc.loom.configuration.providers.mappings.parchment.ParchmentMap
 class ParchmentMappingLayerTest extends LayeredMappingsSpecification {
     def "Read parchment mappings" () {
         setup:
-            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
-            mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_16_5
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(HASHED_MOJMAP_1_17_1_URL, "hashed.jar"), "hashed/mappings.tiny")
+            mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_17_1
         when:
             withMavenFile(PARCHMENT_NOTATION, downloadFile(PARCHMENT_URL, "parchment.zip"))
             def mappings = getLayeredMappings(
@@ -45,18 +45,18 @@ class ParchmentMappingLayerTest extends LayeredMappingsSpecification {
             def reorderedMappings = reorder(mappings)
         then:
             mappings.srcNamespace == "named"
-            mappings.dstNamespaces == ["intermediary", "official"]
-            mappings.classes.size() == 5747
-            mappings.classes[0].srcName.hashCode() == -1112444138 // MojMap name, just check the hash
-            mappings.classes[0].getDstName(0) == "net/minecraft/class_2573"
-            mappings.classes[0].methods[0].args[0].srcName.hashCode() == -1008297992
-            reorderedMappings.getClass("net/minecraft/class_2573").getMethod("method_10913", "(Lnet/minecraft/class_1799;Lnet/minecraft/class_1767;)V").args.size() > 0
+            mappings.dstNamespaces == ["hashed", "official"]
+            mappings.classes.size() == 6113
+            mappings.classes[2].srcName == "com/mojang/math/Matrix3f"
+            mappings.classes[2].getDstName(0) == "net/minecraft/unmapped/C_crutkuff"
+            mappings.classes[2].methods[1].args[0].srcName == "multiplier"
+            reorderedMappings.getClass("net/minecraft/unmapped/C_mwamopji").getMethod("m_igihlswz", "(Lnet/minecraft/unmapped/C_sddaxwyk;Lnet/minecraft/unmapped/C_arllgqae;)V").args.size() > 0
     }
 
     def "Read parchment mappings remove prefix" () {
         setup:
-            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(INTERMEDIARY_1_16_5_URL, "intermediary.jar"), "mappings/mappings.tiny")
-            mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_16_5
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(HASHED_MOJMAP_1_17_1_URL, "hashed.jar"), "hashed/mappings.tiny")
+            mockMinecraftProvider.getVersionInfo() >> VERSION_META_1_17_1
         when:
             withMavenFile(PARCHMENT_NOTATION, downloadFile(PARCHMENT_URL, "parchment.zip"))
             def mappings = getLayeredMappings(
@@ -68,11 +68,11 @@ class ParchmentMappingLayerTest extends LayeredMappingsSpecification {
             def reorderedMappings = reorder(mappings)
         then:
             mappings.srcNamespace == "named"
-            mappings.dstNamespaces == ["intermediary", "official"]
-            mappings.classes.size() == 5747
-            mappings.classes[0].srcName.hashCode() == -1112444138 // MojMap name, just check the hash
-            mappings.classes[0].getDstName(0) == "net/minecraft/class_2573"
-            mappings.classes[0].methods[0].args[0].srcName.hashCode() == 109757064
-            reorderedMappings.getClass("net/minecraft/class_2573").getMethod("method_10913", "(Lnet/minecraft/class_1799;Lnet/minecraft/class_1767;)V").args.size() > 0
+            mappings.dstNamespaces == ["hashed", "official"]
+            mappings.classes.size() == 6113
+            mappings.classes[2].srcName == "com/mojang/math/Matrix3f"
+            mappings.classes[2].getDstName(0) == "net/minecraft/unmapped/C_crutkuff"
+            mappings.classes[2].methods[1].args[0].srcName == "multiplier"
+            reorderedMappings.getClass("net/minecraft/unmapped/C_mwamopji").getMethod("m_igihlswz", "(Lnet/minecraft/unmapped/C_sddaxwyk;Lnet/minecraft/unmapped/C_arllgqae;)V").args.size() > 0
     }
 }

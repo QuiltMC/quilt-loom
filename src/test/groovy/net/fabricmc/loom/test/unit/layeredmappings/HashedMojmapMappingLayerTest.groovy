@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2018-2021 FabricMC
+ * Copyright (c) 2016-2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,22 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.test.integration
+package net.fabricmc.loom.test.unit.layeredmappings
 
-import net.fabricmc.loom.test.util.GradleProjectTestTrait
-import spock.lang.Specification
-import spock.lang.Unroll
+import net.fabricmc.loom.configuration.providers.mappings.hashed.HashedMojmapMappingsSpec
 
-import static net.fabricmc.loom.test.LoomTestConstants.*
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-
-// This test uses gradle 4.9 and 1.14.4 v1 mappings
-class LegacyProjectTest extends Specification implements GradleProjectTestTrait {
-	@Unroll
-	def "legacy build (gradle #version)"() {
-		setup:
-			def gradle = gradleProject(project: "legacy", version: version)
-
-		when:
-			def result = gradle.run(task: "build")
-
-		then:
-			result.task(":build").outcome == SUCCESS
-
-		where:
-			version << STANDARD_TEST_VERSIONS
-	}
+class HashedMojmapMappingLayerTest extends LayeredMappingsSpecification {
+    def "Read hashed mojmap mappings" () {
+        setup:
+            mockMappingsProvider.hashedMojmapTinyFile() >> extractFileFromZip(downloadFile(HASHED_MOJMAP_1_17_1_URL, "hashed.jar"), "hashed/mappings.tiny")
+        when:
+            def mappings = getSingleMapping(new HashedMojmapMappingsSpec())
+            def tiny = getTiny(mappings)
+        then:
+            mappings.srcNamespace == "official"
+            mappings.dstNamespaces == ["hashed", "named"]
+            mappings.classes.size() == 6105
+            mappings.getClass("abc").getDstName(0) == "net/minecraft/unmapped/C_hluhvldy"
+            mappings.getClass("abc").getDstName(1) == "net/minecraft/unmapped/C_hluhvldy"
+    }
 }

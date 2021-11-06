@@ -25,12 +25,14 @@
 package net.fabricmc.loom.test.integration
 
 import net.fabricmc.loom.test.util.GradleProjectTestTrait
+import org.gradle.internal.impldep.org.junit.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static net.fabricmc.loom.test.LoomTestConstants.*
+import static net.fabricmc.loom.test.LoomTestConstants.STANDARD_TEST_VERSIONS
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Ignore
 class CustomManifestTest extends Specification implements GradleProjectTestTrait {
     @Unroll
     def "customManifest (gradle #version)"() {

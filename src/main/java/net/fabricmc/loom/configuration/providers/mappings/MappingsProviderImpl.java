@@ -251,7 +251,12 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 		project.getLogger().info(":extracting " + mappingsJar.getFileName());
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(mappingsJar, (ClassLoader) null)) {
-			extractMappings(fileSystem, baseTinyMappings);
+			boolean extracted = extractMappings(fileSystem, baseTinyMappings);
+
+			if (!extracted) {
+				throw new RuntimeException("Could not find mappings file in " + mappingsJar.toAbsolutePath());
+			}
+
 			extractExtras(fileSystem);
 		}
 
@@ -298,17 +303,20 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 		}
 	}
 
-	public static void extractMappings(FileSystem jar, Path extractTo) throws IOException {
+	public static boolean extractMappings(FileSystem jar, Path extractTo) throws IOException {
 		Path file = getMappingsFilePath(jar);
 
 		if (file != null) {
 			Files.copy(jar.getPath(file.toString()), extractTo, StandardCopyOption.REPLACE_EXISTING);
+			return true;
+		} else {
+			return false;
 		}
 	}
 
 	public static Path getMappingsFilePath(FileSystem jar) {
 		for (Path rootDir : jar.getRootDirectories()) {
-			try (Stream<Path> stream = Files.find(rootDir, 1, (path, attrs) -> path.getFileName() != null && path.getFileName().toString().equals(Constants.Mappings.MAPPINGS_FILE))) {
+			try (Stream<Path> stream = Files.find(rootDir, 2, (path, attrs) -> path.getFileName() != null && path.getFileName().toString().equals(Constants.Mappings.MAPPINGS_FILE))) {
 				Optional<Path> optional = stream.findFirst();
 
 				if (optional.isPresent()) {
@@ -400,9 +408,8 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 	 * Currently, Yarn does not export mappings for these inner classes.
 	 */
 	private void inheritMappedNamesOfEnclosingClasses(MemoryMappingTree tree) {
-		// TODO: Change to hashed
-		int intermediaryIdx = tree.getNamespaceId("intermediary");
-		int namedIdx = tree.getNamespaceId("named");
+		int intermediaryIdx = tree.getNamespaceId(Constants.Mappings.INTERMEDIATE_NAMESPACE);
+		int namedIdx = tree.getNamespaceId(Constants.Mappings.NAMED_NAMESPACE);
 
 		// The tree does not have an index by intermediary names by default
 		tree.setIndexByDstNames(true);

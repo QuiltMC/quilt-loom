@@ -10,11 +10,11 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.16.5"
+	minecraft "com.mojang:minecraft:1.17.1"
 	mappings loom.layered() {
 		officialMojangMappings()
-		parchment("org.parchmentmc.data:parchment-1.16.5:2021.10.10@zip")
+		parchment("org.parchmentmc.data:parchment-1.17.1:2021.10.31@zip")
 	}
 
-	modImplementation "net.fabricmc:fabric-loader:0.11.3"
+	modImplementation "org.quiltmc:quilt-mappings:0.14.0-SNAPSHOT"
 }

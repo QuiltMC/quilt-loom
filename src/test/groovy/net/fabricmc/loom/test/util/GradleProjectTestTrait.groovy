@@ -26,6 +26,7 @@ package net.fabricmc.loom.test.util
 
 import groovy.transform.Immutable
 import net.fabricmc.loom.test.LoomTestConstants
+import net.fabricmc.loom.util.Constants
 import net.fabricmc.loom.util.ZipUtils
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -207,7 +208,7 @@ trait GradleProjectTestTrait {
         }
 
         File getGeneratedSources(String mappings) {
-            return new File(getGradleHomeDir(), "caches/fabric-loom/${mappings}/minecraft-mapped-sources.jar")
+            return new File(getGradleHomeDir(), "caches/" + Constants.Directories.USER_CACHE_DIR + "/${mappings}/minecraft-mapped-sources.jar")
         }
     }
 }

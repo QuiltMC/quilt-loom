@@ -27,21 +27,14 @@ package net.fabricmc.loom.test.unit.layeredmappings
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta
 
 interface LayeredMappingsTestConstants {
-    public static final String INTERMEDIARY_1_17_URL = "https://maven.quiltmc.org/repository/fabricmc/net/fabricmc/intermediary/1.17/intermediary-1.17-v2.jar"
-    public static final String INTERMEDIARY_1_16_5_URL = "https://maven.quiltmc.org/repository/fabricmc/net/fabricmc/intermediary/1.16.5/intermediary-1.16.5-v2.jar"
+    public static final String HASHED_MOJMAP_1_17_1_URL = "https://maven.quiltmc.org/repository/snapshot/org/quiltmc/hashed/1.17.1-SNAPSHOT/hashed-1.17.1-20211105.170702-2.jar"
 
-    public static final Map<String, MinecraftVersionMeta.Download> DOWNLOADS_1_17 = [
-            client_mappings: new MinecraftVersionMeta.Download(null, "227d16f520848747a59bef6f490ae19dc290a804", 6431705, "https://launcher.mojang.com/v1/objects/227d16f520848747a59bef6f490ae19dc290a804/client.txt"),
-            server_mappings: new MinecraftVersionMeta.Download(null, "84d80036e14bc5c7894a4fad9dd9f367d3000334", 4948536, "https://launcher.mojang.com/v1/objects/84d80036e14bc5c7894a4fad9dd9f367d3000334/server.txt")
+    public static final Map<String, MinecraftVersionMeta.Download> DOWNLOADS_1_17_1 = [
+            client_mappings: new MinecraftVersionMeta.Download(null, "e4d540e0cba05a6097e885dffdf363e621f87d3f", 6437531, "https://launcher.mojang.com/v1/objects/e4d540e0cba05a6097e885dffdf363e621f87d3f/client.txt"),
+            server_mappings: new MinecraftVersionMeta.Download(null, "f6cae1c5c1255f68ba4834b16a0da6a09621fe13", 4953452, "https://launcher.mojang.com/v1/objects/f6cae1c5c1255f68ba4834b16a0da6a09621fe13/server.txt")
     ]
-    public static final MinecraftVersionMeta VERSION_META_1_17 = new MinecraftVersionMeta(null, null, null, 0, DOWNLOADS_1_17, null, null, null, null, 0, null, null, null)
+    public static final MinecraftVersionMeta VERSION_META_1_17_1 = new MinecraftVersionMeta(null, null, null, 0, DOWNLOADS_1_17_1, null, null, null, null, 0, null, null, null)
 
-    public static final Map<String, MinecraftVersionMeta.Download> DOWNLOADS_1_16_5 = [
-            client_mappings: new MinecraftVersionMeta.Download(null, "e3dfb0001e1079a1af72ee21517330edf52e6192", 5746047, "https://launcher.mojang.com/v1/objects/e3dfb0001e1079a1af72ee21517330edf52e6192/client.txt"),
-            server_mappings: new MinecraftVersionMeta.Download(null, "81d5c793695d8cde63afddb40dde88e3a88132ac", 4400926, "https://launcher.mojang.com/v1/objects/81d5c793695d8cde63afddb40dde88e3a88132ac/server.txt")
-    ]
-    public static final MinecraftVersionMeta VERSION_META_1_16_5 = new MinecraftVersionMeta(null, null, null, 0, DOWNLOADS_1_16_5, null, null, null, null, 0, null, null, null)
-
-    public static final String PARCHMENT_NOTATION = "org.parchmentmc.data:parchment-1.16.5:20210608-SNAPSHOT@zip"
-    public static final String PARCHMENT_URL = "https://maven.parchmentmc.net/org/parchmentmc/data/parchment-1.16.5/20210608-SNAPSHOT/parchment-1.16.5-20210608-SNAPSHOT.zip"
+    public static final String PARCHMENT_NOTATION = "org.parchmentmc.data:parchment-1.17.1:2021.10.31@zip"
+    public static final String PARCHMENT_URL = "https://maven.parchmentmc.net/org/parchmentmc/data/parchment-1.17.1/2021.10.31/parchment-1.17.1-2021.10.31.zip"
 }

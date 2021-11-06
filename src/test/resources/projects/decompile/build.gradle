@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:21w38a"
-	mappings "net.fabricmc:yarn:21w38a+build.11:v2"
-	modImplementation "net.fabricmc:fabric-loader:0.11.7"
+	minecraft "com.mojang:minecraft:21w44a"
+	mappings "org.quiltmc:quilt-mappings:21w44a+build.3:v2"
+	modImplementation "org.quiltmc:quilt-loader:0.14.0-SNAPSHOT"
 }
