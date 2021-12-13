@@ -24,10 +24,14 @@
 
 package net.fabricmc.loom.configuration;
 
+import java.nio.charset.StandardCharsets;
+
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.jvm.tasks.Jar;
 
@@ -60,6 +64,7 @@ public final class CompileConfiguration {
 		extension.createLazyConfiguration(Constants.Configurations.NAMED_ELEMENTS).configure(configuration -> {
 			configuration.setCanBeConsumed(true);
 			configuration.setCanBeResolved(false);
+			configuration.extendsFrom(project.getConfigurations().getByName(JavaPlugin.API_CONFIGURATION_NAME));
 		});
 
 		extendsFrom(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME, Constants.Configurations.MAPPING_CONSTANTS, project);
@@ -92,8 +97,8 @@ public final class CompileConfiguration {
 				extendsFrom(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME, entry.getRemappedConfiguration(), project);
 			}
 
-			if (entry.hasConsumerConfiguration()) {
-				extendsFrom(entry.consumerConfiguration(), entry.sourceConfiguration(), project);
+			for (String outgoingConfiguration : entry.publishingMode().outgoingConfigurations()) {
+				extendsFrom(outgoingConfiguration, entry.sourceConfiguration(), project);
 			}
 		}
 
@@ -156,6 +161,12 @@ public final class CompileConfiguration {
 
 		// Add the "dev" jar to the "namedElements" configuration
 		p.artifacts(artifactHandler -> artifactHandler.add(Constants.Configurations.NAMED_ELEMENTS, p.getTasks().getByName("jar")));
+
+		// Ensure that the encoding is set to UTF-8, no matter what the system default is
+		// this fixes some edge cases with special characters not displaying correctly
+		// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+		p.getTasks().withType(AbstractCopyTask.class).configureEach(abstractCopyTask -> abstractCopyTask.setFilteringCharset(StandardCharsets.UTF_8.name()));
+		p.getTasks().withType(JavaCompile.class).configureEach(javaCompile -> javaCompile.getOptions().setEncoding(StandardCharsets.UTF_8.name()));
 
 		if (p.getPluginManager().hasPlugin("org.jetbrains.kotlin.kapt")) {
 			// If loom is applied after kapt, then kapt will use the AP arguments too early for loom to pass the arguments we need for mixin.

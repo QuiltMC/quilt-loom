@@ -58,6 +58,7 @@ public class LaunchProvider extends DependencyProvider {
 				.property("quilt.development", "true")
 				.property("quilt.remapClasspathFile", getRemapClasspathFile().getAbsolutePath())
 				.property("log4j.configurationFile", getAllLog4JConfigFiles())
+				.property("log4j2.formatMsgNoLookups", "true")
 
 				.property("client", "java.library.path", getExtension().getMinecraftProvider().nativesDir().getAbsolutePath())
 				.property("client", "org.lwjgl.librarypath", getExtension().getMinecraftProvider().nativesDir().getAbsolutePath())

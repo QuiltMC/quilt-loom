@@ -86,7 +86,7 @@ dependencies {
 
 	// tinyfile management
 	implementation ('org.quiltmc:tiny-remapper:0.7.1')
-	implementation 'net.fabricmc:access-widener:2.0.1'
+	implementation 'net.fabricmc:access-widener:2.1.0'
 	implementation 'net.fabricmc:mapping-io:0.2.1'
 
 	implementation ('net.fabricmc:lorenz-tiny:4.0.2') {
@@ -95,7 +95,7 @@ dependencies {
 
 	// decompilers
 	implementation ('org.quiltmc:quiltflower:1.5.0')
-	implementation ('net.fabricmc:cfr:0.0.8')
+	implementation ('net.fabricmc:cfr:0.0.9')
 
 	// source code remapping
 	implementation ('net.fabricmc:mercury:0.2.4')
@@ -109,7 +109,7 @@ dependencies {
 		exclude module: 'groovy-all'
 	}
 	testImplementation 'io.javalin:javalin:3.13.11'
-	testImplementation 'net.fabricmc:fabric-installer:0.7.4'
+	testImplementation 'net.fabricmc:fabric-installer:0.9.0'
 
 	compileOnly 'org.jetbrains:annotations:22.0.0'
 }

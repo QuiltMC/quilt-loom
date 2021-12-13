@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016-2021 FabricMC
+ * Copyright (c) 2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,13 +22,15 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.api.decompilers;
+package net.fabricmc.loom.api.mappings.layered.spec;
 
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Map;
+public interface MojangMappingsSpecBuilder {
+	/**
+	 * When enabled synthetic fields and methods will be mapped to name specified in the official mojang mappings.
+	 *
+	 * <p>When disabled synthetic fields and methods will not be mapped leaving them with their intermediary name.
+	 */
+	MojangMappingsSpecBuilder setNameSyntheticMembers(boolean value);
 
-import net.fabricmc.loom.util.IOStringConsumer;
-
-public record DecompilationMetadata(int numberOfThreads, Path javaDocs, Collection<Path> libraries, IOStringConsumer logger, Map<String, String> options) {
+	boolean getNameSyntheticMembers();
 }

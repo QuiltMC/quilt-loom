@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016-2021 FabricMC
+ * Copyright (c) 2021 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,13 +22,33 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.api.decompilers;
+package net.fabricmc.loom.configuration.providers.mappings.mojmap;
 
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Map;
+import net.fabricmc.loom.api.mappings.layered.spec.MojangMappingsSpecBuilder;
 
-import net.fabricmc.loom.util.IOStringConsumer;
+public class MojangMappingsSpecBuilderImpl implements MojangMappingsSpecBuilder {
+	// TODO 0.11 loom change default to false
+	private boolean nameSyntheticMembers = true;
 
-public record DecompilationMetadata(int numberOfThreads, Path javaDocs, Collection<Path> libraries, IOStringConsumer logger, Map<String, String> options) {
+	private MojangMappingsSpecBuilderImpl() {
+	}
+
+	public static MojangMappingsSpecBuilderImpl builder() {
+		return new MojangMappingsSpecBuilderImpl();
+	}
+
+	@Override
+	public MojangMappingsSpecBuilder setNameSyntheticMembers(boolean value) {
+		nameSyntheticMembers = value;
+		return this;
+	}
+
+	@Override
+	public boolean getNameSyntheticMembers() {
+		return nameSyntheticMembers;
+	}
+
+	public MojangMappingsSpec build() {
+		return new MojangMappingsSpec(nameSyntheticMembers);
+	}
 }
