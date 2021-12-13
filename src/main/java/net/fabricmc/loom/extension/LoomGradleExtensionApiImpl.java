@@ -61,6 +61,7 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 	protected final Property<String> customManifest;
 	protected final Property<Boolean> setupRemappedVariants;
 	protected final Property<Boolean> transitiveAccessWideners;
+	protected final Property<String> hashedMojmapUrl;
 
 	private final ModVersionParser versionParser;
 
@@ -85,6 +86,8 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 		this.transitiveAccessWideners = project.getObjects().property(Boolean.class)
 				.convention(true);
 		this.transitiveAccessWideners.finalizeValueOnRead();
+		this.hashedMojmapUrl = project.getObjects().property(String.class)
+				.convention("https://maven.quiltmc.org/repository/release/org/quiltmc/hashed-mojmap/%1$s/hashed-mojmap-%1$s.jar");
 
 		this.versionParser = new ModVersionParser(project);
 
@@ -172,6 +175,11 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 	protected abstract Project getProject();
 
 	protected abstract LoomFiles getFiles();
+
+	@Override
+	public Property<String> getHashedMojmapUrl() {
+		return hashedMojmapUrl;
+	}
 
 	@Override
 	public void disableDeprecatedPomGeneration(MavenPublication publication) {

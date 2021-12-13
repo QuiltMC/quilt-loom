@@ -211,4 +211,13 @@ public interface LoomGradleExtensionAPI {
 	 * @return the property controlling the transitive access wideners
 	 */
 	Property<Boolean> getEnableTransitiveAccessWideners();
+
+	/**
+	 * Use "%1$s" as a placeholder for the minecraft version.
+	 *
+	 * <p>By default {@code "https://maven.quiltmc.org/repository/release/org/quiltmc/hashed-mojmap/%1$s/hashed-mojmap-%1$s.jar"}.
+	 *
+	 * @return the hashed mojmap url template
+	 */
+	Property<String> getHashedMojmapUrl();
 }

@@ -99,7 +99,7 @@ public interface LoomGradleExtension extends LoomGradleExtensionAPI {
 	}
 
 	default String getHashedMojmapUrl(String minecraftVersion) {
-		return String.format("https://maven.quiltmc.org/repository/release/org/quiltmc/hashed-mojmap/%1$s/hashed-mojmap-%1$s.jar", minecraftVersion);
+		return String.format(this.getHashedMojmapUrl().get(), minecraftVersion);
 	}
 
 	@Override

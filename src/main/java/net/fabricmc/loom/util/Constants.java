@@ -105,6 +105,7 @@ public class Constants {
 		 */
 		public static final class Versions {
 			// TODO: Remove local prefix once published
+			// @QuiltMC/build-tools please merge https://github.com/QuiltMC/sponge-mixin-compile-extensions/pull/1
 			public static final String MIXIN_COMPILE_EXTENSIONS = "1.0.2+local";
 			public static final String DEV_LAUNCH_INJECTOR = "0.2.1+build.8";
 			public static final String TERMINAL_CONSOLE_APPENDER = "1.2.0";
@@ -154,6 +155,7 @@ public class Constants {
 		public static final String DEFAULT_LOG4J_CONFIG_FILE = "log4j.xml";
 		public static final String DEV_LAUNCHER_CONFIG = "launch.cfg";
 		public static final String UNPICK_LOGGING_CONFIG = "unpick-logging.properties";
+		public static final String INTERMEDIATE_MAPPINGS_DIR = "intermediate_mappings";
 
 		private Directories() {
 		}
@@ -163,15 +165,13 @@ public class Constants {
 	 * Constants related to mappings.
 	 */
 	public static final class Mappings {
-		public static final boolean USE_SNAPSHOT_HASHES = true;
 		// Files & dirs
 		public static final String MAPPINGS_FILE = "mappings.tiny";
 		public static final String BASE_MAPPINGS_FILE = "mappings-base.tiny";
 		public static final String MAPPINGS_JAR = "mappings.jar";
 		public static final String UNPICK_FILE = "mappings.unpick";
-		public static final String MAPPINGS_FILE_DIR = "hashed";
-		// TODO: Support for mappings/mappings.tiny
-		public static final String MAPPINGS_FILE_PATH = MAPPINGS_FILE_DIR + "/" + MAPPINGS_FILE;
+		public static final String DEFUALT_MAPPINGS_FILE_DIR = "mappings";
+		public static final String DEFAULT_MAPPINGS_FILE_PATH = DEFUALT_MAPPINGS_FILE_DIR + "/" + MAPPINGS_FILE;
 		public static final String HASHED_TINY_FILE = "hashed.tiny";
 		public static final String HASHED_JAR = "hashed.jar";
 

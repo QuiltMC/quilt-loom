@@ -36,13 +36,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.base.Stopwatch;
@@ -51,6 +52,8 @@ import com.google.gson.JsonObject;
 import org.apache.tools.ant.util.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.jetbrains.annotations.Nullable;
@@ -79,21 +82,22 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.stitch.Command;
 import net.fabricmc.stitch.commands.CommandProposeFieldNames;
-import net.fabricmc.stitch.commands.tinyv2.CommandMergeTinyV2;
-import net.fabricmc.stitch.commands.tinyv2.CommandReorderTinyV2;
 
 public class MappingsProviderImpl extends DependencyProvider implements MappingsProvider {
+	public IntermediateMappingsHandler intermediateMappingsHandler = new IntermediateMappingsHandler();
 	public MinecraftMappedProvider mappedProvider;
 
 	public String mappingsIdentifier;
 
 	private Path mappingsWorkingDir;
+	// Only used for the hashed mojmap mapping layer
 	private Path hashedTiny;
 	private boolean hasRefreshed = false;
-	// The mappings that gradle gives us
+	// The mappings that gradle gives us, which were inside a jar
 	private Path baseTinyMappings;
 	// The mappings we use in practice
 	public Path tinyMappings;
+	// A jar containing the tinyMappings file, used in the 'mappings final' configuration
 	public Path tinyMappingsJar;
 	private Path unpickDefinitions;
 	private boolean hasUnpickDefinitions;
@@ -119,35 +123,50 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 			throw new IllegalStateException("There isn't only one resolved " + getTargetConfig() + " dependency");
 		}
 
-		populateIntermediateMappings(minecraftProvider.getVersionInfo().id(), resolvedDependencies.iterator().next());
-		// TODO: Use intermediate mappings from configuration instead
+		ResolvedDependency resolvedDependency = resolvedDependencies.iterator().next();
+		intermediateMappingsHandler.populateConfiguration(minecraftProvider.minecraftVersion(), resolvedDependency);
 
 		getProject().getLogger().info(":setting up mappings (" + dependency.getDependency().getName() + " " + dependency.getResolvedVersion() + ")");
 
 		String version = dependency.getResolvedVersion();
-		File mappingsJar = dependency.resolveFile().orElseThrow(() -> new RuntimeException("Could not find mappings: " + dependency));
+		// Resolve dependency artifacts
+		Set<File> mappingsJars = resolvedDependency.getModuleArtifacts().stream().map(ResolvedArtifact::getFile).collect(Collectors.toSet());
 
-		String mappingsName = StringUtils.removeSuffix(dependency.getDependency().getGroup() + "." + dependency.getDependency().getName(), "-unmerged");
+		if (mappingsJars.size() != 1) {
+			throw new RuntimeException("Could not find mappings: " + dependency);
+		}
+
+		File mappingsJar = mappingsJars.iterator().next();
+
+		String mappingsName = StringUtils.removeSuffix(resolvedDependency.getModuleGroup() + "." + resolvedDependency.getModuleName(), "-unmerged");
 		boolean isV2 = isV2(dependency, mappingsJar);
 		this.mappingsIdentifier = createMappingsIdentifier(mappingsName, version, getMappingsClassifier(dependency, isV2));
+		intermediateMappingsHandler.createDependencyIdentifiers();
 
 		initFiles();
+		intermediateMappingsHandler.initFiles();
 
+		intermediateMappingsHandler.storeMappings();
+
+		// Extract mappings to baseTinyMappings, save merged mappings to tinyMappings
 		if (Files.notExists(tinyMappings) || isRefreshDeps()) {
 			storeMappings(getProject(), minecraftProvider, mappingsJar.toPath());
 		} else {
+			// Extract extras
 			try (FileSystem fileSystem = FileSystems.newFileSystem(mappingsJar.toPath(), (ClassLoader) null)) {
 				extractExtras(fileSystem);
 			}
 		}
 
+		// Read mappings from the tinyMappings file
 		mappingTree = readMappings();
 
 		if (Files.notExists(tinyMappingsJar) || isRefreshDeps()) {
 			Files.deleteIfExists(tinyMappingsJar);
-			ZipUtils.add(tinyMappingsJar, Constants.Mappings.MAPPINGS_FILE_PATH, Files.readAllBytes(tinyMappings));
+			ZipUtils.add(tinyMappingsJar, Constants.Mappings.DEFAULT_MAPPINGS_FILE_PATH, Files.readAllBytes(tinyMappings));
 		}
 
+		// Populate the 'mapping constants' and 'unpick classpath' configurations
 		if (hasUnpickDefinitions()) {
 			String notation = String.format("%s:%s:%s:constants",
 					dependency.getDependency().getGroup(),
@@ -159,6 +178,7 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 			populateUnpickClasspath();
 		}
 
+		// Populate the 'mappings final' configuration
 		addDependency(tinyMappingsJar.toFile(), Constants.Configurations.MAPPINGS_FINAL);
 
 		LoomGradleExtension extension = getExtension();
@@ -183,38 +203,13 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 
 		if (processorManager.active()) {
 			mappedProvider = new MinecraftProcessedProvider(getProject(), processorManager);
-			getProject().getLogger().lifecycle("Using project based jar storage");
+			getProject().getLogger().info("Using project based jar storage");
 		} else {
 			mappedProvider = new MinecraftMappedProvider(getProject());
 		}
 
 		mappedProvider.initFiles(minecraftProvider, this);
 		mappedProvider.provide(dependency, postPopulationScheduler);
-	}
-
-	private void populateIntermediateMappings(String minecraftVersion, ResolvedDependency mappingsDependency) {
-		String configName = Constants.Configurations.INTERMEDIATE_MAPPINGS;
-		DependencyHandler dependencies = getProject().getDependencies();
-
-		Set<ResolvedDependency> mappingsDependencyChildren = mappingsDependency.getChildren();
-
-		if (mappingsDependencyChildren.size() > 1) {
-			throw new IllegalArgumentException("The specified " + getTargetConfig() + " dependency has more than one dependency");
-		} else if (mappingsDependencyChildren.size() == 1) {
-			dependencies.add(configName, mappingsDependencyChildren.iterator().next().getName());
-		} else {
-			Configuration configuration = getProject().getConfigurations().getByName(configName);
-			boolean configurationEmpty = configuration.getDependencies().isEmpty();
-			dependencies.add(configName, "org.quiltmc:hashed:" + minecraftVersion + (Constants.Mappings.USE_SNAPSHOT_HASHES ? "-SNAPSHOT" : ""));
-
-			if (configurationEmpty) {
-				dependencies.add(configName, "net.fabricmc:intermediary:" + minecraftVersion + ":v2"); // Required for Fabric mods
-			}
-		}
-	}
-
-	private Set<File> resolveIntermediateMappings() {
-		return getProject().getConfigurations().getByName(Constants.Configurations.INTERMEDIATE_MAPPINGS).resolve();
 	}
 
 	private String getMappingsClassifier(DependencyInfo dependency, boolean isV2) {
@@ -228,23 +223,10 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 	}
 
 	private boolean isV2(DependencyInfo dependency, File mappingsJar) throws IOException {
-		String minecraftVersion = getMinecraftProvider().minecraftVersion();
+		// TODO: Check if the mappings version is the same as the minecraft version
+		// TODO: Skip reading the mappings if the dependency is Quilt Mappings or Yarn
 
-		// Only do this for official yarn, there isn't really a way we can get the mc version for all mappings
-		if (dependency.getDependency().getGroup() != null && dependency.getDependency().getGroup().equals("net.fabricmc") && dependency.getDependency().getName().equals("yarn") && dependency.getDependency().getVersion() != null) {
-			String yarnVersion = dependency.getDependency().getVersion();
-			char separator = yarnVersion.contains("+build.") ? '+' : yarnVersion.contains("-") ? '-' : '.';
-			String yarnMinecraftVersion = yarnVersion.substring(0, yarnVersion.lastIndexOf(separator));
-
-			if (!yarnMinecraftVersion.equalsIgnoreCase(minecraftVersion)) {
-				throw new RuntimeException(String.format("Minecraft Version (%s) does not match yarn's minecraft version (%s)", minecraftVersion, yarnMinecraftVersion));
-			}
-
-			// We can save reading the zip file + header by checking the file name
-			return mappingsJar.getName().endsWith("-v2.jar");
-		} else {
-			return doesJarContainV2Mappings(mappingsJar.toPath());
-		}
+		return doesJarContainV2Mappings(mappingsJar.toPath());
 	}
 
 	private void storeMappings(Project project, MinecraftProviderImpl minecraftProvider, Path mappingsJar) throws IOException {
@@ -315,6 +297,7 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 	}
 
 	public static Path getMappingsFilePath(FileSystem jar) {
+		// Get the path of a file named "mappings.tiny"
 		for (Path rootDir : jar.getRootDirectories()) {
 			try (Stream<Path> stream = Files.find(rootDir, 2, (path, attrs) -> path.getFileName() != null && path.getFileName().toString().equals(Constants.Mappings.MAPPINGS_FILE))) {
 				Optional<Path> optional = stream.findFirst();
@@ -382,22 +365,49 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 		);
 	}
 
+	// Merge base mappings with intermediate mappings
 	private void mergeAndSaveMappings(Project project, Path from, Path out) throws IOException {
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		project.getLogger().info(":merging mappings");
 
-		MemoryMappingTree tree = new MemoryMappingTree();
-		MappingSourceNsSwitch sourceNsSwitch = new MappingSourceNsSwitch(tree, MappingsNamespace.OFFICIAL.toString());
-		readHashedTree().accept(sourceNsSwitch);
+		MemoryMappingTree mappingsTree = new MemoryMappingTree();
 
-		try (BufferedReader reader = Files.newBufferedReader(from, StandardCharsets.UTF_8)) {
-			Tiny2Reader.read(reader, tree);
+		try (BufferedReader reader = Files.newBufferedReader(from)) {
+			Tiny2Reader.read(reader, mappingsTree);
 		}
 
-		inheritMappedNamesOfEnclosingClasses(tree);
+		String intermediateNamespace = mappingsTree.getSrcNamespace();
+		MemoryMappingTree intermediateTree = new MemoryMappingTree();
+		MappingSourceNsSwitch sourceNsSwitch = new MappingSourceNsSwitch(intermediateTree, intermediateNamespace);
+		MappingTree tree;
+
+		if (intermediateMappingsHandler.mappingsIntermediateDependency != null) {
+			tree = intermediateMappingsHandler.getMappingTree(intermediateMappingsHandler.mappingsIntermediateDependency);
+
+			if (!tree.getDstNamespaces().contains(intermediateNamespace)) {
+				throw new IllegalArgumentException("The intermediate mappings do not contain the base mappings namespace");
+			}
+		} else {
+			tree = intermediateMappingsHandler.getMappingTree(intermediateNamespace);
+
+			if (tree == null) {
+				throw new IllegalArgumentException("No intermediate mappings found with namespace " + intermediateNamespace);
+			}
+		}
+
+		tree.accept(sourceNsSwitch);
+		mappingsTree.accept(intermediateTree);
+
+		MemoryMappingTree officialTree = new MemoryMappingTree();
+		MappingNsCompleter namedNsCompleter = new MappingNsCompleter(officialTree, Map.of(MappingsNamespace.NAMED.toString(), intermediateNamespace));
+		MappingNsCompleter nsCompleter = new MappingNsCompleter(namedNsCompleter, Map.of(MappingsNamespace.OFFICIAL.toString(), intermediateNamespace));
+		MappingSourceNsSwitch nsSwitch = new MappingSourceNsSwitch(nsCompleter, MappingsNamespace.OFFICIAL.toString());
+		intermediateTree.accept(nsSwitch);
+
+		inheritMappedNamesOfEnclosingClasses(officialTree, intermediateNamespace);
 
 		try (Tiny2Writer writer = new Tiny2Writer(Files.newBufferedWriter(out, StandardCharsets.UTF_8), false)) {
-			tree.accept(writer);
+			officialTree.accept(writer);
 		}
 
 		project.getLogger().info(":merged mappings in " + stopwatch.stop());
@@ -407,24 +417,24 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 	 * Searches the mapping tree for inner classes with no mapped name, whose enclosing classes have mapped names.
 	 * Currently, Yarn does not export mappings for these inner classes.
 	 */
-	private void inheritMappedNamesOfEnclosingClasses(MemoryMappingTree tree) {
-		int intermediaryIdx = tree.getNamespaceId(Constants.Mappings.INTERMEDIATE_NAMESPACE);
+	private void inheritMappedNamesOfEnclosingClasses(MemoryMappingTree tree, String intermediateNamespace) {
+		int intermediateIdx = tree.getNamespaceId(intermediateNamespace);
 		int namedIdx = tree.getNamespaceId(Constants.Mappings.NAMED_NAMESPACE);
 
 		// The tree does not have an index by intermediary names by default
 		tree.setIndexByDstNames(true);
 
 		for (MappingTree.ClassMapping classEntry : tree.getClasses()) {
-			String intermediaryName = classEntry.getDstName(intermediaryIdx);
+			String intermediateName = classEntry.getDstName(intermediateIdx);
 			String namedName = classEntry.getDstName(namedIdx);
 
-			if (intermediaryName.equals(namedName) && intermediaryName.contains("$")) {
-				String[] path = intermediaryName.split(Pattern.quote("$"));
+			if (intermediateName.equals(namedName) && intermediateName.contains("$")) {
+				String[] path = intermediateName.split(Pattern.quote("$"));
 				int parts = path.length;
 
 				for (int i = parts - 2; i >= 0; i--) {
 					String currentPath = String.join("$", Arrays.copyOfRange(path, 0, i + 1));
-					String namedParentClass = tree.mapClassName(currentPath, intermediaryIdx, namedIdx);
+					String namedParentClass = tree.mapClassName(currentPath, intermediateIdx, namedIdx);
 
 					if (!namedParentClass.equals(currentPath)) {
 						classEntry.setDstName(namedParentClass
@@ -434,39 +444,6 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 					}
 				}
 			}
-		}
-	}
-
-	private MemoryMappingTree readHashedTree() throws IOException {
-		MemoryMappingTree tree = new MemoryMappingTree();
-		MappingNsCompleter nsCompleter = new MappingNsCompleter(tree, Collections.singletonMap(MappingsNamespace.NAMED.toString(), MappingsNamespace.HASHED.toString()), true);
-
-		try (BufferedReader reader = Files.newBufferedReader(getHashedTiny(), StandardCharsets.UTF_8)) {
-			Tiny2Reader.read(reader, nsCompleter);
-		}
-
-		return tree;
-	}
-
-	private void reorderMappings(Path oldMappings, Path newMappings, String... newOrder) {
-		Command command = new CommandReorderTinyV2();
-		String[] args = new String[2 + newOrder.length];
-		args[0] = oldMappings.toAbsolutePath().toString();
-		args[1] = newMappings.toAbsolutePath().toString();
-		System.arraycopy(newOrder, 0, args, 2, newOrder.length);
-		runCommand(command, args);
-	}
-
-	private void mergeMappings(Path hashedMappings, Path mappings, Path newMergedMappings) {
-		try {
-			Command command = new CommandMergeTinyV2();
-			runCommand(command, hashedMappings.toAbsolutePath().toString(),
-							mappings.toAbsolutePath().toString(),
-							newMergedMappings.toAbsolutePath().toString(),
-							MappingsNamespace.HASHED.toString(), MappingsNamespace.OFFICIAL.toString());
-		} catch (Exception e) {
-			throw new RuntimeException("Could not merge mappings from " + hashedMappings.toString()
-							+ " with mappings from " + mappings, e);
 		}
 	}
 
@@ -572,5 +549,123 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 	}
 
 	public record UnpickMetadata(String unpickGroup, String unpickVersion) {
+	}
+
+	public class IntermediateMappingsHandler {
+		private final String CONFIG_NAME = Constants.Configurations.INTERMEDIATE_MAPPINGS;
+		private Path intermediateMappingsDir;
+		private ResolvedDependency mappingsIntermediateDependency;
+		private Map<ResolvedDependency, MappingTree> mappingTrees;
+		private Map<String, MappingTree> mappingTreesByNamespace;
+		private Map<ResolvedDependency, File> dependencyJars;
+		private Map<ResolvedDependency, Path> dependencyMappings;
+		// identifiers by dependency
+		private Map<ResolvedDependency, String> dependencies;
+
+		private void populateConfiguration(String minecraftVersion, ResolvedDependency mappingsDependency) {
+			DependencyHandler dependencies = getProject().getDependencies();
+
+			Configuration configuration = getProject().getConfigurations().getByName(CONFIG_NAME);
+			boolean configurationEmpty = configuration.getDependencies().isEmpty();
+			Set<ResolvedDependency> mappingsDependencyChildren = mappingsDependency.getChildren();
+
+			if (mappingsDependencyChildren.size() > 1) {
+				throw new IllegalArgumentException("The specified " + getTargetConfig() + " dependency has more than one dependency");
+			}
+
+			if (mappingsDependencyChildren.size() == 1) {
+				ResolvedDependency dependency = mappingsDependencyChildren.iterator().next();
+				dependencies.add(CONFIG_NAME, dependency.getName());
+				mappingsIntermediateDependency = dependency;
+			} else {
+				dependencies.add(CONFIG_NAME, "org.quiltmc:hashed:" + minecraftVersion);
+			}
+
+			if (configurationEmpty) {
+				dependencies.add(CONFIG_NAME, "net.fabricmc:intermediary:" + minecraftVersion + ":v2"); // Required for Fabric mods
+			}
+		}
+
+		private void createDependencyIdentifiers() {
+			dependencies = new HashMap<>();
+			dependencyJars = new HashMap<>();
+
+			ResolvedConfiguration configuration = getProject().getConfigurations().getByName(CONFIG_NAME).getResolvedConfiguration();
+
+			for (ResolvedDependency dependency : configuration.getFirstLevelModuleDependencies()) {
+				Set<ResolvedArtifact> artifacts = dependency.getModuleArtifacts();
+
+				if (artifacts.size() != 1) {
+					throw new IllegalArgumentException("Intermediate mappings dependency '" + dependency.getName() + "' does not have one artifact");
+				}
+
+				ResolvedArtifact artifact = artifacts.iterator().next();
+				String classifier = artifact.getClassifier() == null ? "" : "-" + artifact.getClassifier();
+				dependencies.put(dependency, createDependencyIdentifier(dependency.getModuleGroup(), dependency.getModuleName(), dependency.getModuleVersion(), classifier));
+				dependencyJars.put(dependency, artifact.getFile());
+			}
+		}
+
+		private String createDependencyIdentifier(String group, String name, String version, String classifier) {
+			return group + "." + name + "." + version + classifier;
+		}
+
+		private void initFiles() {
+			intermediateMappingsDir = getMinecraftProvider().dir(Constants.Directories.INTERMEDIATE_MAPPINGS_DIR).toPath();
+			dependencyMappings = new HashMap<>();
+
+			for (ResolvedDependency dependency : dependencies.keySet()) {
+				String identifier = dependencies.get(dependency);
+
+				Path workingDir = intermediateMappingsDir.resolve(identifier);
+
+				Path mappingsFile = workingDir.resolve(Constants.Mappings.MAPPINGS_FILE);
+				dependencyMappings.put(dependency, mappingsFile);
+			}
+		}
+
+		private void storeMappings() throws IOException {
+			mappingTrees = new HashMap<>();
+			mappingTreesByNamespace = new HashMap<>();
+
+			for (ResolvedDependency dependency : dependencies.keySet()) {
+				File jar = dependencyJars.get(dependency);
+				Path mappingsFile = dependencyMappings.get(dependency);
+
+				Files.createDirectories(mappingsFile.getParent());
+
+				getProject().getLogger().info(":extracting " + jar.getName());
+				extractMappings(jar.toPath(), mappingsFile);
+
+				MappingTree mappingTree = readMappingsFile(mappingsFile);
+
+				if (!mappingTree.getSrcNamespace().equals(MappingsNamespace.OFFICIAL.toString())) {
+					throw new IllegalArgumentException("The dependency '" + dependency.getName() + "' does not have the correct source namespace ('official')");
+				}
+
+				String namespace = mappingTree.getDstNamespaces().get(0);
+
+				if (mappingTreesByNamespace.containsKey(namespace)) {
+					throw new IllegalArgumentException("A dependency with namespace '" + namespace + "' already exists");
+				}
+
+				mappingTrees.put(dependency, mappingTree);
+				mappingTreesByNamespace.put(namespace, mappingTree);
+			}
+		}
+
+		private MemoryMappingTree readMappingsFile(Path file) throws IOException {
+			MemoryMappingTree mappingTree = new MemoryMappingTree();
+			MappingReader.read(file, mappingTree);
+			return mappingTree;
+		}
+
+		public MappingTree getMappingTree(ResolvedDependency dependency) {
+			return mappingTrees.get(dependency);
+		}
+
+		public MappingTree getMappingTree(String namespace) {
+			return mappingTreesByNamespace.get(namespace);
+		}
 	}
 }

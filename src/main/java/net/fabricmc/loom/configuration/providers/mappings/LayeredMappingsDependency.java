@@ -104,7 +104,7 @@ public class LayeredMappingsDependency implements SelfResolvingDependency, FileC
 			mappings.accept(nsSwitch);
 
 			Files.deleteIfExists(mappingsFile);
-			ZipUtils.add(mappingsFile, Constants.Mappings.MAPPINGS_FILE_PATH, writer.toString().getBytes(StandardCharsets.UTF_8));
+			ZipUtils.add(mappingsFile, Constants.Mappings.DEFAULT_MAPPINGS_FILE_PATH, writer.toString().getBytes(StandardCharsets.UTF_8));
 		}
 	}
 

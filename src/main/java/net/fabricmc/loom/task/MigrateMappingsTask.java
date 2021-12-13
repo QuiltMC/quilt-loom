@@ -158,7 +158,7 @@ public class MigrateMappingsTask extends AbstractLoomTask {
 				throw new IllegalArgumentException("Could not find mappings file in " + mappings.getAbsolutePath());
 			}
 
-			MappingReader.read(fileSystem.getPath(Constants.Mappings.MAPPINGS_FILE_PATH), mappingTree);
+			MappingReader.read(fileSystem.getPath(Constants.Mappings.DEFAULT_MAPPINGS_FILE_PATH), mappingTree);
 		}
 
 		return mappingTree;
