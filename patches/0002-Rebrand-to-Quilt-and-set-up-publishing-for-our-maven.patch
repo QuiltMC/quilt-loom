@@ -1,0 +1,147 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Glitch <glitch.g3431@gmail.com>
+Date: Sat, 12 Mar 2022 21:08:03 -0600
+Subject: [PATCH] Rebrand to Quilt and set up publishing for our maven
+
+
+diff --git a/build.gradle b/build.gradle
+index 15ceecae59d19502cb20e12c82dfed6c15183a1a..f87c1fdecfba98722ddc76a1aa76e4744cff6b23 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+ 	}
+ }
+ 
+-group = 'net.fabricmc'
++group = 'org.quiltmc'
+ archivesBaseName = project.name
+ def baseVersion = '0.12'
+ 
+@@ -165,10 +165,17 @@ codenarc {
+ 
+ gradlePlugin {
+ 	plugins {
+-		fabricLoom {
+-			id = 'fabric-loom'
++		quiltLoom {
++			id = 'org.quiltmc.loom'
+ 			implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
+ 		}
++		// Don't publish the fabric-loom artifact, but keep it for tests
++		if (!ENV.MAVEN_URL) {
++			fabricLoom {
++				id = 'fabric-loom'
++				implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
++			}
++		}
+ 	}
+ }
+ 
+@@ -217,8 +224,8 @@ publishing {
+ 
+ 		// Manually crate the plugin marker for snapshot versions
+ 		snapshotPlugin(MavenPublication) { publication ->
+-			groupId 'fabric-loom'
+-			artifactId 'fabric-loom.gradle.plugin'
++			groupId 'org.quiltmc.loom'
++			artifactId 'org.quiltmc.loom.gradle.plugin'
+ 			version baseVersion + '-SNAPSHOT'
+ 
+ 			pom.withXml({
+@@ -238,6 +245,7 @@ publishing {
+ 	}
+ 	repositories {
+ 		maven {
++			name = 'release'
+ 			if (ENV.MAVEN_URL) {
+ 				url ENV.MAVEN_URL
+ 				credentials {
+@@ -246,9 +254,30 @@ publishing {
+ 				}
+ 			}
+ 		}
++		maven {
++			name = "snapshot"
++			if (ENV.SNAPSHOTS_URL) {
++				url ENV.SNAPSHOTS_URL
++				credentials {
++					username ENV.SNAPSHOTS_USERNAME
++					password ENV.SNAPSHOTS_PASSWORD
++				}
++			}
++		}
+ 	}
+ }
+ 
++tasks.withType(PublishToMavenRepository) {
++	onlyIf {
++		(repository == publishing.repositories.release && publication == publishing.publications.plugin)
++				||
++				(repository == publishing.repositories.snapshot
++						&& (publication == publishing.publications.snapshot
++						|| publication == publishing.publications.snapshotPlugin))
++	}
++}
++
++
+ // Need to tweak this file to pretend we are compatible with j8 so the bootstrap will run.
+ tasks.withType(GenerateModuleMetadata) {
+ 	doLast {
+diff --git a/gradle.properties b/gradle.properties
+index 31014b156127886c44921900f480e68d4528da25..56638cfab2971771118bec2be16ef91c01097613 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -1,5 +1,5 @@
+-name = fabric-loom
+-description = The Gradle plugin for Fabric
+-url = https://github.com/FabricMC/fabric-loom
++name = quilt-loom
++description = The Gradle plugin for Quilt
++url = https://github.com/QuiltMC/quilt-loom
+ 
+ kotlin.stdlib.default.dependency = false
+\ No newline at end of file
+diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
+index 096c1b816359e037a8aa3512dd6bb3d0cb4851bb..cdee9c8db8fd2e98b038829fc5b95de9db5d8840 100644
+--- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
++++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
+@@ -62,7 +62,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+ 	}
+ 
+ 	public void apply(Project project) {
+-		project.getLogger().lifecycle("Fabric Loom: " + LOOM_VERSION);
++		project.getLogger().lifecycle("Quilt Loom: " + LOOM_VERSION);
+ 
+ 		refreshDeps = project.getGradle().getStartParameter().isRefreshDependencies() || Boolean.getBoolean("loom.refresh");
+ 
+diff --git a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
+index 16752f5d1723e4b2b184a3df76bfd8d4cccfc6db..e34cf87a22585957528d5409ce3d092ea8532372 100644
+--- a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
++++ b/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
+@@ -50,22 +50,22 @@ public abstract class LoomFilesBaseImpl implements LoomFiles {
+ 
+ 	@Override
+ 	public File getUserCache() {
+-		return createFile(getGradleUserHomeDir(), "caches" + File.separator + "fabric-loom");
++		return createFile(getGradleUserHomeDir(), "caches" + File.separator + "quilt-loom");
+ 	}
+ 
+ 	@Override
+ 	public File getRootProjectPersistentCache() {
+-		return createFile(getRootDir(), ".gradle" + File.separator + "loom-cache");
++		return createFile(getRootDir(), ".gradle" + File.separator + "quilt-loom-cache");
+ 	}
+ 
+ 	@Override
+ 	public File getProjectPersistentCache() {
+-		return createFile(getProjectDir(), ".gradle" + File.separator + "loom-cache");
++		return createFile(getProjectDir(), ".gradle" + File.separator + "quilt-loom-cache");
+ 	}
+ 
+ 	@Override
+ 	public File getProjectBuildCache() {
+-		return createFile(getBuildDir(), "loom-cache");
++		return createFile(getBuildDir(), "quilt-loom-cache");
+ 	}
+ 
+ 	@Override

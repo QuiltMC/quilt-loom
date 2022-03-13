@@ -1,0 +1,27 @@
+# Ignore everything
+/*
+
+# Folders
+!/gradle
+!/src
+!/.github
+!/fabric-loom
+# intentionally ignore quilt-loom
+!/patches
+
+# Files
+!/.gitattributes
+!/.gitignore
+!/.editorconfig
+!/build.gradle
+!/gradle.properties
+!/gradlew
+!/gradlew.bat
+!/HEADER
+!/LICENSE
+!/README.md
+!/settings.gradle
+!/Jenkinsfile
+!/checkstyle.xml
+!/codenarc.groovy
+!/bootstrap

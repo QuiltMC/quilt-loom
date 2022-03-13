@@ -1,0 +1,14 @@
+pluginManagement {
+    repositories {
+        maven {
+            url = "https://files.minecraftforge.net/maven"
+        }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+rootProject.name = 'quilt-loom'
+
+include 'quilt-loom'
+include 'bootstrap'
+project(":bootstrap").projectDir = file("quilt-loom/bootstrap")
