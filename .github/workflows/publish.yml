@@ -21,8 +21,10 @@ jobs:
         with:
           token: ${{ secrets.github_token }}
           prefix: ${{ github.ref }}
-
-      - run: ./gradlew :applyPatches :quilt-loom:build :quilt-loom:publish -x test --stacktrace
+      - run: git config --global user.email "nobody@example.com"
+      - run: git config --global user.name "Nobody"
+      - run: ./gradlew applyPatches
+      - run: ./gradlew build publish -x test --stacktrace
         env:
           MAVEN_URL: ${{ secrets.MAVEN_URL }}
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
