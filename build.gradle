@@ -7,5 +7,3 @@ patches {
     target = file('quilt-loom')
     patches = file('patches')
 }
-
-project(":quilt-loom")

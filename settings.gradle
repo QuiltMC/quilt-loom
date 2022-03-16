@@ -7,8 +7,4 @@ pluginManagement {
         mavenCentral()
     }
 }
-rootProject.name = 'quilt-loom'
-
-include 'quilt-loom'
-include 'bootstrap'
-project(":bootstrap").projectDir = file("quilt-loom/bootstrap")
+rootProject.name = 'quilt-loom-parent'

@@ -5,7 +5,7 @@ Subject: [PATCH] Rebrand to Quilt and set up publishing for our maven
 
 
 diff --git a/build.gradle b/build.gradle
-index 15ceecae59d19502cb20e12c82dfed6c15183a1a..f87c1fdecfba98722ddc76a1aa76e4744cff6b23 100644
+index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..eb0b981c3a5ecbe359405c72871bae5a21113357 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -17,7 +17,7 @@ index 15ceecae59d19502cb20e12c82dfed6c15183a1a..f87c1fdecfba98722ddc76a1aa76e474
  archivesBaseName = project.name
  def baseVersion = '0.12'
  
-@@ -165,10 +165,17 @@ codenarc {
+@@ -166,10 +166,17 @@ codenarc {
  
  gradlePlugin {
  	plugins {
@@ -37,7 +37,7 @@ index 15ceecae59d19502cb20e12c82dfed6c15183a1a..f87c1fdecfba98722ddc76a1aa76e474
  	}
  }
  
-@@ -217,8 +224,8 @@ publishing {
+@@ -218,8 +225,8 @@ publishing {
  
  		// Manually crate the plugin marker for snapshot versions
  		snapshotPlugin(MavenPublication) { publication ->
@@ -48,7 +48,19 @@ index 15ceecae59d19502cb20e12c82dfed6c15183a1a..f87c1fdecfba98722ddc76a1aa76e474
  			version baseVersion + '-SNAPSHOT'
  
  			pom.withXml({
-@@ -238,6 +245,7 @@ publishing {
+@@ -229,9 +236,9 @@ publishing {
+ 				Node dependencies = root.appendChild(document.createElement('dependencies'))
+ 				Node dependency = dependencies.appendChild(document.createElement('dependency'))
+ 				Node groupId = dependency.appendChild(document.createElement('groupId'))
+-				groupId.setTextContent('net.fabricmc')
++				groupId.setTextContent('org.quiltmc')
+ 				Node artifactId = dependency.appendChild(document.createElement('artifactId'))
+-				artifactId.setTextContent('fabric-loom')
++				artifactId.setTextContent('quilt-loom')
+ 				Node version = dependency.appendChild(document.createElement('version'))
+ 				version.setTextContent(baseVersion + '-SNAPSHOT')
+ 			})
+@@ -239,6 +246,7 @@ publishing {
  	}
  	repositories {
  		maven {
@@ -56,7 +68,7 @@ index 15ceecae59d19502cb20e12c82dfed6c15183a1a..f87c1fdecfba98722ddc76a1aa76e474
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -246,9 +254,30 @@ publishing {
+@@ -247,9 +255,30 @@ publishing {
  				}
  			}
  		}

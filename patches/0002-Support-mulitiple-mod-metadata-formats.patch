@@ -58,7 +58,7 @@ index 5a3cfbd337827f0fe4df2971ef68b3e169ae6b9f..30caf442a8650cebb11daeea280671a5
  	 *
  	 * @return the list property containing the {@link SourceSet}
 diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-index 485c4e70b40c6f98ed0e91720cf7189ab00a9208..4cfd2465e88e9f6314f53b37bdb717e00c91d3d9 100644
+index 69c44a1a742c04b154ba69b66a9a4db66fb82cb1..7d5128bb19680ca64752fca66068f5abea4dc77e 100644
 --- a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 +++ b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 @@ -30,6 +30,7 @@ import org.gradle.api.artifacts.Dependency;
@@ -90,7 +90,7 @@ index 485c4e70b40c6f98ed0e91720cf7189ab00a9208..4cfd2465e88e9f6314f53b37bdb717e0
  	ConfigurableFileCollection getLog4jConfigs();
  
  	default Dependency officialMojangMappings() {
-@@ -118,10 +126,10 @@ public interface LoomGradleExtensionAPI {
+@@ -128,10 +136,10 @@ public interface LoomGradleExtensionAPI {
  	void disableDeprecatedPomGeneration(MavenPublication publication);
  
  	/**
@@ -1180,7 +1180,7 @@ index 10aa256a0f1f3b0024f0905811c9eccb044fe892..f98a9fb5fe6d7a9ed7c004d284859a95
  		AccessWidenerReader.Header header = AccessWidenerReader.readHeader(accessWidener);
  
 diff --git a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
-index aa6365ec6f25b04c7f3111a9d0c9b912852e94fb..e56a20aa99eaff66ca3d0b48d6fe58c992c5550e 100644
+index 490fa4d1bb61eb6a26deaeafbc35ac8fa6e309b6..f2c74df2f088b36946e2a56ddc69618699938954 100644
 --- a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
 +++ b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
 @@ -32,6 +32,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
@@ -1191,19 +1191,16 @@ index aa6365ec6f25b04c7f3111a9d0c9b912852e94fb..e56a20aa99eaff66ca3d0b48d6fe58c9
  import org.gradle.api.provider.Property;
  import org.gradle.api.publish.maven.MavenPublication;
  import org.gradle.api.tasks.SourceSet;
-@@ -39,9 +40,11 @@ import org.gradle.api.tasks.SourceSet;
- import net.fabricmc.loom.api.InterfaceInjectionExtensionAPI;
- import net.fabricmc.loom.api.LoomGradleExtensionAPI;
- import net.fabricmc.loom.api.MixinExtensionAPI;
-+import net.fabricmc.loom.configuration.ModMetadataHelper;
+@@ -43,6 +44,8 @@ import net.fabricmc.loom.api.ModSettings;
  import net.fabricmc.loom.api.decompilers.DecompilerOptions;
  import net.fabricmc.loom.api.mappings.intermediate.IntermediateMappingsProvider;
  import net.fabricmc.loom.api.mappings.layered.spec.LayeredMappingSpecBuilder;
 +import net.fabricmc.loom.build.FabricModMetadataHelper;
++import net.fabricmc.loom.configuration.ModMetadataHelper;
  import net.fabricmc.loom.configuration.ide.RunConfigSettings;
  import net.fabricmc.loom.configuration.mods.ModVersionParser;
  import net.fabricmc.loom.configuration.processors.JarProcessor;
-@@ -72,7 +75,7 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+@@ -73,7 +76,7 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  	private final Property<MinecraftJarConfiguration> minecraftJarConfiguration;
  	private final Property<Boolean> splitEnvironmentalSourceSet;
  	private final InterfaceInjectionExtensionAPI interfaceInjectionExtension;
@@ -1212,7 +1209,7 @@ index aa6365ec6f25b04c7f3111a9d0c9b912852e94fb..e56a20aa99eaff66ca3d0b48d6fe58c9
  	private final ModVersionParser versionParser;
  
  	private final NamedDomainObjectContainer<RunConfigSettings> runConfigs;
-@@ -121,6 +124,10 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+@@ -124,6 +127,10 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  		this.splitEnvironmentalSourceSet = project.getObjects().property(Boolean.class).convention(false);
  		this.splitEnvironmentalSourceSet.finalizeValueOnRead();
  
@@ -1223,7 +1220,7 @@ index aa6365ec6f25b04c7f3111a9d0c9b912852e94fb..e56a20aa99eaff66ca3d0b48d6fe58c9
  		// Add main source set by default
  		interfaceInjection(interfaceInjection -> {
  			final JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-@@ -162,6 +169,11 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+@@ -165,6 +172,11 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  		return jarProcessors;
  	}
  
@@ -1394,3 +1391,16 @@ index 6c4518fe96751470ae48c16b9f7c0a952c845a0d..26dee4aab0844bd7d63b5226ed1ba59a
  	public static void unpackAll(Path zip, Path output) throws IOException {
  		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(zip, false);
  				Stream<Path> walk = Files.walk(fs.get().getPath("/"))) {
+diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
+index d47ffda7ce9e42b8b369422b4a638c37bca38f8c..b9d0ae2c00c0e35ad3a18ee6168ceff9dc503a25 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
+@@ -231,7 +231,7 @@ trait GradleProjectTestTrait {
+         }
+ 
+         File getGeneratedSources(String mappings) {
+-            return new File(getGradleHomeDir(), "caches/fabric-loom/${mappings}/minecraft-merged-named-sources.jar")
++            return new File(getGradleHomeDir(), "caches/quilt-loom/${mappings}/minecraft-merged-named-sources.jar")
+         }
+ 
+         void buildSrc(String name) {
