@@ -5,7 +5,7 @@ Subject: [PATCH] Rebrand to Quilt and set up publishing for our maven
 
 
 diff --git a/build.gradle b/build.gradle
-index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..9bcee8b45589a7613cbd8f56f92fd4ded531c7d5 100644
+index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..4ad17eca41fb6cc510808d61415e689ab81c9432 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -92,7 +92,7 @@ index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..9bcee8b45589a7613cbd8f56f92fd4de
 +				(repository == publishing.repositories.snapshot
 +						&& (publication == publishing.publications.snapshot
 +						|| publication == publishing.publications.snapshotPlugin))
-+				|| (repository == publishing.repositories.release && publication.name == "pluginMarkerMaven")
++				|| (repository == publishing.repositories.release && publication.name == "quiltLoomPluginMarkerMaven")
  	}
  }
  
