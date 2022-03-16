@@ -5,7 +5,7 @@ Subject: [PATCH] Rebrand to Quilt and set up publishing for our maven
 
 
 diff --git a/build.gradle b/build.gradle
-index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..eb0b981c3a5ecbe359405c72871bae5a21113357 100644
+index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..12b2a76bdb2eff2e960061a61e849f453df4e074 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -68,7 +68,7 @@ index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..eb0b981c3a5ecbe359405c72871bae5a
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -247,9 +255,30 @@ publishing {
+@@ -247,6 +255,27 @@ publishing {
  				}
  			}
  		}
@@ -82,9 +82,9 @@ index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..eb0b981c3a5ecbe359405c72871bae5a
 +				}
 +			}
 +		}
- 	}
- }
- 
++	}
++}
++
 +tasks.withType(PublishToMavenRepository) {
 +	onlyIf {
 +		(repository == publishing.repositories.release && publication == publishing.publications.plugin)
@@ -92,13 +92,10 @@ index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..eb0b981c3a5ecbe359405c72871bae5a
 +				(repository == publishing.repositories.snapshot
 +						&& (publication == publishing.publications.snapshot
 +						|| publication == publishing.publications.snapshotPlugin))
-+	}
-+}
-+
-+
- // Need to tweak this file to pretend we are compatible with j8 so the bootstrap will run.
- tasks.withType(GenerateModuleMetadata) {
- 	doLast {
++				|| (repository == publishing.repositories.release && publication.name == "pluginMaven")
+ 	}
+ }
+ 
 diff --git a/gradle.properties b/gradle.properties
 index 31014b156127886c44921900f480e68d4528da25..56638cfab2971771118bec2be16ef91c01097613 100644
 --- a/gradle.properties
