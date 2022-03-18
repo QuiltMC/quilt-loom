@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Glitch <glitch.g3431@gmail.com>
 Date: Sat, 12 Mar 2022 21:42:51 -0600
-Subject: [PATCH] Support mulitiple mod metadata formats
+Subject: [PATCH] Support multiple metadata formats includes quilt.mod.json
 
 
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradleExtension.java b/src/main/java/net/fabricmc/loom/LoomGradleExtension.java
@@ -454,6 +454,261 @@ index d55c68933fdeaed3b0d24dd073d0b9147c29c239..9f0825052c9d9b2bc0ece09e0b9b395d
  						modDependencies.add(info);
  					}
  				}
+diff --git a/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..068273f1887591ca5c352348b9cbae6d89c280b1
+--- /dev/null
++++ b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
+@@ -0,0 +1,249 @@
++/*
++ * This file is part of fabric-loom, licensed under the MIT License (MIT).
++ *
++ * Copyright (c) 2022 FabricMC
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++package net.fabricmc.loom.build;
++
++import java.io.File;
++import java.io.FileReader;
++import java.io.IOException;
++import java.io.Reader;
++import java.nio.file.Path;
++import java.util.ArrayList;
++import java.util.Collection;
++import java.util.Collections;
++import java.util.List;
++import java.util.stream.Collectors;
++import java.util.stream.StreamSupport;
++
++import com.google.gson.JsonArray;
++import com.google.gson.JsonElement;
++import com.google.gson.JsonObject;
++import com.google.gson.JsonPrimitive;
++import org.jetbrains.annotations.Nullable;
++
++import net.fabricmc.loom.LoomGradlePlugin;
++import net.fabricmc.loom.configuration.ModMetadataHelper;
++import net.fabricmc.loom.util.ZipUtils;
++
++// TODO Quilt: De-deuplicate with FabricModMetadataHelper
++public final class QuiltModMetadataHelper implements ModMetadataHelper {
++	@Override
++	public String getFileName() {
++		return "quilt.mod.json";
++	}
++
++	@Override
++	public Metadata createMetadata(File input) {
++		return new Helper(readQmj(input));
++	}
++
++	@Override
++	public Metadata createMetadata(Path input) {
++		return new Helper(readQmj(input.toFile()));
++	}
++
++	@Override
++	public Metadata createMetadata(Reader reader) {
++		return new Helper(LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class));
++	}
++
++	@Override
++	public ZipUtils.UnsafeUnaryOperator<JsonObject> stripNestedJarsFunction() {
++		return json -> {
++			JsonObject loader;
++
++			if (!json.has("quilt_loader") || !json.get("quilt_loader").isJsonObject()) {
++				loader = new JsonObject();
++			} else {
++				loader = json.get("quilt_loader").getAsJsonObject();
++			}
++
++			loader.remove("jars");
++			return json;
++		};
++	}
++
++	@Override
++	public ZipUtils.UnsafeUnaryOperator<JsonObject> addNestedJarsFunction(List<String> files) {
++		return json -> {
++			JsonObject loader;
++
++			if (!json.has("quilt_loader") || !json.get("quilt_loader").isJsonObject()) {
++				loader = new JsonObject();
++			} else {
++				loader = json.get("quilt_loader").getAsJsonObject();
++			}
++
++			JsonArray nestedJars = loader.getAsJsonArray("jars");
++
++			if (nestedJars == null || !loader.has("jars")) {
++				nestedJars = new JsonArray();
++			}
++
++			for (String nestedJarPath : files) {
++				for (JsonElement nestedJar : nestedJars) {
++					JsonObject jsonObject = nestedJar.getAsJsonObject();
++
++					if (jsonObject.has("file") && jsonObject.get("file").getAsString().equals(nestedJarPath)) {
++						throw new IllegalStateException("Cannot nest 2 jars at the same path: " + nestedJarPath);
++					}
++				}
++
++				JsonObject jsonObject = new JsonObject();
++				jsonObject.addProperty("file", nestedJarPath);
++				nestedJars.add(jsonObject);
++			}
++
++			loader.add("jars", nestedJars);
++
++			return json;
++		};
++	}
++
++	private JsonObject readQmj(File input) {
++		JsonObject jsonObject;
++
++		try (var reader = new FileReader(input)) {
++			jsonObject = LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class);
++		} catch (IOException e) {
++			throw new UnsupportedOperationException("Failed to read mod metadata file", e);
++		}
++
++		return jsonObject;
++	}
++
++	final class Helper implements Metadata {
++		final JsonObject qmj;
++		final JsonObject loader;
++		final JsonObject metadata;
++
++		Helper(JsonObject fmj) {
++			this.qmj = fmj;
++
++			if (!qmj.has("quilt_loader") || !qmj.get("quilt_loader").isJsonObject()) {
++				this.loader = new JsonObject();
++			} else {
++				loader = qmj.get("quilt_loader").getAsJsonObject();
++			}
++
++			if (!loader.has("metadata") || !qmj.get("metadata").isJsonObject()) {
++				this.metadata = new JsonObject();
++			} else {
++				metadata = loader.get("metadata").getAsJsonObject();
++			}
++		}
++
++		@Override
++		public Collection<String> getMixinConfigurationFiles() {
++			JsonArray mixins = qmj.getAsJsonArray("mixins");
++
++			if (mixins == null) {
++				return Collections.emptyList();
++			}
++
++			return StreamSupport.stream(mixins.spliterator(), false)
++					.map(e -> {
++						if (e instanceof JsonPrimitive str) {
++							return str.getAsString();
++						} else {
++							throw new RuntimeException("Incorrect QMJ format");
++						}
++					}).collect(Collectors.toSet());
++		}
++
++		@Override
++		public String getVersion() {
++			if (!loader.has("version") || !loader.get("version").isJsonPrimitive()) {
++				return null;
++			}
++
++			return loader.get("version").getAsString();
++		}
++
++		@Override
++		public @Nullable String getName() {
++			if (!metadata.has("name") || !metadata.get("name").isJsonPrimitive()) {
++				return null;
++			}
++
++			return metadata.get("name").getAsString();
++		}
++
++		@Override
++		public @Nullable String getId() {
++			if (!loader.has("id") || !loader.get("id").isJsonPrimitive()) {
++				return null;
++			}
++
++			return loader.get("id").getAsString();
++		}
++
++		@Override
++		public @Nullable String getAccessWidener() {
++			if (!qmj.has("access_widener")) {
++				return null;
++			}
++
++			if (!qmj.get("access_widener").isJsonPrimitive()) {
++				throw new UnsupportedOperationException("Loom does not support multiple access wideners in one mod!");
++			}
++
++			return qmj.get("access_widener").getAsString();
++		}
++
++		@Override
++		public List<InjectedInterface> getInjectedInterfaces() {
++			final String modId = getId();
++
++			if (!qmj.has("quilt_loom")) {
++				return Collections.emptyList();
++			}
++
++			final JsonObject custom = qmj.getAsJsonObject("quilt_loom");
++
++			if (!custom.has("injected_interfaces")) {
++				return Collections.emptyList();
++			}
++
++			final JsonObject addedIfaces = custom.getAsJsonObject("injected_interfaces");
++
++			final List<InjectedInterface> result = new ArrayList<>();
++
++			for (String className : addedIfaces.keySet()) {
++				final JsonArray ifaceNames = addedIfaces.getAsJsonArray(className);
++
++				for (JsonElement ifaceName : ifaceNames) {
++					result.add(new InjectedInterface(modId, className, ifaceName.getAsString()));
++				}
++			}
++
++			return result;
++		}
++
++		@Override
++		public ModMetadataHelper getParent() {
++			return QuiltModMetadataHelper.this;
++		}
++	}
++}
 diff --git a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java b/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
 index 1a833a7618f50d9f9c408946b9790ccbf01cb83b..c7f5253d7401767eb6138908b437d68351c456ec 100644
 --- a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
@@ -1180,7 +1435,7 @@ index 10aa256a0f1f3b0024f0905811c9eccb044fe892..f98a9fb5fe6d7a9ed7c004d284859a95
  		AccessWidenerReader.Header header = AccessWidenerReader.readHeader(accessWidener);
  
 diff --git a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
-index 490fa4d1bb61eb6a26deaeafbc35ac8fa6e309b6..f2c74df2f088b36946e2a56ddc69618699938954 100644
+index 490fa4d1bb61eb6a26deaeafbc35ac8fa6e309b6..00ca5e32b8c4e4c4576b1191767e2e803f881766 100644
 --- a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
 +++ b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
 @@ -32,6 +32,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
@@ -1191,16 +1446,17 @@ index 490fa4d1bb61eb6a26deaeafbc35ac8fa6e309b6..f2c74df2f088b36946e2a56ddc696186
  import org.gradle.api.provider.Property;
  import org.gradle.api.publish.maven.MavenPublication;
  import org.gradle.api.tasks.SourceSet;
-@@ -43,6 +44,8 @@ import net.fabricmc.loom.api.ModSettings;
+@@ -43,6 +44,9 @@ import net.fabricmc.loom.api.ModSettings;
  import net.fabricmc.loom.api.decompilers.DecompilerOptions;
  import net.fabricmc.loom.api.mappings.intermediate.IntermediateMappingsProvider;
  import net.fabricmc.loom.api.mappings.layered.spec.LayeredMappingSpecBuilder;
 +import net.fabricmc.loom.build.FabricModMetadataHelper;
++import net.fabricmc.loom.build.QuiltModMetadataHelper;
 +import net.fabricmc.loom.configuration.ModMetadataHelper;
  import net.fabricmc.loom.configuration.ide.RunConfigSettings;
  import net.fabricmc.loom.configuration.mods.ModVersionParser;
  import net.fabricmc.loom.configuration.processors.JarProcessor;
-@@ -73,7 +76,7 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+@@ -73,7 +77,7 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  	private final Property<MinecraftJarConfiguration> minecraftJarConfiguration;
  	private final Property<Boolean> splitEnvironmentalSourceSet;
  	private final InterfaceInjectionExtensionAPI interfaceInjectionExtension;
@@ -1209,18 +1465,19 @@ index 490fa4d1bb61eb6a26deaeafbc35ac8fa6e309b6..f2c74df2f088b36946e2a56ddc696186
  	private final ModVersionParser versionParser;
  
  	private final NamedDomainObjectContainer<RunConfigSettings> runConfigs;
-@@ -124,6 +127,10 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+@@ -124,6 +128,11 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  		this.splitEnvironmentalSourceSet = project.getObjects().property(Boolean.class).convention(false);
  		this.splitEnvironmentalSourceSet.finalizeValueOnRead();
  
 +		this.modMetadataHelpers = project.getObjects().mapProperty(String.class, ModMetadataHelper.class);
 +		this.addModMetadataHelper(new FabricModMetadataHelper());
++		this.addModMetadataHelper(new QuiltModMetadataHelper());
 +		this.modMetadataHelpers.finalizeValueOnRead();
 +
  		// Add main source set by default
  		interfaceInjection(interfaceInjection -> {
  			final JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-@@ -165,6 +172,11 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+@@ -165,6 +174,11 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  		return jarProcessors;
  	}
  
