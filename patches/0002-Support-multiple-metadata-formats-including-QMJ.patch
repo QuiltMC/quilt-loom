@@ -456,7 +456,7 @@ index d55c68933fdeaed3b0d24dd073d0b9147c29c239..9f0825052c9d9b2bc0ece09e0b9b395d
  				}
 diff --git a/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..068273f1887591ca5c352348b9cbae6d89c280b1
+index 0000000000000000000000000000000000000000..d3ab14f21e343251abb163aaae214dc693fa2a2e
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
 @@ -0,0 +1,249 @@
@@ -609,7 +609,7 @@ index 0000000000000000000000000000000000000000..068273f1887591ca5c352348b9cbae6d
 +				loader = qmj.get("quilt_loader").getAsJsonObject();
 +			}
 +
-+			if (!loader.has("metadata") || !qmj.get("metadata").isJsonObject()) {
++			if (!loader.has("metadata") || !loader.get("metadata").isJsonObject()) {
 +				this.metadata = new JsonObject();
 +			} else {
 +				metadata = loader.get("metadata").getAsJsonObject();
