@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Glitch <glitch.g3431@gmail.com>
 Date: Sat, 12 Mar 2022 21:42:51 -0600
-Subject: [PATCH] Support multiple metadata formats includes quilt.mod.json
+Subject: [PATCH] Support multiple metadata formats including QMJ
 
 
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradleExtension.java b/src/main/java/net/fabricmc/loom/LoomGradleExtension.java
