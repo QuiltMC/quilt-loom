@@ -456,10 +456,10 @@ index d55c68933fdeaed3b0d24dd073d0b9147c29c239..9f0825052c9d9b2bc0ece09e0b9b395d
  				}
 diff --git a/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..0aa8429d727834884bd65325520774478ec2e510
+index 0000000000000000000000000000000000000000..8c43f83354733b5f5cc24a85d089ffb2123fb138
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
-@@ -0,0 +1,252 @@
+@@ -0,0 +1,254 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -668,9 +668,11 @@ index 0000000000000000000000000000000000000000..0aa8429d727834884bd6532552077447
 +			// Only allow the "access_widener" array to have one element
 +			if (qmj.get("access_widener").isJsonArray()) {
 +				JsonArray array = qmj.get("access_widener").getAsJsonArray();
++
 +				if (array.size() != 1) {
 +					throw new UnsupportedOperationException("Loom does not support multiple access wideners in one mod!");
 +				}
++
 +				return array.get(0).getAsString();
 +			}
 +
