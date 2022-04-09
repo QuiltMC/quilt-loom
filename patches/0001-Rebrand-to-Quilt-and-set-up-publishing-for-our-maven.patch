@@ -99,14 +99,14 @@ index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..162cbc10418e1403708f0137308422ac
  }
  
 diff --git a/gradle.properties b/gradle.properties
-index 31014b156127886c44921900f480e68d4528da25..56638cfab2971771118bec2be16ef91c01097613 100644
+index 31014b156127886c44921900f480e68d4528da25..ee1d4c3083cdb729df09522e88a41351d332a875 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -1,5 +1,5 @@
 -name = fabric-loom
 -description = The Gradle plugin for Fabric
 -url = https://github.com/FabricMC/fabric-loom
-+name = quilt-loom
++name = loom
 +description = The Gradle plugin for Quilt
 +url = https://github.com/QuiltMC/quilt-loom
  
