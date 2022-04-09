@@ -4,8 +4,19 @@ Date: Sat, 12 Mar 2022 21:08:03 -0600
 Subject: [PATCH] Rebrand to Quilt and set up publishing for our maven
 
 
+diff --git a/bootstrap/test-project/build.gradle b/bootstrap/test-project/build.gradle
+index 36767715d89bade0d2dacac4bfc44d0bd6482cb4..70c867068c34cce86826a07cafa6ef152c7c04cd 100644
+--- a/bootstrap/test-project/build.gradle
++++ b/bootstrap/test-project/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom' version '0.12.local'
++	id 'org.quiltmc.loom' version '0.12.local'
+ }
+ 
+ dependencies {
 diff --git a/build.gradle b/build.gradle
-index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..4ad17eca41fb6cc510808d61415e689ab81c9432 100644
+index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..162cbc10418e1403708f0137308422ac46dcaae7 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -17,7 +28,7 @@ index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..4ad17eca41fb6cc510808d61415e689a
  archivesBaseName = project.name
  def baseVersion = '0.12'
  
-@@ -166,10 +166,17 @@ codenarc {
+@@ -166,8 +166,8 @@ codenarc {
  
  gradlePlugin {
  	plugins {
@@ -27,17 +38,8 @@ index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..4ad17eca41fb6cc510808d61415e689a
 +			id = 'org.quiltmc.loom'
  			implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
  		}
-+		// Don't publish the fabric-loom artifact, but keep it for tests
-+		if (!ENV.MAVEN_URL) {
-+			fabricLoom {
-+				id = 'fabric-loom'
-+				implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
-+			}
-+		}
  	}
- }
- 
-@@ -218,8 +225,8 @@ publishing {
+@@ -218,8 +218,8 @@ publishing {
  
  		// Manually crate the plugin marker for snapshot versions
  		snapshotPlugin(MavenPublication) { publication ->
@@ -48,7 +50,7 @@ index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..4ad17eca41fb6cc510808d61415e689a
  			version baseVersion + '-SNAPSHOT'
  
  			pom.withXml({
-@@ -229,9 +236,9 @@ publishing {
+@@ -229,9 +229,9 @@ publishing {
  				Node dependencies = root.appendChild(document.createElement('dependencies'))
  				Node dependency = dependencies.appendChild(document.createElement('dependency'))
  				Node groupId = dependency.appendChild(document.createElement('groupId'))
@@ -60,7 +62,7 @@ index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..4ad17eca41fb6cc510808d61415e689a
  				Node version = dependency.appendChild(document.createElement('version'))
  				version.setTextContent(baseVersion + '-SNAPSHOT')
  			})
-@@ -239,6 +246,7 @@ publishing {
+@@ -239,6 +239,7 @@ publishing {
  	}
  	repositories {
  		maven {
@@ -68,7 +70,7 @@ index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..4ad17eca41fb6cc510808d61415e689a
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -247,6 +255,27 @@ publishing {
+@@ -247,6 +248,27 @@ publishing {
  				}
  			}
  		}
@@ -154,3 +156,293 @@ index 16752f5d1723e4b2b184a3df76bfd8d4cccfc6db..e34cf87a22585957528d5409ce3d092e
  	}
  
  	@Override
+diff --git a/src/test/resources/projects/accesswidener/build.gradle b/src/test/resources/projects/accesswidener/build.gradle
+index 9fa3cc36ef23ee7f9a03120624596c6fe1788de4..5e7f1c4e3db691665ceecf7d21bc1c663f505ee1 100644
+--- a/src/test/resources/projects/accesswidener/build.gradle
++++ b/src/test/resources/projects/accesswidener/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/decompile/build.gradle b/src/test/resources/projects/decompile/build.gradle
+index 993ac667071e4e3e2b1a8301121e817950663d61..81a5c0b78b5cbff19d881eac79f3842acea70b65 100644
+--- a/src/test/resources/projects/decompile/build.gradle
++++ b/src/test/resources/projects/decompile/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ }
+ 
+ dependencies {
+diff --git a/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle b/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
+index c7b6ef6c0a20c1d4b2936dcbdf222f201be41ccc..05679287b1bac60cb8ef4b2ab59520b83fde60d4 100644
+--- a/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
++++ b/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle b/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
+index 6472ec7e63ab88f17b626c68393faca58042a8d2..fa2b25574392137e16a4c8da06c7d844dc712c20 100644
+--- a/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
++++ b/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/dependencyResolutionManagement/settings.gradle b/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
+index c05e369995a4d8c5479de657d6c8ab52a6cba940..6b77297f004043508453a0907ea19bca3a372c5e 100644
+--- a/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
++++ b/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
+@@ -1,11 +1,11 @@
+ pluginManagement {
+     plugins {
+-        id 'fabric-loom'
++        id 'org.quiltmc.loom'
+     }
+ }
+ 
+ plugins {
+-    id 'fabric-loom'
++    id 'org.quiltmc.loom'
+ }
+ 
+ dependencyResolutionManagement {
+diff --git a/src/test/resources/projects/interfaceInjection/build.gradle b/src/test/resources/projects/interfaceInjection/build.gradle
+index 52f1fc39f472e431795ddfe94cd85c6a01eade48..68eb5b94afe3d8893450d332ece22e9d21345f9d 100644
+--- a/src/test/resources/projects/interfaceInjection/build.gradle
++++ b/src/test/resources/projects/interfaceInjection/build.gradle
+@@ -1,7 +1,7 @@
+ // This is used by a range of tests that append to this file before running the gradle tasks.
+ // Can be used for tests that require minimal custom setup
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/java16/build.gradle b/src/test/resources/projects/java16/build.gradle
+index 45acf714efb54893e7867807d3bed47aa1a58223..46ffa7263e54b3b14ff1a787adea096eebcbc8db 100644
+--- a/src/test/resources/projects/java16/build.gradle
++++ b/src/test/resources/projects/java16/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/legacy/build.gradle b/src/test/resources/projects/legacy/build.gradle
+index 3b460c49aaa95a8b98cff43df820b257498ad668..2a249199b8f4a3c079327c26f47d24fbe1f2e384 100644
+--- a/src/test/resources/projects/legacy/build.gradle
++++ b/src/test/resources/projects/legacy/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ }
+ 
+ sourceCompatibility = JavaVersion.VERSION_1_8
+diff --git a/src/test/resources/projects/localFileDependency/build.gradle b/src/test/resources/projects/localFileDependency/build.gradle
+index 811d945a9a903d2e43e949de2e2fea4f99882edd..e9d04c936a10909d4bf960f86924f26b7b4712c0 100644
+--- a/src/test/resources/projects/localFileDependency/build.gradle
++++ b/src/test/resources/projects/localFileDependency/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/localRuntime/build.gradle b/src/test/resources/projects/localRuntime/build.gradle
+index 18f4f0db4b857098a782cfa548a2954c44f363dc..524e784bf20ece94b9a1aaf6a9860b866a6fb98f 100644
+--- a/src/test/resources/projects/localRuntime/build.gradle
++++ b/src/test/resources/projects/localRuntime/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/maven/build.gradle b/src/test/resources/projects/maven/build.gradle
+index 56930fcd776ea55ae9576655d38b55cf47de62d1..d8f3a208cee8348288d660cfec75b66a77615abf 100644
+--- a/src/test/resources/projects/maven/build.gradle
++++ b/src/test/resources/projects/maven/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/mavenLibrary/build.gradle b/src/test/resources/projects/mavenLibrary/build.gradle
+index ff53dcc36eb20ffaf26ff75233524a4ba6075411..0aefb471375c01de77351449f11a3e94e39f7e60 100644
+--- a/src/test/resources/projects/mavenLibrary/build.gradle
++++ b/src/test/resources/projects/mavenLibrary/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/minimalBase/build.gradle b/src/test/resources/projects/minimalBase/build.gradle
+index 8fbea237ed6254ea326fecc3c6db1a732746a6e0..fa18261b9d7f1a5f7999f27a5be68f59bb002a9c 100644
+--- a/src/test/resources/projects/minimalBase/build.gradle
++++ b/src/test/resources/projects/minimalBase/build.gradle
+@@ -1,7 +1,7 @@
+ // This is used by a range of tests that append to this file before running the gradle tasks.
+ // Can be used for tests that require minimal custom setup
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/mixinApAutoRefmap/build.gradle b/src/test/resources/projects/mixinApAutoRefmap/build.gradle
+index 610d042d1a47cb4e3a82aad6e147b87248671333..d02a2565af9bc72181303a6bdfb2dbf59d0ac5d9 100644
+--- a/src/test/resources/projects/mixinApAutoRefmap/build.gradle
++++ b/src/test/resources/projects/mixinApAutoRefmap/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'com.github.johnrengelman.shadow' version '7.0.0'
+ 	id 'maven-publish'
+ }
+diff --git a/src/test/resources/projects/mixinApSimple/build.gradle b/src/test/resources/projects/mixinApSimple/build.gradle
+index f641e66b1cc5919df2eb3356948d08a111c710eb..0eb5ddadfa642961484e69936b10a73a9da7ed18 100644
+--- a/src/test/resources/projects/mixinApSimple/build.gradle
++++ b/src/test/resources/projects/mixinApSimple/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/mojangMappings/build.gradle b/src/test/resources/projects/mojangMappings/build.gradle
+index 895bdb752a2aec465a2d430814229a1b2d35b0ee..8496c3eb98392d61f1da0376d9ab101d84e9be20 100644
+--- a/src/test/resources/projects/mojangMappings/build.gradle
++++ b/src/test/resources/projects/mojangMappings/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/multiproject/build.gradle b/src/test/resources/projects/multiproject/build.gradle
+index 17480a88c7ce6c16b53ce766ccb7722203fcb3a6..d704f6c9d641a8b20dd5543201a23a4aa51b2af5 100644
+--- a/src/test/resources/projects/multiproject/build.gradle
++++ b/src/test/resources/projects/multiproject/build.gradle
+@@ -1,7 +1,7 @@
+ plugins {
+ 	id "java"
+ 	id "java-library"
+-	id 'fabric-loom' apply false
++	id 'org.quiltmc.loom' apply false
+ }
+ 
+ allprojects {
+diff --git a/src/test/resources/projects/parchment/build.gradle b/src/test/resources/projects/parchment/build.gradle
+index 21432d4e9a6befe1bde150585c45a05e4c45f312..df5a3033f7813d2c862c7967e376f43d2b5aa850 100644
+--- a/src/test/resources/projects/parchment/build.gradle
++++ b/src/test/resources/projects/parchment/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ }
+ 
+ repositories {
+diff --git a/src/test/resources/projects/reproducible/build.gradle b/src/test/resources/projects/reproducible/build.gradle
+index 4bc4926136fa448fd4268d7392217bf7f160fb9a..0e54d9a2bd8ed552ab49ac3556369225f6c2493f 100644
+--- a/src/test/resources/projects/reproducible/build.gradle
++++ b/src/test/resources/projects/reproducible/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/runconfigs/build.gradle b/src/test/resources/projects/runconfigs/build.gradle
+index a8e1f6bb073f57d6196eebe782836ed3f436b19b..5ac2f26394ae34837370d76b622524289af80260 100644
+--- a/src/test/resources/projects/runconfigs/build.gradle
++++ b/src/test/resources/projects/runconfigs/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ }
+ 
+ loom {
+diff --git a/src/test/resources/projects/signed/build.gradle b/src/test/resources/projects/signed/build.gradle
+index 45a2a278a761e5f9cc0f56bb7972719196660cfe..fbeaeb351426ed1dfa30f9c50a18a66465d084b8 100644
+--- a/src/test/resources/projects/signed/build.gradle
++++ b/src/test/resources/projects/signed/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ 	id 'signing'
+ }
+diff --git a/src/test/resources/projects/simple/build.gradle b/src/test/resources/projects/simple/build.gradle
+index 5ce232ea8a8d7975252e63da3bb7a471e22c39b3..27d57f55f6b3cacfd0175bf32c7da3398e71cae0 100644
+--- a/src/test/resources/projects/simple/build.gradle
++++ b/src/test/resources/projects/simple/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/splitSources/build.gradle b/src/test/resources/projects/splitSources/build.gradle
+index ea40b50207f0cfa8fe22441524d26b3cb75d2bd5..e766fdefae7f6701d45ba31a31b2075969644b9e 100644
+--- a/src/test/resources/projects/splitSources/build.gradle
++++ b/src/test/resources/projects/splitSources/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom' version '0.12.local'
++	id 'org.quiltmc.loom' version '0.12.local'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/transitiveAccesswidener/build.gradle b/src/test/resources/projects/transitiveAccesswidener/build.gradle
+index 52f1fc39f472e431795ddfe94cd85c6a01eade48..68eb5b94afe3d8893450d332ece22e9d21345f9d 100644
+--- a/src/test/resources/projects/transitiveAccesswidener/build.gradle
++++ b/src/test/resources/projects/transitiveAccesswidener/build.gradle
+@@ -1,7 +1,7 @@
+ // This is used by a range of tests that append to this file before running the gradle tasks.
+ // Can be used for tests that require minimal custom setup
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/unpick/build.gradle b/src/test/resources/projects/unpick/build.gradle
+index 4b79a1b01f6d59fea5174e912c213a1ee597327f..eab1086cf9737ad402b0ade46b54b26412d15272 100644
+--- a/src/test/resources/projects/unpick/build.gradle
++++ b/src/test/resources/projects/unpick/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ }
+ 
+ dependencies {

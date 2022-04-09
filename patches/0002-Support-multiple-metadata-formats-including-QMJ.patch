@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Glitch <glitch.g3431@gmail.com>
 Date: Sat, 12 Mar 2022 21:42:51 -0600
-Subject: [PATCH] Support multiple metadata formats including QMJ
+Subject: [PATCH] Support multiple metadata formats, including QMJ
 
 
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradleExtension.java b/src/main/java/net/fabricmc/loom/LoomGradleExtension.java
@@ -456,10 +456,10 @@ index d55c68933fdeaed3b0d24dd073d0b9147c29c239..9f0825052c9d9b2bc0ece09e0b9b395d
  				}
 diff --git a/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..d3ab14f21e343251abb163aaae214dc693fa2a2e
+index 0000000000000000000000000000000000000000..0aa8429d727834884bd65325520774478ec2e510
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
-@@ -0,0 +1,249 @@
+@@ -0,0 +1,252 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -565,16 +565,14 @@ index 0000000000000000000000000000000000000000..d3ab14f21e343251abb163aaae214dc6
 +
 +			for (String nestedJarPath : files) {
 +				for (JsonElement nestedJar : nestedJars) {
-+					JsonObject jsonObject = nestedJar.getAsJsonObject();
++					String string = nestedJar.getAsString();
 +
-+					if (jsonObject.has("file") && jsonObject.get("file").getAsString().equals(nestedJarPath)) {
++					if (nestedJarPath.equals(string)) {
 +						throw new IllegalStateException("Cannot nest 2 jars at the same path: " + nestedJarPath);
 +					}
 +				}
 +
-+				JsonObject jsonObject = new JsonObject();
-+				jsonObject.addProperty("file", nestedJarPath);
-+				nestedJars.add(jsonObject);
++				nestedJars.add(nestedJarPath);
 +			}
 +
 +			loader.add("jars", nestedJars);
@@ -667,8 +665,13 @@ index 0000000000000000000000000000000000000000..d3ab14f21e343251abb163aaae214dc6
 +				return null;
 +			}
 +
-+			if (!qmj.get("access_widener").isJsonPrimitive()) {
-+				throw new UnsupportedOperationException("Loom does not support multiple access wideners in one mod!");
++			// Only allow the "access_widener" array to have one element
++			if (qmj.get("access_widener").isJsonArray()) {
++				JsonArray array = qmj.get("access_widener").getAsJsonArray();
++				if (array.size() != 1) {
++					throw new UnsupportedOperationException("Loom does not support multiple access wideners in one mod!");
++				}
++				return array.get(0).getAsString();
 +			}
 +
 +			return qmj.get("access_widener").getAsString();

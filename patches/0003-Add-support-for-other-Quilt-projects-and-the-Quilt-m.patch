@@ -1,0 +1,132 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Glitch <glitch.g3431@gmail.com>
+Date: Fri, 8 Apr 2022 22:29:50 -0500
+Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
+
+Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
+
+diff --git a/build.gradle b/build.gradle
+index 162cbc10418e1403708f0137308422ac46dcaae7..cf885add516fffd02a7b528f16b5a9459bb7f1f6 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -44,6 +44,14 @@ repositories {
+ 		name = 'Fabric'
+ 		url = 'https://maven.fabricmc.net/'
+ 	}
++	maven {
++		name = "Quilt"
++		url = "https://maven.quiltmc.org/repository/release"
++	}
++	maven {
++		name = "Cotton"
++		url = "https://server.bbkr.space/artifactory/libs-release"
++	}
+ 	mavenCentral()
+ 	mavenLocal()
+ }
+@@ -108,6 +116,14 @@ dependencies {
+ 	// Kapt integration
+ 	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.0')
+ 
++	// Plugins we apply
++	implementation("io.github.juuxel:loom-quiltflower:1.7.0") {
++		exclude group: "net.fabricmc", module: "fabric-loom"
++	}
++	implementation("org.quiltmc:quilt-mappings-on-loom:4.0.0") {
++		exclude group: "net.fabricmc", module: "fabric-loom"
++	}
++
+ 	// Testing
+ 	testImplementation(gradleTestKit())
+ 	testImplementation('org.spockframework:spock-core:2.1-groovy-3.0') {
+diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
+index cdee9c8db8fd2e98b038829fc5b95de9db5d8840..bcb69168f29fc4b425a935c183a0673881f76b3b 100644
+--- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
++++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
+@@ -50,7 +50,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+ 	public static boolean refreshDeps;
+ 	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+ 	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+-	public static final String LOOM_VERSION = Objects.requireNonNullElse(LoomGradlePlugin.class.getPackage().getImplementationVersion(), "0.0.0+unknown");
++	public static final String LOOM_VERSION = Objects.requireNonNullElse(LoomGradlePlugin.class.getPackage().getImplementationVersion(), "0.12.0+unknown");
+ 
+ 	@Override
+ 	public void apply(PluginAware target) {
+@@ -86,5 +86,8 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+ 		LoomTasks.registerTasks(project);
+ 		DecompilerConfiguration.setup(project);
+ 		IdeaConfiguration.setup(project);
++
++		project.apply(ImmutableMap.of("plugin", "org.quiltmc.quilt-mappings-on-loom"));
++		project.apply(ImmutableMap.of("plugin", "io.github.juuxel.loom-quiltflower"));
+ 	}
+ }
+diff --git a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
+index 8b89642cecbdcddf2173330c39779be96e5ffc6f..8e3db30740cab586ceef0183872ff48748d8bd75 100644
+--- a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
++++ b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
+@@ -68,6 +68,10 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
+ 			repo.setName("Fabric");
+ 			repo.setUrl(MirrorUtil.getFabricRepository(target));
+ 		});
++		repositories.maven(repo -> {
++			repo.setName("Quilt Releases");
++			repo.setUrl(MirrorUtil.getQuiltRepository(target));
++		});
+ 		repositories.maven(repo -> {
+ 			repo.setName("Mojang");
+ 			repo.setUrl(MirrorUtil.getLibrariesBase(target));
+diff --git a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
+index ccaf627d9952c4b8aada19042299ec16127cdef8..f3f233718028fcdf47ce7a88d98540c85f186df6 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
++++ b/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
+@@ -80,7 +80,7 @@ public class SingleJarDecompileConfiguration extends DecompileConfiguration<Mapp
+ 			task.setDescription("Decompile minecraft using the default decompiler.");
+ 			task.setGroup(Constants.TaskGroup.FABRIC);
+ 
+-			task.dependsOn(project.getTasks().named("genSourcesWithCfr"));
++			task.dependsOn(project.getTasks().named("genSourcesWithQuiltflower"));
+ 		});
+ 	}
+ }
+diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
+index cd90b25db08157193eb782e2c878fb84a020cc85..2c03fdb86c85051444e82756838d27fc6c16c116 100644
+--- a/src/main/java/net/fabricmc/loom/util/Constants.java
++++ b/src/main/java/net/fabricmc/loom/util/Constants.java
+@@ -39,6 +39,7 @@ public class Constants {
+ 	public static final String VERSION_MANIFESTS = "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
+ 	public static final String EXPERIMENTAL_VERSIONS = "https://maven.fabricmc.net/net/minecraft/experimental_versions.json";
+ 	public static final String FABRIC_REPOSITORY = "https://maven.fabricmc.net/";
++	public static final String QUILT_REPOSITORY = "https://maven.quiltmc.org/repository/release/";
+ 
+ 	public static final int ASM_VERSION = Opcodes.ASM9;
+ 
+diff --git a/src/main/java/net/fabricmc/loom/util/MirrorUtil.java b/src/main/java/net/fabricmc/loom/util/MirrorUtil.java
+index 3350a985f73e403f086a2a988283cbe4644d0cc2..eef1cd42b1e53497012165e1580c6199600f2f04 100644
+--- a/src/main/java/net/fabricmc/loom/util/MirrorUtil.java
++++ b/src/main/java/net/fabricmc/loom/util/MirrorUtil.java
+@@ -66,4 +66,12 @@ public class MirrorUtil {
+ 
+ 		return Constants.FABRIC_REPOSITORY;
+ 	}
++
++	public static String getQuiltRepository(ExtensionAware aware) {
++		if (aware.getExtensions().getExtraProperties().has("loom_quilt_repository")) {
++			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_quilt_repository"));
++		}
++
++		return Constants.QUILT_REPOSITORY;
++	}
+ }
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
+index 9e93097acaffa47a609eefe8d12a6641ab5c32af..b5356cb8231fea27cfdfc81dfaa36c0578c6659a 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
+@@ -45,6 +45,7 @@ class DecompileTest extends Specification implements GradleProjectTestTrait {
+ 
+ 		where:
+ 			decompiler 		| task								| version
++			'quiltflower'	| "genSourcesWithQuiltflower"		| PRE_RELEASE_GRADLE
+ 			'fernflower'	| "genSourcesWithFernFlower"		| PRE_RELEASE_GRADLE
+ 			'cfr' 			| "genSourcesWithCfr"				| PRE_RELEASE_GRADLE
+ 	}
