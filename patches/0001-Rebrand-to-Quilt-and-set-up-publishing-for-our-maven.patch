@@ -20,7 +20,7 @@ index 36767715d89bade0d2dacac4bfc44d0bd6482cb4..70c867068c34cce86826a07cafa6ef15
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index 1cf847298bb9c7b729fd4abf1a230275df8a0faa..162cbc10418e1403708f0137308422ac46dcaae7 100644
+index 5fab02e2ec92b37024c455cae798ff9ea1195bc4..c66063df09c725ba780cc165147cbd8ea269d4df 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
