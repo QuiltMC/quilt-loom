@@ -7,6 +7,7 @@ This includes:
 - Changing the plugin marker, including in the tests
 - Using a different set of caches
 - Using the Quilt Loader system properties
+- Using `quilt_installer.json`
 
 diff --git a/bootstrap/test-project/build.gradle b/bootstrap/test-project/build.gradle
 index 36767715d89bade0d2dacac4bfc44d0bd6482cb4..70c867068c34cce86826a07cafa6ef152c7c04cd 100644
@@ -129,6 +130,28 @@ index 096c1b816359e037a8aa3512dd6bb3d0cb4851bb..cdee9c8db8fd2e98b038829fc5b95de9
  
  		refreshDeps = project.getGradle().getStartParameter().isRefreshDependencies() || Boolean.getBoolean("loom.refresh");
  
+diff --git a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java b/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
+index a5dcb811fe4d034315bf6154df0124d0c7242c21..33ec74d0989643710d080628d2d6f7386425231d 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
++++ b/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
+@@ -85,7 +85,7 @@ public class LoomDependencyManager {
+ 		sourceRemapper.remapAll();
+ 
+ 		if (extension.getInstallerData() == null) {
+-			project.getLogger().warn("fabric-installer.json not found in classpath!");
++			project.getLogger().warn("quilt_installer.json not found in classpath!");
+ 		}
+ 
+ 		for (Runnable runnable : afterTasks) {
+@@ -95,7 +95,7 @@ public class LoomDependencyManager {
+ 
+ 	public static JsonObject readInstallerJson(File file) {
+ 		try {
+-			byte[] bytes = ZipUtils.unpackNullable(file.toPath(), "fabric-installer.json");
++			byte[] bytes = ZipUtils.unpackNullable(file.toPath(), "quilt_installer.json");
+ 
+ 			if (bytes == null) {
+ 				return null;
 diff --git a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
 index 16752f5d1723e4b2b184a3df76bfd8d4cccfc6db..e34cf87a22585957528d5409ce3d092ea8532372 100644
 --- a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
