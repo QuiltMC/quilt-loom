@@ -1,8 +1,12 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Glitch <glitch.g3431@gmail.com>
 Date: Sat, 12 Mar 2022 21:08:03 -0600
-Subject: [PATCH] Rebrand to Quilt and set up publishing for our maven
+Subject: [PATCH] Rebrand to Quilt and set up publishing for our maven.
 
+This includes:
+- Changing the plugin marker, including in the tests
+- Using a different set of caches
+- Using the Quilt Loader system properties
 
 diff --git a/bootstrap/test-project/build.gradle b/bootstrap/test-project/build.gradle
 index 36767715d89bade0d2dacac4bfc44d0bd6482cb4..70c867068c34cce86826a07cafa6ef152c7c04cd 100644
@@ -156,6 +160,43 @@ index 16752f5d1723e4b2b184a3df76bfd8d4cccfc6db..e34cf87a22585957528d5409ce3d092e
  	}
  
  	@Override
+diff --git a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
+index 3e0781315a3c437e4d310b273207a66a04b8a81b..96045e8bfb97ded2a9e479c7d9280ab56bec2771 100644
+--- a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
++++ b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
+@@ -57,8 +57,8 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+ 		}
+ 
+ 		final LaunchConfig launchConfig = new LaunchConfig()
+-				.property("fabric.development", "true")
+-				.property("fabric.remapClasspathFile", getExtension().getFiles().getRemapClasspathFile().getAbsolutePath())
++				.property("loader.development", "true")
++				.property("loader.remapClasspathFile", getExtension().getFiles().getRemapClasspathFile().getAbsolutePath())
+ 				.property("log4j.configurationFile", getAllLog4JConfigFiles())
+ 				.property("log4j2.formatMsgNoLookups", "true")
+ 
+@@ -68,15 +68,17 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+ 				.argument("client", "--assetIndex")
+ 				.argument("client", getExtension().getMinecraftProvider().getVersionInfo().assetIndex().fabricId(getExtension().getMinecraftProvider().minecraftVersion()))
+ 				.argument("client", "--assetsDir")
+-				.argument("client", assetsDirectory.getAbsolutePath());
++				.argument("client", assetsDirectory.getAbsolutePath())
++				.argument("client", "--version")
++				.argument("client", "Quilt Loom");
+ 
+ 		if (getExtension().areEnvironmentSourceSetsSplit()) {
+-			launchConfig.property("client", "fabric.gameJarPath.client", getGameJarPath("client"));
+-			launchConfig.property("fabric.gameJarPath", getGameJarPath("common"));
++			launchConfig.property("client", "loader.gameJarPath.client", getGameJarPath("client"));
++			launchConfig.property("loader.gameJarPath", getGameJarPath("common"));
+ 		}
+ 
+ 		if (!getExtension().getMods().isEmpty()) {
+-			launchConfig.property("fabric.classPathGroups", getClassPathGroups());
++			launchConfig.property("loader.classPathGroups", getClassPathGroups());
+ 		}
+ 
+ 		final boolean plainConsole = getProject().getGradle().getStartParameter().getConsoleOutput() == ConsoleOutput.Plain;
 diff --git a/src/test/resources/projects/accesswidener/build.gradle b/src/test/resources/projects/accesswidener/build.gradle
 index 9fa3cc36ef23ee7f9a03120624596c6fe1788de4..5e7f1c4e3db691665ceecf7d21bc1c663f505ee1 100644
 --- a/src/test/resources/projects/accesswidener/build.gradle
