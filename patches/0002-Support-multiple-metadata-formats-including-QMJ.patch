@@ -456,7 +456,7 @@ index d55c68933fdeaed3b0d24dd073d0b9147c29c239..9f0825052c9d9b2bc0ece09e0b9b395d
  				}
 diff --git a/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3f4479aa4760ef63f7100a481614b013cf73cd96
+index 0000000000000000000000000000000000000000..977e45882559870741dc911331aeb05056350447
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
 @@ -0,0 +1,260 @@
@@ -620,10 +620,10 @@ index 0000000000000000000000000000000000000000..3f4479aa4760ef63f7100a481614b013
 +
 +			if (mixins == null) {
 +				JsonPrimitive qmjStr = qmj.getAsJsonPrimitive("mixin");
++
 +				if (qmjStr == null) {
 +					return Collections.emptyList();
-+				}
-+				if (!qmjStr.isString()) {
++				} else if (!qmjStr.isString()) {
 +					throw new RuntimeException("Incorrect QMJ format; expected 'mixin' to be a string or array");
 +				}
 +			}

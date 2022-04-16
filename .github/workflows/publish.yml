@@ -27,7 +27,7 @@ jobs:
         with:
           java-version: 17
       - run: ./gradlew applyPatches
-      - run: ./gradlew build publish -x test --stacktrace
+      - run: ./gradlew build publish -x check -x test --stacktrace
         working-directory: quilt-loom
         env:
           MAVEN_URL: ${{ secrets.MAVEN_URL }}
