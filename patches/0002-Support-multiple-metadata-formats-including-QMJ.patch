@@ -456,10 +456,10 @@ index d55c68933fdeaed3b0d24dd073d0b9147c29c239..9f0825052c9d9b2bc0ece09e0b9b395d
  				}
 diff --git a/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..2116def87c4ceee2283a22da44a0b37cadf9bf3f
+index 0000000000000000000000000000000000000000..3f4479aa4760ef63f7100a481614b013cf73cd96
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
-@@ -0,0 +1,254 @@
+@@ -0,0 +1,260 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -619,7 +619,13 @@ index 0000000000000000000000000000000000000000..2116def87c4ceee2283a22da44a0b37c
 +			JsonArray mixins = qmj.getAsJsonArray("mixin");
 +
 +			if (mixins == null) {
-+				return Collections.emptyList();
++				JsonPrimitive qmjStr = qmj.getAsJsonPrimitive("mixin");
++				if (qmjStr == null) {
++					return Collections.emptyList();
++				}
++				if (!qmjStr.isString()) {
++					throw new RuntimeException("Incorrect QMJ format; expected 'mixin' to be a string or array");
++				}
 +			}
 +
 +			return StreamSupport.stream(mixins.spliterator(), false)
@@ -627,7 +633,7 @@ index 0000000000000000000000000000000000000000..2116def87c4ceee2283a22da44a0b37c
 +						if (e instanceof JsonPrimitive str) {
 +							return str.getAsString();
 +						} else {
-+							throw new RuntimeException("Incorrect QMJ format");
++							throw new RuntimeException("Incorrect QMJ format; expected 'mixin' to be a string or array");
 +						}
 +					}).collect(Collectors.toSet());
 +		}
