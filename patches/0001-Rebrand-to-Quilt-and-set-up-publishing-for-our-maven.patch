@@ -7,6 +7,7 @@ This includes:
 - Changing the plugin marker, including in the tests
 - Using a different set of caches
 - Using the Quilt Loader system properties
+- Use quilt loader in all tests
 - Using `quilt_installer.json`
 
 diff --git a/bootstrap/test-project/build.gradle b/bootstrap/test-project/build.gradle
@@ -220,8 +221,109 @@ index 3e0781315a3c437e4d310b273207a66a04b8a81b..96045e8bfb97ded2a9e479c7d9280ab5
  		}
  
  		final boolean plainConsole = getProject().getGradle().getStartParameter().getConsoleOutput() == ConsoleOutput.Plain;
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy
+index eb732700eb1ab74706e476aca2e79a535194edb1..814a0e19d0b95b7e292444f8d2babc7d40bc71bf 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy
+@@ -44,7 +44,7 @@ class CustomManifestTest extends Specification implements GradleProjectTestTrait
+                 dependencies {
+                     minecraft "com.mojang:minecraft:1.18_experimental-snapshot-1"
+                     mappings "net.fabricmc:yarn:1.18_experimental-snapshot-1+build.2:v2"
+-                    modImplementation "net.fabricmc:fabric-loader:0.11.6"
++                    modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+                 }
+             '''
+         when:
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/ExperimentalVersionsTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/ExperimentalVersionsTest.groovy
+index a95073e5e6294f0197f21ffb2c6b1047b4051ef2..ade0cc3282b965fb740aaade1ccc45815efc1f64 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/ExperimentalVersionsTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/ExperimentalVersionsTest.groovy
+@@ -41,7 +41,7 @@ class ExperimentalVersionsTest extends Specification implements GradleProjectTes
+                 dependencies {
+                     minecraft "com.mojang:minecraft:1.18_experimental-snapshot-1"
+                     mappings "net.fabricmc:yarn:1.18_experimental-snapshot-1+build.2:v2"
+-                    modImplementation "net.fabricmc:fabric-loader:0.11.6"
++                    modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+                 }
+             '''
+ 
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/LegacyProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/LegacyProjectTest.groovy
+index 7461566c29a5e7d63ff2f48b7c45c0ea9db0a665..9d12f23af7c78b5dcf7b9956b5bec6f74e9284a7 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/LegacyProjectTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/LegacyProjectTest.groovy
+@@ -63,7 +63,7 @@ class LegacyProjectTest extends Specification implements GradleProjectTestTrait
+ 						// No names
+ 					}
+ 
+-                    modImplementation "net.fabricmc:fabric-loader:0.12.12"
++                    modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+                 }
+ 			"""
+ 
+@@ -101,7 +101,7 @@ class LegacyProjectTest extends Specification implements GradleProjectTestTrait
+ 						// No names
+ 					}
+ 
+-                    modImplementation "net.fabricmc:fabric-loader:0.12.12"
++                    modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+                 }
+ 			"""
+ 
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy
+index d58d0741d3764f3af8d11fc11dcc587a670965b1..f01ab3cee14d2281bc0e8dc73e68ee0be0e27033 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy
+@@ -45,7 +45,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
+                 dependencies {
+                     minecraft "com.mojang:minecraft:1.18.1"
+                     mappings "net.fabricmc:yarn:1.18.1+build.18:v2"
+-                    modImplementation "net.fabricmc:fabric-loader:0.12.12"
++                    modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+                 }
+             '''
+ 
+@@ -72,7 +72,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
+                 dependencies {
+                     minecraft "com.mojang:minecraft:1.18.1"
+                     mappings "net.fabricmc:yarn:1.18.1+build.18:v2"
+-                    modImplementation "net.fabricmc:fabric-loader:0.12.12"
++                    modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+                 }
+             '''
+ 
+@@ -99,7 +99,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
+                 dependencies {
+                     minecraft "com.mojang:minecraft:1.18.1"
+                     mappings "net.fabricmc:yarn:1.18.1+build.18:v2"
+-                    modImplementation "net.fabricmc:fabric-loader:0.12.12"
++                    modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+                 }
+             '''
+ 
+@@ -126,7 +126,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
+                 dependencies {
+                     minecraft "com.mojang:minecraft:1.18.1"
+                     mappings "net.fabricmc:yarn:1.18.1+build.18:v2"
+-                    modImplementation "net.fabricmc:fabric-loader:0.12.12"
++                    modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+                 }
+             '''
+ 
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/RunConfigTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/RunConfigTest.groovy
+index 18f8e684ec06195d143c290e07c3c0c8906e1e3f..152baa8b73b06dfac3fa18943004109321944e28 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/RunConfigTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/RunConfigTest.groovy
+@@ -68,7 +68,7 @@ class RunConfigTest extends Specification implements GradleProjectTestTrait {
+                 dependencies {
+                     minecraft "com.mojang:minecraft:1.18.1"
+                     mappings "net.fabricmc:yarn:1.18.1+build.18:v2"
+-                    modImplementation "net.fabricmc:fabric-loader:0.12.12"
++                    modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+                 }
+             '''
+ 
 diff --git a/src/test/resources/projects/accesswidener/build.gradle b/src/test/resources/projects/accesswidener/build.gradle
-index 9fa3cc36ef23ee7f9a03120624596c6fe1788de4..5e7f1c4e3db691665ceecf7d21bc1c663f505ee1 100644
+index 9fa3cc36ef23ee7f9a03120624596c6fe1788de4..c3950e8fbcc865a12a2a5a5ededf0fbddf3e6698 100644
 --- a/src/test/resources/projects/accesswidener/build.gradle
 +++ b/src/test/resources/projects/accesswidener/build.gradle
 @@ -1,5 +1,5 @@
@@ -231,19 +333,35 @@ index 9fa3cc36ef23ee7f9a03120624596c6fe1788de4..5e7f1c4e3db691665ceecf7d21bc1c66
  	id 'maven-publish'
  }
  
+@@ -26,7 +26,7 @@ dependencies {
+ 	// To change the versions see the gradle.properties file
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ 
+ 	// Fabric API. This is technically optional, but you probably want it anyway.
+ 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 diff --git a/src/test/resources/projects/decompile/build.gradle b/src/test/resources/projects/decompile/build.gradle
-index 993ac667071e4e3e2b1a8301121e817950663d61..81a5c0b78b5cbff19d881eac79f3842acea70b65 100644
+index 993ac667071e4e3e2b1a8301121e817950663d61..17961497657cb80f2ce1cb2463f1a28c11e85c5d 100644
 --- a/src/test/resources/projects/decompile/build.gradle
 +++ b/src/test/resources/projects/decompile/build.gradle
-@@ -1,5 +1,5 @@
+@@ -1,11 +1,11 @@
  plugins {
 -	id 'fabric-loom'
 +	id 'org.quiltmc.loom'
  }
  
  dependencies {
+ 	minecraft "com.mojang:minecraft:21w38a"
+ 	mappings "net.fabricmc:yarn:21w38a+build.11:v2"
+-	modImplementation "net.fabricmc:fabric-loader:0.11.7"
++	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+ }
+ 
+ loom {
 diff --git a/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle b/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
-index c7b6ef6c0a20c1d4b2936dcbdf222f201be41ccc..05679287b1bac60cb8ef4b2ab59520b83fde60d4 100644
+index c7b6ef6c0a20c1d4b2936dcbdf222f201be41ccc..d0df797cc20ddee83098186a731366663fc2d191 100644
 --- a/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
 +++ b/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
 @@ -1,5 +1,5 @@
@@ -253,8 +371,17 @@ index c7b6ef6c0a20c1d4b2936dcbdf222f201be41ccc..05679287b1bac60cb8ef4b2ab59520b8
  	id 'maven-publish'
  }
  
+@@ -22,7 +22,7 @@ dependencies {
+ 	// To change the versions see the gradle.properties file
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ 
+ 	// Fabric API. This is technically optional, but you probably want it anyway.
+ 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 diff --git a/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle b/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
-index 6472ec7e63ab88f17b626c68393faca58042a8d2..fa2b25574392137e16a4c8da06c7d844dc712c20 100644
+index 6472ec7e63ab88f17b626c68393faca58042a8d2..6c8ee6bd10d606f86e075e2b094d5414c0075577 100644
 --- a/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
 +++ b/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
 @@ -1,5 +1,5 @@
@@ -264,6 +391,15 @@ index 6472ec7e63ab88f17b626c68393faca58042a8d2..fa2b25574392137e16a4c8da06c7d844
  	id 'maven-publish'
  }
  
+@@ -22,7 +22,7 @@ dependencies {
+ 	// To change the versions see the gradle.properties file
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ 
+ 	// Fabric API. This is technically optional, but you probably want it anyway.
+ 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 diff --git a/src/test/resources/projects/dependencyResolutionManagement/settings.gradle b/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
 index c05e369995a4d8c5479de657d6c8ab52a6cba940..6b77297f004043508453a0907ea19bca3a372c5e 100644
 --- a/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
@@ -283,7 +419,7 @@ index c05e369995a4d8c5479de657d6c8ab52a6cba940..6b77297f004043508453a0907ea19bca
  
  dependencyResolutionManagement {
 diff --git a/src/test/resources/projects/interfaceInjection/build.gradle b/src/test/resources/projects/interfaceInjection/build.gradle
-index 52f1fc39f472e431795ddfe94cd85c6a01eade48..68eb5b94afe3d8893450d332ece22e9d21345f9d 100644
+index 52f1fc39f472e431795ddfe94cd85c6a01eade48..301cfe010e0dcff7226d980f2c2c69e5a589e702 100644
 --- a/src/test/resources/projects/interfaceInjection/build.gradle
 +++ b/src/test/resources/projects/interfaceInjection/build.gradle
 @@ -1,7 +1,7 @@
@@ -295,8 +431,18 @@ index 52f1fc39f472e431795ddfe94cd85c6a01eade48..68eb5b94afe3d8893450d332ece22e9d
  	id 'maven-publish'
  }
  
+@@ -12,7 +12,7 @@ group = "com.example"
+ dependencies {
+ 	minecraft "com.mojang:minecraft:1.17.1"
+ 	mappings "net.fabricmc:yarn:1.17.1+build.59:v2"
+-	modImplementation "net.fabricmc:fabric-loader:0.11.6"
++	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+ 
+ 	modImplementation files("dummy.jar")
+ }
+\ No newline at end of file
 diff --git a/src/test/resources/projects/java16/build.gradle b/src/test/resources/projects/java16/build.gradle
-index 45acf714efb54893e7867807d3bed47aa1a58223..46ffa7263e54b3b14ff1a787adea096eebcbc8db 100644
+index 45acf714efb54893e7867807d3bed47aa1a58223..e2bfaeebb5df8090259eb9d18ebdf28eddf66504 100644
 --- a/src/test/resources/projects/java16/build.gradle
 +++ b/src/test/resources/projects/java16/build.gradle
 @@ -1,5 +1,5 @@
@@ -306,8 +452,30 @@ index 45acf714efb54893e7867807d3bed47aa1a58223..46ffa7263e54b3b14ff1a787adea096e
  	id 'maven-publish'
  }
  
+@@ -18,7 +18,7 @@ dependencies {
+ 	// To change the versions see the gradle.properties file
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+ }
+ 
+diff --git a/src/test/resources/projects/kotlin/build.gradle.kts b/src/test/resources/projects/kotlin/build.gradle.kts
+index 904c20a405edee316288fd34e9dee881679528b4..25d3aaf84bf815350a0be60530f457835fa3d766 100644
+--- a/src/test/resources/projects/kotlin/build.gradle.kts
++++ b/src/test/resources/projects/kotlin/build.gradle.kts
+@@ -16,6 +16,6 @@ version = "0.0.1"
+ dependencies {
+ 	minecraft(group = "com.mojang", name = "minecraft", version = "1.16.5")
+ 	mappings(group = "net.fabricmc", name = "yarn", version = "1.16.5+build.5", classifier = "v2")
+-	modImplementation("net.fabricmc:fabric-loader:0.12.12")
++	modImplementation("org.quiltmc:quilt-loader:0.16.0-beta.5")
+ 	modImplementation(group = "net.fabricmc", name = "fabric-language-kotlin", version = "1.7.3+kotlin.1.6.20")
+ }
+\ No newline at end of file
 diff --git a/src/test/resources/projects/legacy/build.gradle b/src/test/resources/projects/legacy/build.gradle
-index 3b460c49aaa95a8b98cff43df820b257498ad668..2a249199b8f4a3c079327c26f47d24fbe1f2e384 100644
+index 3b460c49aaa95a8b98cff43df820b257498ad668..2cd1bdbf885b93a39bccf1300597a0c57d8c1d45 100644
 --- a/src/test/resources/projects/legacy/build.gradle
 +++ b/src/test/resources/projects/legacy/build.gradle
 @@ -1,5 +1,5 @@
@@ -317,8 +485,17 @@ index 3b460c49aaa95a8b98cff43df820b257498ad668..2a249199b8f4a3c079327c26f47d24fb
  }
  
  sourceCompatibility = JavaVersion.VERSION_1_8
+@@ -12,7 +12,7 @@ group = project.maven_group
+ dependencies {
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings "net.fabricmc:yarn:${project.yarn_mappings}"
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+ }
+ 
 diff --git a/src/test/resources/projects/localFileDependency/build.gradle b/src/test/resources/projects/localFileDependency/build.gradle
-index 811d945a9a903d2e43e949de2e2fea4f99882edd..e9d04c936a10909d4bf960f86924f26b7b4712c0 100644
+index 811d945a9a903d2e43e949de2e2fea4f99882edd..36a99bc5fa0dc9854fe8bf740bf989550a8f7510 100644
 --- a/src/test/resources/projects/localFileDependency/build.gradle
 +++ b/src/test/resources/projects/localFileDependency/build.gradle
 @@ -1,5 +1,5 @@
@@ -328,8 +505,17 @@ index 811d945a9a903d2e43e949de2e2fea4f99882edd..e9d04c936a10909d4bf960f86924f26b
  	id 'maven-publish'
  }
  
+@@ -25,7 +25,7 @@ dependencies {
+ 	// To change the versions see the gradle.properties file
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ 
+ 	// Fabric API. This is technically optional, but you probably want it anyway.
+ 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 diff --git a/src/test/resources/projects/localRuntime/build.gradle b/src/test/resources/projects/localRuntime/build.gradle
-index 18f4f0db4b857098a782cfa548a2954c44f363dc..524e784bf20ece94b9a1aaf6a9860b866a6fb98f 100644
+index 18f4f0db4b857098a782cfa548a2954c44f363dc..c119c0085e59b282c1fc10335aa1dbb0d7cfb2e3 100644
 --- a/src/test/resources/projects/localRuntime/build.gradle
 +++ b/src/test/resources/projects/localRuntime/build.gradle
 @@ -1,5 +1,5 @@
@@ -339,8 +525,17 @@ index 18f4f0db4b857098a782cfa548a2954c44f363dc..524e784bf20ece94b9a1aaf6a9860b86
  	id 'maven-publish'
  }
  
+@@ -22,7 +22,7 @@ dependencies {
+ 	// To change the versions see the gradle.properties file
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ 
+ 	// Fabric API. This is technically optional, but you probably want it anyway.
+ 	modLocalRuntime "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 diff --git a/src/test/resources/projects/maven/build.gradle b/src/test/resources/projects/maven/build.gradle
-index 56930fcd776ea55ae9576655d38b55cf47de62d1..d8f3a208cee8348288d660cfec75b66a77615abf 100644
+index 56930fcd776ea55ae9576655d38b55cf47de62d1..388a116fcab58894ef577b7ec6a4ae97c8baff53 100644
 --- a/src/test/resources/projects/maven/build.gradle
 +++ b/src/test/resources/projects/maven/build.gradle
 @@ -1,5 +1,5 @@
@@ -350,8 +545,18 @@ index 56930fcd776ea55ae9576655d38b55cf47de62d1..d8f3a208cee8348288d660cfec75b66a
  	id 'maven-publish'
  }
  
+@@ -19,7 +19,7 @@ repositories {
+ dependencies {
+ 	minecraft "com.mojang:minecraft:1.16.5"
+ 	mappings "net.fabricmc:yarn:1.16.5+build.5:v2"
+-	modImplementation "net.fabricmc:fabric-loader:0.11.2"
++	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+ 
+ 	modImplementation System.getProperty("loom.test.resolve")
+ }
+\ No newline at end of file
 diff --git a/src/test/resources/projects/mavenLibrary/build.gradle b/src/test/resources/projects/mavenLibrary/build.gradle
-index ff53dcc36eb20ffaf26ff75233524a4ba6075411..0aefb471375c01de77351449f11a3e94e39f7e60 100644
+index ff53dcc36eb20ffaf26ff75233524a4ba6075411..986d874cdcd0eec04134a069f54bf7cf67c054ae 100644
 --- a/src/test/resources/projects/mavenLibrary/build.gradle
 +++ b/src/test/resources/projects/mavenLibrary/build.gradle
 @@ -1,5 +1,5 @@
@@ -361,6 +566,15 @@ index ff53dcc36eb20ffaf26ff75233524a4ba6075411..0aefb471375c01de77351449f11a3e94
  	id 'maven-publish'
  }
  
+@@ -12,7 +12,7 @@ println archivesBaseName
+ dependencies {
+ 	minecraft "com.mojang:minecraft:1.16.5"
+ 	mappings "net.fabricmc:yarn:1.16.5+build.5:v2"
+-	modImplementation "net.fabricmc:fabric-loader:0.11.2"
++	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+ }
+ 
+ processResources {
 diff --git a/src/test/resources/projects/minimalBase/build.gradle b/src/test/resources/projects/minimalBase/build.gradle
 index 8fbea237ed6254ea326fecc3c6db1a732746a6e0..fa18261b9d7f1a5f7999f27a5be68f59bb002a9c 100644
 --- a/src/test/resources/projects/minimalBase/build.gradle
@@ -375,7 +589,7 @@ index 8fbea237ed6254ea326fecc3c6db1a732746a6e0..fa18261b9d7f1a5f7999f27a5be68f59
  }
  
 diff --git a/src/test/resources/projects/mixinApAutoRefmap/build.gradle b/src/test/resources/projects/mixinApAutoRefmap/build.gradle
-index 610d042d1a47cb4e3a82aad6e147b87248671333..d02a2565af9bc72181303a6bdfb2dbf59d0ac5d9 100644
+index 610d042d1a47cb4e3a82aad6e147b87248671333..b17bd245b4a9de210ef17cbf9c5b26d698f833b4 100644
 --- a/src/test/resources/projects/mixinApAutoRefmap/build.gradle
 +++ b/src/test/resources/projects/mixinApAutoRefmap/build.gradle
 @@ -1,5 +1,5 @@
@@ -385,8 +599,17 @@ index 610d042d1a47cb4e3a82aad6e147b87248671333..d02a2565af9bc72181303a6bdfb2dbf5
  	id 'com.github.johnrengelman.shadow' version '7.0.0'
  	id 'maven-publish'
  }
+@@ -23,7 +23,7 @@ dependencies {
+ 	// To change the versions see the gradle.properties file
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ 
+ 	// Fabric API. This is technically optional, but you probably want it anyway.
+ 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 diff --git a/src/test/resources/projects/mixinApSimple/build.gradle b/src/test/resources/projects/mixinApSimple/build.gradle
-index f641e66b1cc5919df2eb3356948d08a111c710eb..0eb5ddadfa642961484e69936b10a73a9da7ed18 100644
+index f641e66b1cc5919df2eb3356948d08a111c710eb..a55cf71651e8659025d84d862de6da0b3d94b0d0 100644
 --- a/src/test/resources/projects/mixinApSimple/build.gradle
 +++ b/src/test/resources/projects/mixinApSimple/build.gradle
 @@ -1,5 +1,5 @@
@@ -396,8 +619,17 @@ index f641e66b1cc5919df2eb3356948d08a111c710eb..0eb5ddadfa642961484e69936b10a73a
  	id 'maven-publish'
  }
  
+@@ -22,7 +22,7 @@ dependencies {
+ 	// To change the versions see the gradle.properties file
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ 
+ 	// Fabric API. This is technically optional, but you probably want it anyway.
+ 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 diff --git a/src/test/resources/projects/mojangMappings/build.gradle b/src/test/resources/projects/mojangMappings/build.gradle
-index 895bdb752a2aec465a2d430814229a1b2d35b0ee..8496c3eb98392d61f1da0376d9ab101d84e9be20 100644
+index 895bdb752a2aec465a2d430814229a1b2d35b0ee..803040561028fa1860f10de0c1e24011a54a2d69 100644
 --- a/src/test/resources/projects/mojangMappings/build.gradle
 +++ b/src/test/resources/projects/mojangMappings/build.gradle
 @@ -1,5 +1,5 @@
@@ -407,8 +639,17 @@ index 895bdb752a2aec465a2d430814229a1b2d35b0ee..8496c3eb98392d61f1da0376d9ab101d
  	id 'maven-publish'
  }
  
+@@ -22,7 +22,7 @@ dependencies {
+ 	// To change the versions see the gradle.properties file
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings loom.officialMojangMappings()
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ 
+ 	// Fabric API. This is technically optional, but you probably want it anyway.
+ 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 diff --git a/src/test/resources/projects/multiproject/build.gradle b/src/test/resources/projects/multiproject/build.gradle
-index 17480a88c7ce6c16b53ce766ccb7722203fcb3a6..d704f6c9d641a8b20dd5543201a23a4aa51b2af5 100644
+index 17480a88c7ce6c16b53ce766ccb7722203fcb3a6..3c990d57f20f26e9a705a0ca5f739a5b95260426 100644
 --- a/src/test/resources/projects/multiproject/build.gradle
 +++ b/src/test/resources/projects/multiproject/build.gradle
 @@ -1,7 +1,7 @@
@@ -420,8 +661,17 @@ index 17480a88c7ce6c16b53ce766ccb7722203fcb3a6..d704f6c9d641a8b20dd5543201a23a4a
  }
  
  allprojects {
+@@ -25,7 +25,7 @@ allprojects {
+ 		// To change the versions see the gradle.properties file
+ 		minecraft "com.mojang:minecraft:1.16.5"
+ 		mappings "net.fabricmc:yarn:1.16.5+build.5:v2"
+-		modImplementation "net.fabricmc:fabric-loader:0.11.2"
++		modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+ 
+ 		modImplementation "net.fabricmc.fabric-api:fabric-api:0.31.0+1.16"
+ 
 diff --git a/src/test/resources/projects/parchment/build.gradle b/src/test/resources/projects/parchment/build.gradle
-index 21432d4e9a6befe1bde150585c45a05e4c45f312..df5a3033f7813d2c862c7967e376f43d2b5aa850 100644
+index 21432d4e9a6befe1bde150585c45a05e4c45f312..934f539e4affb0343b0c27e0ebd0d4ba772e8cdc 100644
 --- a/src/test/resources/projects/parchment/build.gradle
 +++ b/src/test/resources/projects/parchment/build.gradle
 @@ -1,5 +1,5 @@
@@ -431,8 +681,15 @@ index 21432d4e9a6befe1bde150585c45a05e4c45f312..df5a3033f7813d2c862c7967e376f43d
  }
  
  repositories {
+@@ -16,5 +16,5 @@ dependencies {
+ 		parchment("org.parchmentmc.data:parchment-1.16.5:2021.10.10@zip")
+ 	}
+ 
+-	modImplementation "net.fabricmc:fabric-loader:0.11.3"
++	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+ }
 diff --git a/src/test/resources/projects/reproducible/build.gradle b/src/test/resources/projects/reproducible/build.gradle
-index 4bc4926136fa448fd4268d7392217bf7f160fb9a..0e54d9a2bd8ed552ab49ac3556369225f6c2493f 100644
+index 4bc4926136fa448fd4268d7392217bf7f160fb9a..038f6fd61e6952a6a124d61c6ccb410da4dd9079 100644
 --- a/src/test/resources/projects/reproducible/build.gradle
 +++ b/src/test/resources/projects/reproducible/build.gradle
 @@ -1,5 +1,5 @@
@@ -442,8 +699,17 @@ index 4bc4926136fa448fd4268d7392217bf7f160fb9a..0e54d9a2bd8ed552ab49ac3556369225
  	id 'maven-publish'
  }
  
+@@ -19,7 +19,7 @@ loom {
+ dependencies {
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ }
+ 
+ processResources {
 diff --git a/src/test/resources/projects/runconfigs/build.gradle b/src/test/resources/projects/runconfigs/build.gradle
-index a8e1f6bb073f57d6196eebe782836ed3f436b19b..5ac2f26394ae34837370d76b622524289af80260 100644
+index a8e1f6bb073f57d6196eebe782836ed3f436b19b..23048574367f5a5bff9cb04b16862ba4a33a9a8b 100644
 --- a/src/test/resources/projects/runconfigs/build.gradle
 +++ b/src/test/resources/projects/runconfigs/build.gradle
 @@ -1,5 +1,5 @@
@@ -453,8 +719,16 @@ index a8e1f6bb073f57d6196eebe782836ed3f436b19b..5ac2f26394ae34837370d76b62252428
  }
  
  loom {
+@@ -33,5 +33,5 @@ version = "1.0.0"
+ dependencies {
+ 	minecraft "com.mojang:minecraft:1.18.1"
+ 	mappings "net.fabricmc:yarn:1.18.1+build.12:v2"
+-	modImplementation "net.fabricmc:fabric-loader:0.12.12"
++	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+ }
+\ No newline at end of file
 diff --git a/src/test/resources/projects/signed/build.gradle b/src/test/resources/projects/signed/build.gradle
-index 45a2a278a761e5f9cc0f56bb7972719196660cfe..fbeaeb351426ed1dfa30f9c50a18a66465d084b8 100644
+index 45a2a278a761e5f9cc0f56bb7972719196660cfe..f9063a5286bb91e0faa8ff5df85453cc764b6f95 100644
 --- a/src/test/resources/projects/signed/build.gradle
 +++ b/src/test/resources/projects/signed/build.gradle
 @@ -1,5 +1,5 @@
@@ -464,8 +738,17 @@ index 45a2a278a761e5f9cc0f56bb7972719196660cfe..fbeaeb351426ed1dfa30f9c50a18a664
  	id 'maven-publish'
  	id 'signing'
  }
+@@ -11,7 +11,7 @@ group = "com.example"
+ dependencies {
+ 	minecraft "com.mojang:minecraft:1.16.5"
+ 	mappings "net.fabricmc:yarn:1.16.5+build.5:v2"
+-	modImplementation "net.fabricmc:fabric-loader:0.11.2"
++	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+ }
+ 
+ processResources {
 diff --git a/src/test/resources/projects/simple/build.gradle b/src/test/resources/projects/simple/build.gradle
-index 5ce232ea8a8d7975252e63da3bb7a471e22c39b3..27d57f55f6b3cacfd0175bf32c7da3398e71cae0 100644
+index 5ce232ea8a8d7975252e63da3bb7a471e22c39b3..6e25e95631e5961cd65217cc54171c015676dd3c 100644
 --- a/src/test/resources/projects/simple/build.gradle
 +++ b/src/test/resources/projects/simple/build.gradle
 @@ -1,5 +1,5 @@
@@ -475,8 +758,17 @@ index 5ce232ea8a8d7975252e63da3bb7a471e22c39b3..27d57f55f6b3cacfd0175bf32c7da339
  	id 'maven-publish'
  }
  
+@@ -22,7 +22,7 @@ dependencies {
+ 	// To change the versions see the gradle.properties file
+ 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+ 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
++	modImplementation "org.quiltmc:quilt-loader:${project.loader_version}"
+ 
+ 	// Fabric API. This is technically optional, but you probably want it anyway.
+ 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 diff --git a/src/test/resources/projects/splitSources/build.gradle b/src/test/resources/projects/splitSources/build.gradle
-index ea40b50207f0cfa8fe22441524d26b3cb75d2bd5..e766fdefae7f6701d45ba31a31b2075969644b9e 100644
+index ea40b50207f0cfa8fe22441524d26b3cb75d2bd5..4965d7fc6311cd9280fd70545175d379392d08dc 100644
 --- a/src/test/resources/projects/splitSources/build.gradle
 +++ b/src/test/resources/projects/splitSources/build.gradle
 @@ -1,5 +1,5 @@
@@ -486,8 +778,17 @@ index ea40b50207f0cfa8fe22441524d26b3cb75d2bd5..e766fdefae7f6701d45ba31a31b20759
  	id 'maven-publish'
  }
  
+@@ -13,7 +13,7 @@ loom {
+ dependencies {
+ 	minecraft "com.mojang:minecraft:1.18.2"
+ 	mappings "net.fabricmc:yarn:1.18.2+build.1:v2"
+-	modImplementation "net.fabricmc:fabric-loader:0.13.3"
++	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+ 
+ 	modImplementation "net.fabricmc.fabric-api:fabric-api:0.47.8+1.18.2"
+ }
 diff --git a/src/test/resources/projects/transitiveAccesswidener/build.gradle b/src/test/resources/projects/transitiveAccesswidener/build.gradle
-index 52f1fc39f472e431795ddfe94cd85c6a01eade48..68eb5b94afe3d8893450d332ece22e9d21345f9d 100644
+index 52f1fc39f472e431795ddfe94cd85c6a01eade48..301cfe010e0dcff7226d980f2c2c69e5a589e702 100644
 --- a/src/test/resources/projects/transitiveAccesswidener/build.gradle
 +++ b/src/test/resources/projects/transitiveAccesswidener/build.gradle
 @@ -1,7 +1,7 @@
@@ -499,14 +800,29 @@ index 52f1fc39f472e431795ddfe94cd85c6a01eade48..68eb5b94afe3d8893450d332ece22e9d
  	id 'maven-publish'
  }
  
+@@ -12,7 +12,7 @@ group = "com.example"
+ dependencies {
+ 	minecraft "com.mojang:minecraft:1.17.1"
+ 	mappings "net.fabricmc:yarn:1.17.1+build.59:v2"
+-	modImplementation "net.fabricmc:fabric-loader:0.11.6"
++	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+ 
+ 	modImplementation files("dummy.jar")
+ }
+\ No newline at end of file
 diff --git a/src/test/resources/projects/unpick/build.gradle b/src/test/resources/projects/unpick/build.gradle
-index 4b79a1b01f6d59fea5174e912c213a1ee597327f..eab1086cf9737ad402b0ade46b54b26412d15272 100644
+index 4b79a1b01f6d59fea5174e912c213a1ee597327f..3d4edf7fe25337ea5db31367ec65cf207ac98f9b 100644
 --- a/src/test/resources/projects/unpick/build.gradle
 +++ b/src/test/resources/projects/unpick/build.gradle
-@@ -1,5 +1,5 @@
+@@ -1,9 +1,9 @@
  plugins {
 -	id 'fabric-loom'
 +	id 'org.quiltmc.loom'
  }
  
  dependencies {
+ 	minecraft "com.mojang:minecraft:21w13a"
+ 	mappings "net.fabricmc:yarn:21w13a+build.30:v2"
+-	modImplementation "net.fabricmc:fabric-loader:0.11.3"
++	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
+ }
