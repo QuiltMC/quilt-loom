@@ -22,7 +22,7 @@ index 36767715d89bade0d2dacac4bfc44d0bd6482cb4..70c867068c34cce86826a07cafa6ef15
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index 51cdccc9982f41f70d91d763f0d5c0ee0006d825..8e9fa9a11902933b622200e8b1d9f9548dbc9203 100644
+index 51cdccc9982f41f70d91d763f0d5c0ee0006d825..a54500a9d7bbf12b471ce559ccba2d6b980317eb 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -64,7 +64,7 @@ index 51cdccc9982f41f70d91d763f0d5c0ee0006d825..8e9fa9a11902933b622200e8b1d9f954
 +				groupId.setTextContent('org.quiltmc')
  				Node artifactId = dependency.appendChild(document.createElement('artifactId'))
 -				artifactId.setTextContent('fabric-loom')
-+				artifactId.setTextContent('quilt-loom')
++				artifactId.setTextContent('loom')
  				Node version = dependency.appendChild(document.createElement('version'))
  				version.setTextContent(baseVersion + '-SNAPSHOT')
  			})
