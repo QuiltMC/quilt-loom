@@ -6,7 +6,7 @@ Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
 Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
 
 diff --git a/build.gradle b/build.gradle
-index c66063df09c725ba780cc165147cbd8ea269d4df..9203cc545b937b09c6f93450f45d7b5ae801e7df 100644
+index 8e9fa9a11902933b622200e8b1d9f9548dbc9203..6df0696fad5e9ecf7a7da9ff293474875410bc32 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -44,6 +44,14 @@ repositories {
@@ -62,24 +62,25 @@ index cdee9c8db8fd2e98b038829fc5b95de9db5d8840..bcb69168f29fc4b425a935c183a06738
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
-index 8b89642cecbdcddf2173330c39779be96e5ffc6f..8e3db30740cab586ceef0183872ff48748d8bd75 100644
+index 2301f575ce5ac42c6cb062a194d85f214d387082..b522d14fd654157632884c3812393e9a6d657adb 100644
 --- a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
-@@ -68,6 +68,10 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
+@@ -70,7 +70,10 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
  			repo.setName("Fabric");
  			repo.setUrl(MirrorUtil.getFabricRepository(target));
  		});
+-
 +		repositories.maven(repo -> {
 +			repo.setName("Quilt Releases");
 +			repo.setUrl(MirrorUtil.getQuiltRepository(target));
 +		});
- 		repositories.maven(repo -> {
+ 		MavenArtifactRepository mojangRepo = repositories.maven(repo -> {
  			repo.setName("Mojang");
  			repo.setUrl(MirrorUtil.getLibrariesBase(target));
-diff --git a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
-index ccaf627d9952c4b8aada19042299ec16127cdef8..f3f233718028fcdf47ce7a88d98540c85f186df6 100644
---- a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
-+++ b/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
+diff --git a/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java
+index 9555e1d40dc11488d62608273b888769dc3227e6..99f05da4d42141ca41187a2cae3f517dae060bda 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java
++++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java
 @@ -80,7 +80,7 @@ public class SingleJarDecompileConfiguration extends DecompileConfiguration<Mapp
  			task.setDescription("Decompile minecraft using the default decompiler.");
  			task.setGroup(Constants.TaskGroup.FABRIC);
