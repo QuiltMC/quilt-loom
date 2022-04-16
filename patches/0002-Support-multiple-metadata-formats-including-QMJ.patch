@@ -456,10 +456,10 @@ index d55c68933fdeaed3b0d24dd073d0b9147c29c239..9f0825052c9d9b2bc0ece09e0b9b395d
  				}
 diff --git a/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..977e45882559870741dc911331aeb05056350447
+index 0000000000000000000000000000000000000000..ff530acf4b60950ee114ea82b1da0440df2f1abc
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
-@@ -0,0 +1,260 @@
+@@ -0,0 +1,258 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -616,26 +616,24 @@ index 0000000000000000000000000000000000000000..977e45882559870741dc911331aeb050
 +
 +		@Override
 +		public Collection<String> getMixinConfigurationFiles() {
-+			JsonArray mixins = qmj.getAsJsonArray("mixin");
++			JsonElement mixins = qmj.get("mixin");
 +
 +			if (mixins == null) {
-+				JsonPrimitive qmjStr = qmj.getAsJsonPrimitive("mixin");
-+
-+				if (qmjStr == null) {
-+					return Collections.emptyList();
-+				} else if (!qmjStr.isString()) {
-+					throw new RuntimeException("Incorrect QMJ format; expected 'mixin' to be a string or array");
-+				}
++				return Collections.emptyList();
++			} else if (mixins.isJsonArray()) {
++				return StreamSupport.stream(mixins.getAsJsonArray().spliterator(), false)
++						.map(e -> {
++							if (e instanceof JsonPrimitive str) {
++								return str.getAsString();
++							} else {
++								throw new RuntimeException("Incorrect QMJ format; expected 'mixin' to be a string or array");
++							}
++						}).collect(Collectors.toSet());
++			} else if (mixins.isJsonPrimitive() && mixins.getAsJsonPrimitive().isString()) {
++				return Collections.singleton(mixins.getAsJsonPrimitive().getAsString());
++			} else {
++				throw new RuntimeException("Incorrect QMJ format; expected 'mixin' to be a string or array");
 +			}
-+
-+			return StreamSupport.stream(mixins.spliterator(), false)
-+					.map(e -> {
-+						if (e instanceof JsonPrimitive str) {
-+							return str.getAsString();
-+						} else {
-+							throw new RuntimeException("Incorrect QMJ format; expected 'mixin' to be a string or array");
-+						}
-+					}).collect(Collectors.toSet());
 +		}
 +
 +		@Override
