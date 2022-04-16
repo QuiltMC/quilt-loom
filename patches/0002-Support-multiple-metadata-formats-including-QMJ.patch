@@ -456,7 +456,7 @@ index d55c68933fdeaed3b0d24dd073d0b9147c29c239..9f0825052c9d9b2bc0ece09e0b9b395d
  				}
 diff --git a/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..8c43f83354733b5f5cc24a85d089ffb2123fb138
+index 0000000000000000000000000000000000000000..2116def87c4ceee2283a22da44a0b37cadf9bf3f
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
 @@ -0,0 +1,254 @@
@@ -616,7 +616,7 @@ index 0000000000000000000000000000000000000000..8c43f83354733b5f5cc24a85d089ffb2
 +
 +		@Override
 +		public Collection<String> getMixinConfigurationFiles() {
-+			JsonArray mixins = qmj.getAsJsonArray("mixins");
++			JsonArray mixins = qmj.getAsJsonArray("mixin");
 +
 +			if (mixins == null) {
 +				return Collections.emptyList();
