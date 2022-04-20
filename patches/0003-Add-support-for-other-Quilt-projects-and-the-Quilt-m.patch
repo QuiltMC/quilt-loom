@@ -6,10 +6,10 @@ Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
 Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
 
 diff --git a/build.gradle b/build.gradle
-index a54500a9d7bbf12b471ce559ccba2d6b980317eb..2f8cf99f249c5615346f54a88b4f38a5467188ff 100644
+index a54500a9d7bbf12b471ce559ccba2d6b980317eb..8ebcb7dbf9a3e8e8d490c1d11f76e08c46057ec4 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -44,6 +44,14 @@ repositories {
+@@ -44,6 +44,11 @@ repositories {
  		name = 'Fabric'
  		url = 'https://maven.fabricmc.net/'
  	}
@@ -17,19 +17,16 @@ index a54500a9d7bbf12b471ce559ccba2d6b980317eb..2f8cf99f249c5615346f54a88b4f38a5
 +		name = "Quilt"
 +		url = "https://maven.quiltmc.org/repository/release"
 +	}
-+	maven {
-+		name = "Cotton"
-+		url = "https://server.bbkr.space/artifactory/libs-release"
-+	}
++	gradlePluginPortal()
  	mavenCentral()
  	mavenLocal()
  }
-@@ -108,6 +116,14 @@ dependencies {
+@@ -108,6 +113,14 @@ dependencies {
  	// Kapt integration
  	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31') // Must match the version included with gradle.
  
 +	// Plugins we apply
-+	implementation("io.github.juuxel:loom-quiltflower:1.7.0") {
++	implementation("io.github.juuxel:loom-quiltflower:1.7.1") {
 +		exclude group: "net.fabricmc", module: "fabric-loom"
 +	}
 +	implementation("org.quiltmc:quilt-mappings-on-loom:4.0.0") {
