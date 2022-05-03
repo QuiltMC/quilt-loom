@@ -1,0 +1,283 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kneelawk <kneelawk@gmail.com>
+Date: Mon, 2 May 2022 22:22:44 -0700
+Subject: [PATCH] Checkstyle cleanup
+
+
+diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
+index a896d600201cffd0bf1cd525593fbeb67f077532..e615ff95b6f6b476769abd757fa6ec736efd142e 100644
+--- a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
++++ b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
+@@ -24,8 +24,6 @@
+ 
+ package net.fabricmc.loom.api;
+ 
+-import net.fabricmc.loom.api.metadata.MetadataConfig;
+-
+ import org.gradle.api.Action;
+ import org.gradle.api.NamedDomainObjectContainer;
+ import org.gradle.api.artifacts.Dependency;
+@@ -40,6 +38,7 @@ import org.jetbrains.annotations.ApiStatus;
+ import net.fabricmc.loom.api.decompilers.DecompilerOptions;
+ import net.fabricmc.loom.api.mappings.intermediate.IntermediateMappingsProvider;
+ import net.fabricmc.loom.api.mappings.layered.spec.LayeredMappingSpecBuilder;
++import net.fabricmc.loom.api.metadata.MetadataConfig;
+ import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.configuration.ide.RunConfigSettings;
+ import net.fabricmc.loom.configuration.processors.JarProcessor;
+@@ -84,8 +83,8 @@ public interface LoomGradleExtensionAPI {
+ 
+ 	/**
+ 	 * Configures how dependencies' metadatas should be processed.
+-	 * <p>
+-	 * Likely, even if you want to completely ignore your own <code>fabric.mod.json</code> file, you probably don't want
++	 *
++	 * <p>Likely, even if you want to completely ignore your own <code>fabric.mod.json</code> file, you probably don't want
+ 	 * to ignore your dependencies' <code>fabric.mod.json</code> files. This allows you to configure the two separately.
+ 	 *
+ 	 * @param action the action performed on the dependencies' MetadataConfig to configure it.
+diff --git a/src/main/java/net/fabricmc/loom/api/metadata/MetadataConfig.java b/src/main/java/net/fabricmc/loom/api/metadata/MetadataConfig.java
+index 335db4e00b9938e1bc318df39293cc059f3f7308..b401d33c6f82ea8dc9c903eaa661883f0e95d35d 100644
+--- a/src/main/java/net/fabricmc/loom/api/metadata/MetadataConfig.java
++++ b/src/main/java/net/fabricmc/loom/api/metadata/MetadataConfig.java
+@@ -1,14 +1,38 @@
++/*
++ * This file is part of fabric-loom, licensed under the MIT License (MIT).
++ *
++ * Copyright (c) 2022 FabricMC
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
+ package net.fabricmc.loom.api.metadata;
+ 
+ import java.io.Serializable;
+ 
+ /**
+  * Configures the different metadata files when multiple are encountered.
+- * <p>
+- * This manages priorities for which metadata file primary metadata is drawn from. This also manages whether a
++ *
++ * <p>This manages priorities for which metadata file primary metadata is drawn from. This also manages whether a
+  * particular metadata is even touched by loom at all.
+- * <p>
+- * The default priorities are:
++ *
++ * <p>The default priorities are:
+  * <ul>
+  *     <li><code>quilt.mod.json</code>: priority 1.</li>
+  *     <li><code>fabric.mod.json</code>: priority 0.</li>
+@@ -34,8 +58,8 @@ public interface MetadataConfig extends Serializable {
+ 
+ 	/**
+ 	 * Sets that a metadata file should be ignored entirely by quilt-loom and not be transformed.
+-	 * <p>
+-	 * This does not prevent nested-jar stripping.
++	 *
++	 * <p>This does not prevent nested-jar stripping.
+ 	 *
+ 	 * @param filename the filename of the metadata kind to be ignored.
+ 	 */
+diff --git a/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java b/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
+index 2090baa26ecdc5e7af0502135832df5e1ea9742e..b13853cd1b229618362af8c9df8373ce984f0dee 100644
+--- a/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
++++ b/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
+@@ -36,12 +36,10 @@ import java.util.stream.Stream;
+ 
+ import com.google.common.base.Preconditions;
+ import com.google.gson.JsonObject;
+-
+-import net.fabricmc.loom.api.metadata.MetadataConfig;
+-
+ import org.gradle.api.UncheckedIOException;
+ import org.slf4j.Logger;
+ 
++import net.fabricmc.loom.api.metadata.MetadataConfig;
+ import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.util.ModUtils;
+ import net.fabricmc.loom.util.Pair;
+diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
+index 17a722a1362fc7de4b696b71e26f629719315390..95239dee1bd9b67b3692f1bdddf59de5f65dcb4e 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
++++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
+@@ -42,10 +42,6 @@ import java.util.stream.Collectors;
+ import com.google.common.base.Preconditions;
+ import com.google.common.hash.Hasher;
+ import com.google.common.hash.Hashing;
+-
+-import net.fabricmc.loom.api.metadata.MetadataConfig;
+-import net.fabricmc.loom.util.ModUtils;
+-
+ import org.gradle.api.Project;
+ import org.gradle.api.tasks.SourceSet;
+ import org.objectweb.asm.ClassReader;
+@@ -55,6 +51,7 @@ import org.objectweb.asm.commons.Remapper;
+ 
+ import net.fabricmc.loom.LoomGradleExtension;
+ import net.fabricmc.loom.api.InterfaceInjectionExtensionAPI;
++import net.fabricmc.loom.api.metadata.MetadataConfig;
+ import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+ import net.fabricmc.loom.configuration.RemappedConfigurationEntry;
+@@ -62,6 +59,7 @@ import net.fabricmc.loom.configuration.processors.JarProcessor;
+ import net.fabricmc.loom.task.GenerateSourcesTask;
+ import net.fabricmc.loom.util.Checksum;
+ import net.fabricmc.loom.util.Constants;
++import net.fabricmc.loom.util.ModUtils;
+ import net.fabricmc.loom.util.Pair;
+ import net.fabricmc.loom.util.TinyRemapperHelper;
+ import net.fabricmc.loom.util.ZipUtils;
+diff --git a/src/main/java/net/fabricmc/loom/configuration/metadata/MetadataConfigImpl.java b/src/main/java/net/fabricmc/loom/configuration/metadata/MetadataConfigImpl.java
+index 56c041290860e031376f605c5cbe4bd0e6368ed8..f961fdf38b6132f98a3b4d73ffeb7fdaf2a78a43 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/metadata/MetadataConfigImpl.java
++++ b/src/main/java/net/fabricmc/loom/configuration/metadata/MetadataConfigImpl.java
+@@ -1,10 +1,34 @@
+-package net.fabricmc.loom.configuration.metadata;
++/*
++ * This file is part of fabric-loom, licensed under the MIT License (MIT).
++ *
++ * Copyright (c) 2022 FabricMC
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
+ 
+-import net.fabricmc.loom.api.metadata.MetadataConfig;
++package net.fabricmc.loom.configuration.metadata;
+ 
+ import java.util.HashMap;
+ import java.util.HashSet;
+ 
++import net.fabricmc.loom.api.metadata.MetadataConfig;
++
+ public class MetadataConfigImpl implements MetadataConfig {
+ 	private final HashMap<String, Integer> priorities = new HashMap<>();
+ 	private final HashSet<String> ignored = new HashSet<>();
+@@ -22,9 +46,11 @@ public class MetadataConfigImpl implements MetadataConfig {
+ 	@Override
+ 	public int getPriority(String filename) {
+ 		Integer priority = priorities.get(filename);
++
+ 		if (priority == null) {
+ 			return -1;
+ 		}
++
+ 		return priority;
+ 	}
+ 
+diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/dependency/ModDependencyInfo.java b/src/main/java/net/fabricmc/loom/configuration/processors/dependency/ModDependencyInfo.java
+index 7534255f0ffe8c5924258c18c1019dec4fef12ec..40a99885f86de7be53072bdd74b85e3e0ee08360 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/processors/dependency/ModDependencyInfo.java
++++ b/src/main/java/net/fabricmc/loom/configuration/processors/dependency/ModDependencyInfo.java
+@@ -31,8 +31,6 @@ import java.io.UncheckedIOException;
+ import java.nio.charset.StandardCharsets;
+ import java.nio.file.Path;
+ 
+-import net.fabricmc.loom.configuration.ModMetadataHelper;
+-
+ import org.apache.commons.io.FileUtils;
+ import org.gradle.api.artifacts.Configuration;
+ import org.jetbrains.annotations.Nullable;
+@@ -40,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
+ import net.fabricmc.accesswidener.AccessWidenerReader;
+ import net.fabricmc.loom.LoomGradleExtension;
+ import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
++import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.util.ZipUtils;
+ 
+ public class ModDependencyInfo {
+diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
+index c93b84aea225c0035d93ce42f9ed6d04369b6793..297731ea7b53c714cc5ead10070fc83549bf198f 100644
+--- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
++++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
+@@ -46,7 +46,6 @@ import javax.inject.Inject;
+ import com.google.common.base.Preconditions;
+ import com.google.common.base.Suppliers;
+ import com.google.gson.JsonObject;
+-
+ import org.gradle.api.artifacts.Configuration;
+ import org.gradle.api.file.ConfigurableFileCollection;
+ import org.gradle.api.file.FileCollection;
+diff --git a/src/main/java/net/fabricmc/loom/util/ModUtils.java b/src/main/java/net/fabricmc/loom/util/ModUtils.java
+index 80db950a1ed9700dd690ea49187e298cc2418647..a331e4b0667e556804de83313fd4da007cb342a1 100644
+--- a/src/main/java/net/fabricmc/loom/util/ModUtils.java
++++ b/src/main/java/net/fabricmc/loom/util/ModUtils.java
+@@ -25,8 +25,6 @@
+ package net.fabricmc.loom.util;
+ 
+ import java.io.File;
+-import java.io.FileNotFoundException;
+-import java.io.FileReader;
+ import java.io.IOException;
+ import java.io.InputStreamReader;
+ import java.util.List;
+@@ -34,14 +32,14 @@ import java.util.Map;
+ import java.util.Set;
+ import java.util.zip.ZipFile;
+ 
+-import net.fabricmc.loom.api.LoomGradleExtensionAPI;
+-import net.fabricmc.loom.api.metadata.MetadataConfig;
+-import net.fabricmc.loom.configuration.ModMetadataHelper;
+-
+ import org.gradle.api.file.FileVisitDetails;
+ import org.gradle.api.file.FileVisitor;
+ import org.gradle.api.tasks.SourceSet;
+ 
++import net.fabricmc.loom.api.LoomGradleExtensionAPI;
++import net.fabricmc.loom.api.metadata.MetadataConfig;
++import net.fabricmc.loom.configuration.ModMetadataHelper;
++
+ public final class ModUtils {
+ 	private ModUtils() {
+ 	}
+@@ -136,7 +134,7 @@ public final class ModUtils {
+ 		File file = null;
+ 		private int curPriority = -1;
+ 
+-		public SourceSetMetadataFinder(Set<String> helperKeys, MetadataConfig config) {
++		SourceSetMetadataFinder(Set<String> helperKeys, MetadataConfig config) {
+ 			this.helperKeys = helperKeys;
+ 			this.config = config;
+ 		}
+@@ -148,8 +146,10 @@ public final class ModUtils {
+ 		@Override
+ 		public void visitFile(FileVisitDetails fileDetails) {
+ 			String path = fileDetails.getPath();
++
+ 			if (helperKeys.contains(path) && config.shouldProcess(path)) {
+ 				int newPriority = config.getPriority(path);
++
+ 				if (newPriority > curPriority) {
+ 					curPriority = newPriority;
+ 					fileName = path;
