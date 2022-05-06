@@ -6,7 +6,7 @@ Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
 Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
 
 diff --git a/build.gradle b/build.gradle
-index a54500a9d7bbf12b471ce559ccba2d6b980317eb..8ebcb7dbf9a3e8e8d490c1d11f76e08c46057ec4 100644
+index 7743cbfccf6c3dd19914ef73c1982193a79924ed..119e0c66191d59e18f8af302ed9e1ce974ed0c85 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -44,6 +44,11 @@ repositories {
@@ -37,10 +37,10 @@ index a54500a9d7bbf12b471ce559ccba2d6b980317eb..8ebcb7dbf9a3e8e8d490c1d11f76e08c
  	testImplementation(gradleTestKit())
  	testImplementation('org.spockframework:spock-core:2.1-groovy-3.0') {
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-index cdee9c8db8fd2e98b038829fc5b95de9db5d8840..bcb69168f29fc4b425a935c183a0673881f76b3b 100644
+index b1566881415ff4786386b5dc96db7128a39898d0..67209a2005680f71219011d1b74106e25640311e 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-@@ -50,7 +50,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+@@ -51,7 +51,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
  	public static boolean refreshDeps;
  	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
  	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -49,7 +49,7 @@ index cdee9c8db8fd2e98b038829fc5b95de9db5d8840..bcb69168f29fc4b425a935c183a06738
  
  	@Override
  	public void apply(PluginAware target) {
-@@ -86,5 +86,8 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+@@ -88,5 +88,8 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
  		LoomTasks.registerTasks(project);
  		DecompilerConfiguration.setup(project);
  		IdeaConfiguration.setup(project);
@@ -88,7 +88,7 @@ index 9555e1d40dc11488d62608273b888769dc3227e6..99f05da4d42141ca41187a2cae3f517d
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
-index cd90b25db08157193eb782e2c878fb84a020cc85..2c03fdb86c85051444e82756838d27fc6c16c116 100644
+index c6417c90684c6333d89694997f24d4e05807a706..d9fa4232fb03afb7ba4ab8cd9ecb5c4954ef2114 100644
 --- a/src/main/java/net/fabricmc/loom/util/Constants.java
 +++ b/src/main/java/net/fabricmc/loom/util/Constants.java
 @@ -39,6 +39,7 @@ public class Constants {

@@ -22,7 +22,7 @@ index 36767715d89bade0d2dacac4bfc44d0bd6482cb4..70c867068c34cce86826a07cafa6ef15
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index 51cdccc9982f41f70d91d763f0d5c0ee0006d825..a54500a9d7bbf12b471ce559ccba2d6b980317eb 100644
+index d67a8ca13c127d7eb9cf1efaac6ee3d2b5cc4295..7743cbfccf6c3dd19914ef73c1982193a79924ed 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -119,18 +119,18 @@ index 31014b156127886c44921900f480e68d4528da25..ee1d4c3083cdb729df09522e88a41351
  kotlin.stdlib.default.dependency = false
 \ No newline at end of file
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-index 096c1b816359e037a8aa3512dd6bb3d0cb4851bb..cdee9c8db8fd2e98b038829fc5b95de9db5d8840 100644
+index 3544ffb17fb0c9b77dfb478abaca0cb9a801cc13..b1566881415ff4786386b5dc96db7128a39898d0 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-@@ -62,7 +62,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+@@ -63,7 +63,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
  	}
  
  	public void apply(Project project) {
 -		project.getLogger().lifecycle("Fabric Loom: " + LOOM_VERSION);
 +		project.getLogger().lifecycle("Quilt Loom: " + LOOM_VERSION);
+ 		LibraryLocationLogger.logLibraryVersions();
  
  		refreshDeps = project.getGradle().getStartParameter().isRefreshDependencies() || Boolean.getBoolean("loom.refresh");
- 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java b/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
 index a5dcb811fe4d034315bf6154df0124d0c7242c21..33ec74d0989643710d080628d2d6f7386425231d 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
@@ -221,6 +221,32 @@ index 3e0781315a3c437e4d310b273207a66a04b8a81b..96045e8bfb97ded2a9e479c7d9280ab5
  		}
  
  		final boolean plainConsole = getProject().getGradle().getStartParameter().getConsoleOutput() == ConsoleOutput.Plain;
+diff --git a/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java b/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java
+index 76dec9c3c6cd4fd88e0c8bf9062d36904c2f1caa..e792b1a6240aa1efffe384cd5523d7af4c79a539 100644
+--- a/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java
++++ b/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java
+@@ -87,7 +87,7 @@ public final class SourceRemapperService implements SharedService {
+ 		// Create a temp directory with all of the sources
+ 		if (!Files.isDirectory(source)) {
+ 			isSrcTmp = true;
+-			srcPath = Files.createTempDirectory("fabric-loom-src");
++			srcPath = Files.createTempDirectory("quilt-loom-src");
+ 			ZipUtils.unpackAll(source, srcPath);
+ 		}
+ 
+diff --git a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
+index 64261ea8d0128f9fd7106a94c1d1602ff3ff7fc6..c866ffb74a1aad8b0c82faaae12e71016f1782e0 100644
+--- a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
++++ b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
+@@ -124,7 +124,7 @@ public class SourceRemapper {
+ 		if (!source.isDirectory()) {
+ 			// create tmp directory
+ 			isSrcTmp = true;
+-			srcPath = Files.createTempDirectory("fabric-loom-src");
++			srcPath = Files.createTempDirectory("quilt-loom-src");
+ 			ZipUtils.unpackAll(source.toPath(), srcPath);
+ 		}
+ 
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy
 index eb732700eb1ab74706e476aca2e79a535194edb1..814a0e19d0b95b7e292444f8d2babc7d40bc71bf 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy
@@ -628,6 +654,29 @@ index f641e66b1cc5919df2eb3356948d08a111c710eb..a55cf71651e8659025d84d862de6da0b
  
  	// Fabric API. This is technically optional, but you probably want it anyway.
  	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+diff --git a/src/test/resources/projects/modJavadoc/build.gradle b/src/test/resources/projects/modJavadoc/build.gradle
+index 52f1fc39f472e431795ddfe94cd85c6a01eade48..94d0f2d4fa03f8b50dbff269631b3cb6a095b362 100644
+--- a/src/test/resources/projects/modJavadoc/build.gradle
++++ b/src/test/resources/projects/modJavadoc/build.gradle
+@@ -1,7 +1,7 @@
+ // This is used by a range of tests that append to this file before running the gradle tasks.
+ // Can be used for tests that require minimal custom setup
+ plugins {
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -12,7 +12,7 @@ group = "com.example"
+ dependencies {
+ 	minecraft "com.mojang:minecraft:1.17.1"
+ 	mappings "net.fabricmc:yarn:1.17.1+build.59:v2"
+-	modImplementation "net.fabricmc:fabric-loader:0.11.6"
++	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.16"
+ 
+ 	modImplementation files("dummy.jar")
+ }
+\ No newline at end of file
 diff --git a/src/test/resources/projects/mojangMappings/build.gradle b/src/test/resources/projects/mojangMappings/build.gradle
 index 895bdb752a2aec465a2d430814229a1b2d35b0ee..803040561028fa1860f10de0c1e24011a54a2d69 100644
 --- a/src/test/resources/projects/mojangMappings/build.gradle
