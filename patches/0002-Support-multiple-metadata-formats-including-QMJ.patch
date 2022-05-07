@@ -172,10 +172,10 @@ index 0000000000000000000000000000000000000000..62ad2b9f63443b722daf15316897b861
 +}
 diff --git a/src/main/java/net/fabricmc/loom/build/FabricModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/FabricModMetadataHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e087fa848bfb1755d818bb8c0fbadf5bd1187ab6
+index 0000000000000000000000000000000000000000..b32a9cd69862b9a661b48587ebee70a036aaa6b8
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/build/FabricModMetadataHelper.java
-@@ -0,0 +1,229 @@
+@@ -0,0 +1,233 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -391,6 +391,10 @@ index 0000000000000000000000000000000000000000..e087fa848bfb1755d818bb8c0fbadf5b
 +		@Nullable
 +		public String getProvidedJavadocPath() {
 +			JsonObject custom = fabricModJson.getAsJsonObject("custom");
++
++			if (custom == null) {
++				return null;
++			}
 +
 +			if (!custom.has(Constants.CustomModJsonKeys.PROVIDED_JAVADOC)) {
 +				return null;

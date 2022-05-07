@@ -368,6 +368,19 @@ index 9fa3cc36ef23ee7f9a03120624596c6fe1788de4..c3950e8fbcc865a12a2a5a5ededf0fbd
  
  	// Fabric API. This is technically optional, but you probably want it anyway.
  	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+diff --git a/src/test/resources/projects/accesswidener/gradle.properties b/src/test/resources/projects/accesswidener/gradle.properties
+index 2e85dfd8d7d617d3e8d5c71e0eeab4c93891edbf..970667432831ef16d900cbb1822786e61c804260 100644
+--- a/src/test/resources/projects/accesswidener/gradle.properties
++++ b/src/test/resources/projects/accesswidener/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/use
+ 	minecraft_version=1.16.5
+ 	yarn_mappings=1.16.5+build.5
+-	loader_version=0.11.2
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/decompile/build.gradle b/src/test/resources/projects/decompile/build.gradle
 index 993ac667071e4e3e2b1a8301121e817950663d61..17961497657cb80f2ce1cb2463f1a28c11e85c5d 100644
 --- a/src/test/resources/projects/decompile/build.gradle
@@ -406,6 +419,19 @@ index c7b6ef6c0a20c1d4b2936dcbdf222f201be41ccc..d0df797cc20ddee83098186a73136666
  
  	// Fabric API. This is technically optional, but you probably want it anyway.
  	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+diff --git a/src/test/resources/projects/dependencyResolutionManagement/basic/gradle.properties b/src/test/resources/projects/dependencyResolutionManagement/basic/gradle.properties
+index 40e9e5717128a126a91dcfcc0b6fd62fb9100792..523f9a2e212924f27dd2c6f66305b761c3e0c247 100644
+--- a/src/test/resources/projects/dependencyResolutionManagement/basic/gradle.properties
++++ b/src/test/resources/projects/dependencyResolutionManagement/basic/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/use
+ 	minecraft_version=1.16.5
+ 	yarn_mappings=1.16.5+build.6
+-	loader_version=0.11.3
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle b/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
 index 6472ec7e63ab88f17b626c68393faca58042a8d2..6c8ee6bd10d606f86e075e2b094d5414c0075577 100644
 --- a/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
@@ -426,6 +452,19 @@ index 6472ec7e63ab88f17b626c68393faca58042a8d2..6c8ee6bd10d606f86e075e2b094d5414
  
  	// Fabric API. This is technically optional, but you probably want it anyway.
  	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+diff --git a/src/test/resources/projects/dependencyResolutionManagement/projmap/gradle.properties b/src/test/resources/projects/dependencyResolutionManagement/projmap/gradle.properties
+index 40e9e5717128a126a91dcfcc0b6fd62fb9100792..523f9a2e212924f27dd2c6f66305b761c3e0c247 100644
+--- a/src/test/resources/projects/dependencyResolutionManagement/projmap/gradle.properties
++++ b/src/test/resources/projects/dependencyResolutionManagement/projmap/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/use
+ 	minecraft_version=1.16.5
+ 	yarn_mappings=1.16.5+build.6
+-	loader_version=0.11.3
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/dependencyResolutionManagement/settings.gradle b/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
 index c05e369995a4d8c5479de657d6c8ab52a6cba940..6b77297f004043508453a0907ea19bca3a372c5e 100644
 --- a/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
@@ -487,6 +526,19 @@ index 45acf714efb54893e7867807d3bed47aa1a58223..e2bfaeebb5df8090259eb9d18ebdf28e
  	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
  }
  
+diff --git a/src/test/resources/projects/java16/gradle.properties b/src/test/resources/projects/java16/gradle.properties
+index cdc647ce754f229ba0daa586be4031a0b734251e..681c2d0af7e67f717c0f28bda66a911da8b2490e 100644
+--- a/src/test/resources/projects/java16/gradle.properties
++++ b/src/test/resources/projects/java16/gradle.properties
+@@ -2,7 +2,7 @@ org.gradle.jvmargs=-Xmx1G
+ 
+ minecraft_version=1.18-pre1
+ yarn_mappings=1.18-pre1+build.2
+-loader_version=0.12.5
++loader_version=0.16.0-beta.16
+ fabric_version=0.42.1+1.18
+ 
+ mod_version = 1.0.0
 diff --git a/src/test/resources/projects/kotlin/build.gradle.kts b/src/test/resources/projects/kotlin/build.gradle.kts
 index 904c20a405edee316288fd34e9dee881679528b4..25d3aaf84bf815350a0be60530f457835fa3d766 100644
 --- a/src/test/resources/projects/kotlin/build.gradle.kts
@@ -520,6 +572,19 @@ index 3b460c49aaa95a8b98cff43df820b257498ad668..2cd1bdbf885b93a39bccf1300597a0c5
  	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
  }
  
+diff --git a/src/test/resources/projects/legacy/gradle.properties b/src/test/resources/projects/legacy/gradle.properties
+index 440dabe5b015628affe10c53ea2a8fcb977e9409..aba0090df90da5eae231db6dc1c61040a7d3d029 100644
+--- a/src/test/resources/projects/legacy/gradle.properties
++++ b/src/test/resources/projects/legacy/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/use
+ 	minecraft_version=1.14.4
+ 	yarn_mappings=1.14.4+build.18
+-	loader_version=0.11.2
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/localFileDependency/build.gradle b/src/test/resources/projects/localFileDependency/build.gradle
 index 811d945a9a903d2e43e949de2e2fea4f99882edd..36a99bc5fa0dc9854fe8bf740bf989550a8f7510 100644
 --- a/src/test/resources/projects/localFileDependency/build.gradle
@@ -540,6 +605,19 @@ index 811d945a9a903d2e43e949de2e2fea4f99882edd..36a99bc5fa0dc9854fe8bf740bf98955
  
  	// Fabric API. This is technically optional, but you probably want it anyway.
  	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+diff --git a/src/test/resources/projects/localFileDependency/gradle.properties b/src/test/resources/projects/localFileDependency/gradle.properties
+index 2e85dfd8d7d617d3e8d5c71e0eeab4c93891edbf..970667432831ef16d900cbb1822786e61c804260 100644
+--- a/src/test/resources/projects/localFileDependency/gradle.properties
++++ b/src/test/resources/projects/localFileDependency/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/use
+ 	minecraft_version=1.16.5
+ 	yarn_mappings=1.16.5+build.5
+-	loader_version=0.11.2
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/localRuntime/build.gradle b/src/test/resources/projects/localRuntime/build.gradle
 index 18f4f0db4b857098a782cfa548a2954c44f363dc..c119c0085e59b282c1fc10335aa1dbb0d7cfb2e3 100644
 --- a/src/test/resources/projects/localRuntime/build.gradle
@@ -560,6 +638,19 @@ index 18f4f0db4b857098a782cfa548a2954c44f363dc..c119c0085e59b282c1fc10335aa1dbb0
  
  	// Fabric API. This is technically optional, but you probably want it anyway.
  	modLocalRuntime "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+diff --git a/src/test/resources/projects/localRuntime/gradle.properties b/src/test/resources/projects/localRuntime/gradle.properties
+index 845c356072dbb73ddb31b97826e8cb4fbaf138e0..c01c88366c6038008ee1d2f668b63bc2de2e138a 100644
+--- a/src/test/resources/projects/localRuntime/gradle.properties
++++ b/src/test/resources/projects/localRuntime/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/use
+ 	minecraft_version=1.16.5
+ 	yarn_mappings=1.16.5+build.5
+-	loader_version=0.11.2
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	maven_group = com.example
 diff --git a/src/test/resources/projects/maven/build.gradle b/src/test/resources/projects/maven/build.gradle
 index 56930fcd776ea55ae9576655d38b55cf47de62d1..388a116fcab58894ef577b7ec6a4ae97c8baff53 100644
 --- a/src/test/resources/projects/maven/build.gradle
@@ -634,6 +725,19 @@ index 610d042d1a47cb4e3a82aad6e147b87248671333..b17bd245b4a9de210ef17cbf9c5b26d6
  
  	// Fabric API. This is technically optional, but you probably want it anyway.
  	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+diff --git a/src/test/resources/projects/mixinApAutoRefmap/gradle.properties b/src/test/resources/projects/mixinApAutoRefmap/gradle.properties
+index 60cb9a4f2c0b4fca94a187862c8a28afbb2a00cf..0925278e52f63aa39b68cf7aa6b5107541317c20 100644
+--- a/src/test/resources/projects/mixinApAutoRefmap/gradle.properties
++++ b/src/test/resources/projects/mixinApAutoRefmap/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/versions.html
+ 	minecraft_version=1.17
+ 	yarn_mappings=1.17+build.13
+-	loader_version=0.11.6
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/mixinApSimple/build.gradle b/src/test/resources/projects/mixinApSimple/build.gradle
 index f641e66b1cc5919df2eb3356948d08a111c710eb..a55cf71651e8659025d84d862de6da0b3d94b0d0 100644
 --- a/src/test/resources/projects/mixinApSimple/build.gradle
@@ -654,6 +758,19 @@ index f641e66b1cc5919df2eb3356948d08a111c710eb..a55cf71651e8659025d84d862de6da0b
  
  	// Fabric API. This is technically optional, but you probably want it anyway.
  	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+diff --git a/src/test/resources/projects/mixinApSimple/gradle.properties b/src/test/resources/projects/mixinApSimple/gradle.properties
+index 60cb9a4f2c0b4fca94a187862c8a28afbb2a00cf..0925278e52f63aa39b68cf7aa6b5107541317c20 100644
+--- a/src/test/resources/projects/mixinApSimple/gradle.properties
++++ b/src/test/resources/projects/mixinApSimple/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/versions.html
+ 	minecraft_version=1.17
+ 	yarn_mappings=1.17+build.13
+-	loader_version=0.11.6
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/modJavadoc/build.gradle b/src/test/resources/projects/modJavadoc/build.gradle
 index 52f1fc39f472e431795ddfe94cd85c6a01eade48..94d0f2d4fa03f8b50dbff269631b3cb6a095b362 100644
 --- a/src/test/resources/projects/modJavadoc/build.gradle
@@ -697,6 +814,19 @@ index 895bdb752a2aec465a2d430814229a1b2d35b0ee..803040561028fa1860f10de0c1e24011
  
  	// Fabric API. This is technically optional, but you probably want it anyway.
  	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+diff --git a/src/test/resources/projects/mojangMappings/gradle.properties b/src/test/resources/projects/mojangMappings/gradle.properties
+index 2e85dfd8d7d617d3e8d5c71e0eeab4c93891edbf..970667432831ef16d900cbb1822786e61c804260 100644
+--- a/src/test/resources/projects/mojangMappings/gradle.properties
++++ b/src/test/resources/projects/mojangMappings/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/use
+ 	minecraft_version=1.16.5
+ 	yarn_mappings=1.16.5+build.5
+-	loader_version=0.11.2
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/multiproject/build.gradle b/src/test/resources/projects/multiproject/build.gradle
 index 17480a88c7ce6c16b53ce766ccb7722203fcb3a6..3c990d57f20f26e9a705a0ca5f739a5b95260426 100644
 --- a/src/test/resources/projects/multiproject/build.gradle
@@ -719,6 +849,19 @@ index 17480a88c7ce6c16b53ce766ccb7722203fcb3a6..3c990d57f20f26e9a705a0ca5f739a5b
  
  		modImplementation "net.fabricmc.fabric-api:fabric-api:0.31.0+1.16"
  
+diff --git a/src/test/resources/projects/multiproject/gradle.properties b/src/test/resources/projects/multiproject/gradle.properties
+index 2e85dfd8d7d617d3e8d5c71e0eeab4c93891edbf..970667432831ef16d900cbb1822786e61c804260 100644
+--- a/src/test/resources/projects/multiproject/gradle.properties
++++ b/src/test/resources/projects/multiproject/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/use
+ 	minecraft_version=1.16.5
+ 	yarn_mappings=1.16.5+build.5
+-	loader_version=0.11.2
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/parchment/build.gradle b/src/test/resources/projects/parchment/build.gradle
 index 21432d4e9a6befe1bde150585c45a05e4c45f312..934f539e4affb0343b0c27e0ebd0d4ba772e8cdc 100644
 --- a/src/test/resources/projects/parchment/build.gradle
@@ -757,6 +900,19 @@ index 4bc4926136fa448fd4268d7392217bf7f160fb9a..038f6fd61e6952a6a124d61c6ccb410d
  }
  
  processResources {
+diff --git a/src/test/resources/projects/reproducible/gradle.properties b/src/test/resources/projects/reproducible/gradle.properties
+index 3dc7831a9262fea0e3779896665bdc7a8c979f16..ce2badeb0f1e4860637304a0ba79f59d5fe0473e 100644
+--- a/src/test/resources/projects/reproducible/gradle.properties
++++ b/src/test/resources/projects/reproducible/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/use
+ 	minecraft_version=1.16.5
+ 	yarn_mappings=1.16.5+build.5
+-	loader_version=0.11.2
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/runconfigs/build.gradle b/src/test/resources/projects/runconfigs/build.gradle
 index a8e1f6bb073f57d6196eebe782836ed3f436b19b..23048574367f5a5bff9cb04b16862ba4a33a9a8b 100644
 --- a/src/test/resources/projects/runconfigs/build.gradle
@@ -816,6 +972,19 @@ index 5ce232ea8a8d7975252e63da3bb7a471e22c39b3..6e25e95631e5961cd65217cc54171c01
  
  	// Fabric API. This is technically optional, but you probably want it anyway.
  	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+diff --git a/src/test/resources/projects/simple/gradle.properties b/src/test/resources/projects/simple/gradle.properties
+index 845c356072dbb73ddb31b97826e8cb4fbaf138e0..c01c88366c6038008ee1d2f668b63bc2de2e138a 100644
+--- a/src/test/resources/projects/simple/gradle.properties
++++ b/src/test/resources/projects/simple/gradle.properties
+@@ -5,7 +5,7 @@ org.gradle.jvmargs=-Xmx1G
+ 	# check these on https://fabricmc.net/use
+ 	minecraft_version=1.16.5
+ 	yarn_mappings=1.16.5+build.5
+-	loader_version=0.11.2
++	loader_version=0.16.0-beta.16
+ 
+ # Mod Properties
+ 	maven_group = com.example
 diff --git a/src/test/resources/projects/splitSources/build.gradle b/src/test/resources/projects/splitSources/build.gradle
 index ea40b50207f0cfa8fe22441524d26b3cb75d2bd5..4965d7fc6311cd9280fd70545175d379392d08dc 100644
 --- a/src/test/resources/projects/splitSources/build.gradle
