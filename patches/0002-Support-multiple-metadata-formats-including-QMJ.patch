@@ -59,18 +59,10 @@ index 5a3cfbd337827f0fe4df2971ef68b3e169ae6b9f..30caf442a8650cebb11daeea280671a5
  	 *
  	 * @return the list property containing the {@link SourceSet}
 diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-index 68bb181d7b43148011e8c8b50b8292d00f52fb27..860630c2337b61ee7e5c1ef45611d9c410002dfc 100644
+index 68bb181d7b43148011e8c8b50b8292d00f52fb27..400cbb55fa3163b13f4d5765dc5b88ce08014a9d 100644
 --- a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 +++ b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-@@ -24,12 +24,15 @@
- 
- package net.fabricmc.loom.api;
- 
-+import net.fabricmc.loom.api.metadata.MetadataPriorities;
-+
- import org.gradle.api.Action;
- import org.gradle.api.NamedDomainObjectContainer;
- import org.gradle.api.artifacts.Dependency;
+@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.Dependency;
  import org.gradle.api.file.ConfigurableFileCollection;
  import org.gradle.api.file.RegularFileProperty;
  import org.gradle.api.provider.ListProperty;
@@ -78,15 +70,16 @@ index 68bb181d7b43148011e8c8b50b8292d00f52fb27..860630c2337b61ee7e5c1ef45611d9c4
  import org.gradle.api.provider.Property;
  import org.gradle.api.publish.maven.MavenPublication;
  import org.jetbrains.annotations.ApiStatus;
-@@ -37,6 +40,7 @@ import org.jetbrains.annotations.ApiStatus;
+@@ -37,6 +38,8 @@ import org.jetbrains.annotations.ApiStatus;
  import net.fabricmc.loom.api.decompilers.DecompilerOptions;
  import net.fabricmc.loom.api.mappings.intermediate.IntermediateMappingsProvider;
  import net.fabricmc.loom.api.mappings.layered.spec.LayeredMappingSpecBuilder;
++import net.fabricmc.loom.api.metadata.MetadataPriorities;
 +import net.fabricmc.loom.configuration.ModMetadataHelper;
  import net.fabricmc.loom.configuration.ide.RunConfigSettings;
  import net.fabricmc.loom.configuration.processors.JarProcessor;
  import net.fabricmc.loom.configuration.providers.mappings.NoOpIntermediateMappingsProvider;
-@@ -68,6 +72,16 @@ public interface LoomGradleExtensionAPI {
+@@ -68,6 +71,16 @@ public interface LoomGradleExtensionAPI {
  		getGameJarProcessors().add(processor);
  	}
  
@@ -103,7 +96,7 @@ index 68bb181d7b43148011e8c8b50b8292d00f52fb27..860630c2337b61ee7e5c1ef45611d9c4
  	ConfigurableFileCollection getLog4jConfigs();
  
  	Dependency officialMojangMappings();
-@@ -126,10 +140,10 @@ public interface LoomGradleExtensionAPI {
+@@ -126,10 +139,10 @@ public interface LoomGradleExtensionAPI {
  	void disableDeprecatedPomGeneration(MavenPublication publication);
  
  	/**
@@ -118,18 +111,42 @@ index 68bb181d7b43148011e8c8b50b8292d00f52fb27..860630c2337b61ee7e5c1ef45611d9c4
  
 diff --git a/src/main/java/net/fabricmc/loom/api/metadata/MetadataPriorities.java b/src/main/java/net/fabricmc/loom/api/metadata/MetadataPriorities.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9c550936f092b3a87bc94c1c0b083026fce66331
+index 0000000000000000000000000000000000000000..62ad2b9f63443b722daf15316897b861e3a28f81
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/api/metadata/MetadataPriorities.java
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,55 @@
++/*
++ * This file is part of fabric-loom, licensed under the MIT License (MIT).
++ *
++ * Copyright (c) 2022 FabricMC
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
 +package net.fabricmc.loom.api.metadata;
 +
 +import java.io.Serializable;
 +
 +/**
 + * Configures different metadata file priorities.
-+ * <p>
-+ * The default priorities are:
++ *
++ * <p>The default priorities are:
 + * <ul>
 + *     <li><code>quilt.mod.json</code>: priority 1.</li>
 + *     <li><code>fabric.mod.json</code>: priority 0.</li>
@@ -155,10 +172,10 @@ index 0000000000000000000000000000000000000000..9c550936f092b3a87bc94c1c0b083026
 +}
 diff --git a/src/main/java/net/fabricmc/loom/build/FabricModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/FabricModMetadataHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4ca96e2e1e5bb081a3fec6f8f7ca4eb0f0ef8ad9
+index 0000000000000000000000000000000000000000..e087fa848bfb1755d818bb8c0fbadf5bd1187ab6
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/build/FabricModMetadataHelper.java
-@@ -0,0 +1,232 @@
+@@ -0,0 +1,229 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -201,13 +218,11 @@ index 0000000000000000000000000000000000000000..4ca96e2e1e5bb081a3fec6f8f7ca4eb0
 +import com.google.gson.JsonElement;
 +import com.google.gson.JsonObject;
 +import com.google.gson.JsonPrimitive;
-+
-+import net.fabricmc.loom.util.Constants;
-+
 +import org.jetbrains.annotations.Nullable;
 +
 +import net.fabricmc.loom.LoomGradlePlugin;
 +import net.fabricmc.loom.configuration.ModMetadataHelper;
++import net.fabricmc.loom.util.Constants;
 +import net.fabricmc.loom.util.ZipUtils;
 +
 +public final class FabricModMetadataHelper implements ModMetadataHelper {
@@ -371,7 +386,6 @@ index 0000000000000000000000000000000000000000..4ca96e2e1e5bb081a3fec6f8f7ca4eb0
 +
 +			return result;
 +		}
-+
 +
 +		@Override
 +		@Nullable
@@ -820,10 +834,10 @@ index 1a833a7618f50d9f9c408946b9790ccbf01cb83b..c7f5253d7401767eb6138908b437d683
  
  		if (!tempDir.exists()) {
 diff --git a/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java b/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
-index 06bf4b5760c77c13aa1c4a23ddd57da81da862d4..974a9c47ca7cbd9d03b90c28dda248de2ba6531b 100644
+index 06bf4b5760c77c13aa1c4a23ddd57da81da862d4..e15e1be3146ae1a048eac376915afaa904ec593d 100644
 --- a/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
 +++ b/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
-@@ -27,29 +27,34 @@ package net.fabricmc.loom.build.nesting;
+@@ -27,29 +27,32 @@ package net.fabricmc.loom.build.nesting;
  import java.io.File;
  import java.io.IOException;
  import java.nio.file.Files;
@@ -838,12 +852,10 @@ index 06bf4b5760c77c13aa1c4a23ddd57da81da862d4..974a9c47ca7cbd9d03b90c28dda248de
 -import com.google.gson.JsonArray;
 -import com.google.gson.JsonElement;
  import com.google.gson.JsonObject;
-+
-+import net.fabricmc.loom.api.metadata.MetadataPriorities;
-+
  import org.gradle.api.UncheckedIOException;
  import org.slf4j.Logger;
  
++import net.fabricmc.loom.api.metadata.MetadataPriorities;
 +import net.fabricmc.loom.configuration.ModMetadataHelper;
  import net.fabricmc.loom.util.ModUtils;
  import net.fabricmc.loom.util.Pair;
@@ -862,7 +874,7 @@ index 06bf4b5760c77c13aa1c4a23ddd57da81da862d4..974a9c47ca7cbd9d03b90c28dda248de
  
  		try {
  			ZipUtils.add(modJar.toPath(), jars.stream().map(file -> {
-@@ -59,37 +64,17 @@ public class JarNester {
+@@ -59,37 +62,17 @@ public class JarNester {
  					throw new UncheckedIOException(e);
  				}
  			}).collect(Collectors.toList()));
@@ -870,7 +882,12 @@ index 06bf4b5760c77c13aa1c4a23ddd57da81da862d4..974a9c47ca7cbd9d03b90c28dda248de
  
 -			int count = ZipUtils.transformJson(JsonObject.class, modJar.toPath(), Stream.of(new Pair<>("fabric.mod.json", json -> {
 -				JsonArray nestedJars = json.getAsJsonArray("jars");
--
++			for (File file : jars) {
++				String nestedJarPath = "META-INF/jars/" + file.getName();
++				Preconditions.checkArgument(ModUtils.isMod(helpers, file), "Cannot nest non-mod jar: " + file.getName());
++				files.add(nestedJarPath);
++			}
+ 
 -				if (nestedJars == null || !json.has("jars")) {
 -					nestedJars = new JsonArray();
 -				}
@@ -893,12 +910,7 @@ index 06bf4b5760c77c13aa1c4a23ddd57da81da862d4..974a9c47ca7cbd9d03b90c28dda248de
 -
 -					logger.debug("Nested " + nestedJarPath + " into " + modJar.getName());
 -				}
-+			for (File file : jars) {
-+				String nestedJarPath = "META-INF/jars/" + file.getName();
-+				Preconditions.checkArgument(ModUtils.isMod(helpers, file), "Cannot nest non-mod jar: " + file.getName());
-+				files.add(nestedJarPath);
-+			}
- 
+-
 -				json.add("jars", nestedJars);
 +			ModMetadataHelper helper = ModUtils.readMetadataFromJar(helpers, priorities, modJar).getParent();
  
@@ -1229,7 +1241,7 @@ index 60cd79322c210a99c8baf74c8649974a0d82c217..599188329eebc902180cf96ff20f3051
  import java.io.File;
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index b29002fe1f19c48f5a9642a0b49b194efc36b98e..1b716fba236144822aeb5d5b73d4d09e667321c7 100644
+index b29002fe1f19c48f5a9642a0b49b194efc36b98e..b4219e6e604cf26d7b140cc072b6b93ec69c90d7 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 @@ -24,11 +24,11 @@
@@ -1256,7 +1268,7 @@ index b29002fe1f19c48f5a9642a0b49b194efc36b98e..1b716fba236144822aeb5d5b73d4d09e
  import org.gradle.api.Project;
  import org.gradle.api.tasks.SourceSet;
  import org.objectweb.asm.ClassReader;
-@@ -53,8 +50,8 @@ import org.objectweb.asm.ClassWriter;
+@@ -53,15 +50,14 @@ import org.objectweb.asm.ClassWriter;
  import org.objectweb.asm.commons.Remapper;
  
  import net.fabricmc.loom.LoomGradleExtension;
@@ -1266,7 +1278,14 @@ index b29002fe1f19c48f5a9642a0b49b194efc36b98e..1b716fba236144822aeb5d5b73d4d09e
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
  import net.fabricmc.loom.configuration.RemappedConfigurationEntry;
  import net.fabricmc.loom.configuration.processors.JarProcessor;
-@@ -193,7 +190,13 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+ import net.fabricmc.loom.task.GenerateSourcesTask;
+ import net.fabricmc.loom.util.Checksum;
+ import net.fabricmc.loom.util.Constants;
+-import net.fabricmc.loom.util.ModUtils;
+ import net.fabricmc.loom.util.Pair;
+ import net.fabricmc.loom.util.TinyRemapperHelper;
+ import net.fabricmc.loom.util.ZipUtils;
+@@ -193,7 +189,13 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  					.resolve();
  
  			for (File artifact : artifacts) {
@@ -1281,7 +1300,7 @@ index b29002fe1f19c48f5a9642a0b49b194efc36b98e..1b716fba236144822aeb5d5b73d4d09e
  			}
  		}
  
-@@ -201,28 +204,19 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -201,28 +203,19 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  	}
  
  	private List<InjectedInterface> getSourceInjectedInterface(SourceSet sourceSet) {
@@ -1315,7 +1334,7 @@ index b29002fe1f19c48f5a9642a0b49b194efc36b98e..1b716fba236144822aeb5d5b73d4d09e
  	}
  
  	@Override
-@@ -255,7 +249,7 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -255,7 +248,7 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  
  	private static String appendComment(String comment, List<InjectedInterface> injectedInterfaces) {
  		for (InjectedInterface injectedInterface : injectedInterfaces) {
@@ -1324,7 +1343,7 @@ index b29002fe1f19c48f5a9642a0b49b194efc36b98e..1b716fba236144822aeb5d5b73d4d09e
  
  			if (comment == null || !comment.contains(iiComment)) {
  				if (comment == null) {
-@@ -269,49 +263,6 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -269,49 +262,6 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  		return comment;
  	}
  
@@ -1376,15 +1395,39 @@ index b29002fe1f19c48f5a9642a0b49b194efc36b98e..1b716fba236144822aeb5d5b73d4d09e
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/metadata/MetadataPrioritiesImpl.java b/src/main/java/net/fabricmc/loom/configuration/metadata/MetadataPrioritiesImpl.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..23049ec78396755ef6ff38da5505b5f88816819b
+index 0000000000000000000000000000000000000000..83b15f333ae7a75658878fa9a91173a6b3dbc26b
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/configuration/metadata/MetadataPrioritiesImpl.java
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,54 @@
++/*
++ * This file is part of fabric-loom, licensed under the MIT License (MIT).
++ *
++ * Copyright (c) 2022 FabricMC
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
 +package net.fabricmc.loom.configuration.metadata;
 +
-+import net.fabricmc.loom.api.metadata.MetadataPriorities;
-+
 +import java.util.HashMap;
++
++import net.fabricmc.loom.api.metadata.MetadataPriorities;
 +
 +public class MetadataPrioritiesImpl implements MetadataPriorities {
 +	private final HashMap<String, Integer> priorities = new HashMap<>();
@@ -1402,27 +1445,35 @@ index 0000000000000000000000000000000000000000..23049ec78396755ef6ff38da5505b5f8
 +	@Override
 +	public int getPriority(String filename) {
 +		Integer priority = priorities.get(filename);
++
 +		if (priority == null) {
 +			return -1;
 +		}
++
 +		return priority;
 +	}
 +}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModJavadocProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModJavadocProcessor.java
-index e6f1d4c3e23d367817b65fa7abb2cfdd86f5d46b..b500f6aa700aadf08e6f5c060d54937301585d0a 100644
+index e6f1d4c3e23d367817b65fa7abb2cfdd86f5d46b..a35ebbdc5ed3d240dca2e168ee3ae94fca7c6a6f 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModJavadocProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModJavadocProcessor.java
-@@ -36,6 +36,9 @@ import java.util.List;
+@@ -35,7 +35,6 @@ import java.util.ArrayList;
+ import java.util.List;
  import java.util.Set;
  
- import com.google.gson.JsonObject;
-+
-+import net.fabricmc.loom.configuration.ModMetadataHelper;
-+
+-import com.google.gson.JsonObject;
  import org.gradle.api.Project;
  import org.jetbrains.annotations.Nullable;
  import org.slf4j.Logger;
-@@ -73,14 +76,14 @@ public final class ModJavadocProcessor implements JarProcessor, GenerateSourcesT
+@@ -43,6 +42,7 @@ import org.slf4j.LoggerFactory;
+ 
+ import net.fabricmc.loom.LoomGradleExtension;
+ import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
++import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.configuration.RemappedConfigurationEntry;
+ import net.fabricmc.loom.configuration.processors.JarProcessor;
+ import net.fabricmc.loom.task.GenerateSourcesTask;
+@@ -73,14 +73,14 @@ public final class ModJavadocProcessor implements JarProcessor, GenerateSourcesT
  					.resolve();
  
  			for (File artifact : artifacts) {
@@ -1439,28 +1490,28 @@ index e6f1d4c3e23d367817b65fa7abb2cfdd86f5d46b..b500f6aa700aadf08e6f5c060d549373
  				} catch (IOException e) {
  					throw new UncheckedIOException("Failed to read mod jar (%s)".formatted(artifact), e);
  				}
-@@ -123,21 +126,13 @@ public final class ModJavadocProcessor implements JarProcessor, GenerateSourcesT
+@@ -123,21 +123,15 @@ public final class ModJavadocProcessor implements JarProcessor, GenerateSourcesT
  
  	public record ModJavadoc(String modId, MemoryMappingTree mappingTree) {
  		@Nullable
 -		public static ModJavadoc fromModJar(Path path) throws IOException {
 -			JsonObject jsonObject = ModUtils.getFabricModJson(path);
--
--			if (jsonObject == null || !jsonObject.has("custom")) {
--				return null;
--			}
--
--			final String modId = jsonObject.get("id").getAsString();
--			final JsonObject custom = jsonObject.getAsJsonObject("custom");
--
--			if (!custom.has(Constants.CustomModJsonKeys.PROVIDED_JAVADOC)) {
 +		public static ModJavadoc fromModJar(LoomGradleExtension ext, Path path) throws IOException {
 +			ModMetadataHelper.Metadata metadata = ModUtils.readMetadataFromJar(ext, path);
 +			final String modId = metadata.getId();
 +			final String javaDocPath = metadata.getProvidedJavadocPath();
+ 
+-			if (jsonObject == null || !jsonObject.has("custom")) {
 +			if (javaDocPath == null) {
  				return null;
  			}
+ 
+-			final String modId = jsonObject.get("id").getAsString();
+-			final JsonObject custom = jsonObject.getAsJsonObject("custom");
+-
+-			if (!custom.has(Constants.CustomModJsonKeys.PROVIDED_JAVADOC)) {
+-				return null;
+-			}
 -
 -			final String javaDocPath = custom.getAsJsonPrimitive(Constants.CustomModJsonKeys.PROVIDED_JAVADOC).getAsString();
  			final byte[] data = ZipUtils.unpack(path, javaDocPath);
@@ -1752,29 +1803,22 @@ index ebf0f24647e6e85cf697507683e8878091d84c76..2b5055491d0c36a00e23074504e468ae
  	public Dependency layered(Action<LayeredMappingSpecBuilder> action) {
  		LayeredMappingSpecBuilderImpl builder = new LayeredMappingSpecBuilderImpl();
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index 86f434895ea29ed14cceca59d70d4d2e6909c328..10629034c62d64be1a22b6be4d2e2ea72ae292a1 100644
+index 86f434895ea29ed14cceca59d70d4d2e6909c328..ad4c2e3653231badc29eecfea91fb242ccddb30a 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-@@ -47,6 +47,9 @@ import javax.inject.Inject;
- import com.google.common.base.Preconditions;
- import com.google.common.base.Suppliers;
- import com.google.gson.JsonObject;
-+
-+import net.fabricmc.loom.api.metadata.MetadataPriorities;
-+
- import org.gradle.api.artifacts.Configuration;
- import org.gradle.api.file.ConfigurableFileCollection;
- import org.gradle.api.file.FileCollection;
-@@ -66,7 +69,7 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
+@@ -66,9 +66,10 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
  import net.fabricmc.accesswidener.AccessWidenerRemapper;
  import net.fabricmc.accesswidener.AccessWidenerWriter;
  import net.fabricmc.loom.LoomGradleExtension;
 -import net.fabricmc.loom.build.MixinRefmapHelper;
-+import net.fabricmc.loom.configuration.ModMetadataHelper;
++import net.fabricmc.loom.api.metadata.MetadataPriorities;
  import net.fabricmc.loom.build.nesting.IncludedJarFactory;
  import net.fabricmc.loom.build.nesting.JarNester;
++import net.fabricmc.loom.configuration.ModMetadataHelper;
  import net.fabricmc.loom.configuration.accesswidener.AccessWidenerFile;
-@@ -139,6 +142,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
+ import net.fabricmc.loom.extension.MixinExtension;
+@@ -139,6 +140,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  
  			final boolean legacyMixin = extension.getMixin().getUseLegacyMixinAp().get();
  			params.getUseMixinExtension().set(!legacyMixin);
@@ -1783,7 +1827,7 @@ index 86f434895ea29ed14cceca59d70d4d2e6909c328..10629034c62d64be1a22b6be4d2e2ea7
  
  			if (legacyMixin) {
  				setupLegacyMixinRefmapRemapping(params);
-@@ -160,14 +165,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -160,14 +163,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  		final LoomGradleExtension extension = LoomGradleExtension.get(getProject());
  		final MixinExtension mixinExtension = extension.getMixin();
  
@@ -1802,7 +1846,7 @@ index 86f434895ea29ed14cceca59d70d4d2e6909c328..10629034c62d64be1a22b6be4d2e2ea7
  
  		for (SourceSet sourceSet : mixinExtension.getMixinSourceSets()) {
  			MixinExtension.MixinInformationContainer container = Objects.requireNonNull(
-@@ -203,6 +208,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -203,6 +206,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  
  		MapProperty<String, String> getManifestAttributes();
  		ListProperty<String> getClientOnlyClasses();
@@ -1811,7 +1855,7 @@ index 86f434895ea29ed14cceca59d70d4d2e6909c328..10629034c62d64be1a22b6be4d2e2ea7
  	}
  
  	public abstract static class RemapAction extends AbstractRemapAction<RemapParams> {
-@@ -263,7 +270,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -263,7 +268,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  		}
  
  		private void remapAccessWidener() throws IOException {
@@ -1820,7 +1864,7 @@ index 86f434895ea29ed14cceca59d70d4d2e6909c328..10629034c62d64be1a22b6be4d2e2ea7
  
  			if (accessWidenerFile == null) {
  				return;
-@@ -299,7 +306,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -299,7 +304,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  				return;
  			}
  
@@ -1830,7 +1874,7 @@ index 86f434895ea29ed14cceca59d70d4d2e6909c328..10629034c62d64be1a22b6be4d2e2ea7
  
  		private void modifyJarManifest() throws IOException {
 diff --git a/src/main/java/net/fabricmc/loom/util/ModUtils.java b/src/main/java/net/fabricmc/loom/util/ModUtils.java
-index aeb0c96344aa135a20a8117b317c4b0852532be0..c007482472a2868493be9b6515c4d25394f70ed0 100644
+index aeb0c96344aa135a20a8117b317c4b0852532be0..ebf1c62baaad01ac996c78c1b32776530777b3b1 100644
 --- a/src/main/java/net/fabricmc/loom/util/ModUtils.java
 +++ b/src/main/java/net/fabricmc/loom/util/ModUtils.java
 @@ -1,7 +1,7 @@
@@ -1842,7 +1886,7 @@ index aeb0c96344aa135a20a8117b317c4b0852532be0..c007482472a2868493be9b6515c4d253
   *
   * Permission is hereby granted, free of charge, to any person obtaining a copy
   * of this software and associated documentation files (the "Software"), to deal
-@@ -26,41 +26,82 @@ package net.fabricmc.loom.util;
+@@ -26,41 +26,84 @@ package net.fabricmc.loom.util;
  
  import java.io.File;
  import java.io.IOException;
@@ -1872,28 +1916,19 @@ index aeb0c96344aa135a20a8117b317c4b0852532be0..c007482472a2868493be9b6515c4d253
 +	// Also accept Path for isMod
 +	public static boolean isMod(LoomGradleExtensionAPI ext, Path input) {
 +		return ZipUtils.containsAny(input, ext.getModMetadataHelpers().get().keySet());
-+	}
-+	public static boolean isMod(Map<String, ModMetadataHelper> helpers, Path input) {
-+		return ZipUtils.containsAny(input, helpers.keySet());
-+	}
-+	public static boolean isMod(LoomGradleExtensionAPI ext, File input) {
-+		return isMod(ext, input.toPath());
  	}
  
 -	public static boolean isMod(Path input) {
 -		return ZipUtils.contains(input, "fabric.mod.json");
-+	public static boolean isMod(Map<String, ModMetadataHelper> helpers, File input) {
-+		return isMod(helpers, input.toPath());
++	public static boolean isMod(Map<String, ModMetadataHelper> helpers, Path input) {
++		return ZipUtils.containsAny(input, helpers.keySet());
  	}
  
 -	@Nullable
 -	public static JsonObject getFabricModJson(Path path) {
 -		final byte[] modJsonBytes;
-+	/**
-+	 * @throws UnsupportedOperationException if the metadata that is found cannot be read.
-+	 */
-+	public static ModMetadataHelper.Metadata readMetadataFromJar(LoomGradleExtensionAPI ext, File jar) {
-+		return ModUtils.readMetadataFromJar(ext.getModMetadataHelpers().get(), ext.getMetadataPriorities().get(), jar);
++	public static boolean isMod(LoomGradleExtensionAPI ext, File input) {
++		return isMod(ext, input.toPath());
 +	}
  
 -		try {
@@ -1901,13 +1936,25 @@ index aeb0c96344aa135a20a8117b317c4b0852532be0..c007482472a2868493be9b6515c4d253
 -		} catch (IOException e) {
 -			throw new UncheckedIOException("Failed to extract fabric.mod.json from " + path, e);
 -		}
-+	public static ModMetadataHelper.Metadata readMetadataFromJar(LoomGradleExtension ext, Path jar) {
-+		return readMetadataFromJar(ext.getModMetadataHelpers().get(), ext.getMetadataPriorities().get(), jar.toFile());
++	public static boolean isMod(Map<String, ModMetadataHelper> helpers, File input) {
++		return isMod(helpers, input.toPath());
 +	}
  
 -		if (modJsonBytes == null) {
 -			return null;
 -		}
++	/**
++	 * @throws UnsupportedOperationException if the metadata that is found cannot be read.
++	 */
++	public static ModMetadataHelper.Metadata readMetadataFromJar(LoomGradleExtensionAPI ext, File jar) {
++		return ModUtils.readMetadataFromJar(ext.getModMetadataHelpers().get(), ext.getMetadataPriorities().get(), jar);
++	}
++
++	public static ModMetadataHelper.Metadata readMetadataFromJar(LoomGradleExtension ext, Path jar) {
++		return readMetadataFromJar(ext.getModMetadataHelpers().get(), ext.getMetadataPriorities().get(), jar.toFile());
++	}
+ 
+-		return LoomGradlePlugin.GSON.fromJson(new String(modJsonBytes, StandardCharsets.UTF_8), JsonObject.class);
 +	/**
 +	 * @throws UnsupportedOperationException if the metadata that is found cannot be read.
 +	 */
@@ -1917,8 +1964,7 @@ index aeb0c96344aa135a20a8117b317c4b0852532be0..c007482472a2868493be9b6515c4d253
 +					.stream()
 +					.filter(name -> zip.getEntry(name) != null)
 +					.toList();
- 
--		return LoomGradlePlugin.GSON.fromJson(new String(modJsonBytes, StandardCharsets.UTF_8), JsonObject.class);
++
 +			if (entries.isEmpty()) {
 +				return null;
 +			}
