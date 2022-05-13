@@ -6,7 +6,7 @@ Subject: [PATCH] Output to hashed mappings
 Includes merging intermediary and hashed into one main mappings tree so that dependencies can be remapped when required.
 
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradleExtension.java b/src/main/java/net/fabricmc/loom/LoomGradleExtension.java
-index c047822dedfcf9833ddf1ab73f9b1e4cb0722972..78f88b0143e20e69bc1ab27bbe6f370b10e9ff82 100644
+index c047822dedfcf9833ddf1ab73f9b1e4cb0722972..36bcca96fd4bec8cff22e55bcc831ba09fb7fbe4 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradleExtension.java
 +++ b/src/main/java/net/fabricmc/loom/LoomGradleExtension.java
 @@ -47,6 +47,7 @@ import net.fabricmc.loom.configuration.accesswidener.AccessWidenerFile;
@@ -27,7 +27,7 @@ index c047822dedfcf9833ddf1ab73f9b1e4cb0722972..78f88b0143e20e69bc1ab27bbe6f370b
  
  	void setIntermediaryMinecraftProvider(IntermediaryMinecraftProvider<?> intermediaryMinecraftProvider);
  
-+	void setHashedMinecraftProvider(HashedMinecraftProvider<?> hashedinecraftProvider);
++	void setHashedMinecraftProvider(HashedMinecraftProvider<?> hashedMinecraftProvider);
 +
  	default List<Path> getMinecraftJars(MappingsNamespace mappingsNamespace) {
  		return switch (mappingsNamespace) {
@@ -114,7 +114,7 @@ index ffb96d59622807006793296c715f709aa6061930..44a1394031fc046e9d8ef9401c0974a8
  
  	default String minecraftVersion() {
 diff --git a/src/main/java/net/fabricmc/loom/api/mappings/layered/MappingsNamespace.java b/src/main/java/net/fabricmc/loom/api/mappings/layered/MappingsNamespace.java
-index 4e3a628ad20c9a6a774bc5914f71a2177466f0a3..4fa3eeec970453d17b22d976679018fb64676932 100644
+index 4e3a628ad20c9a6a774bc5914f71a2177466f0a3..eb33c11cf1b447222f86e4d8527a867d1faad1f8 100644
 --- a/src/main/java/net/fabricmc/loom/api/mappings/layered/MappingsNamespace.java
 +++ b/src/main/java/net/fabricmc/loom/api/mappings/layered/MappingsNamespace.java
 @@ -46,6 +46,13 @@ public enum MappingsNamespace {
@@ -124,7 +124,7 @@ index 4e3a628ad20c9a6a774bc5914f71a2177466f0a3..4fa3eeec970453d17b22d976679018fb
 +	/**
 +	 * Hashed mappings are a hashed version of the raw official mappings.
 +	 *
-+	 * @see <a href="https://github.com/QuiltMC/mappings-hasher/">github.com/QuiltMC/mappings-hasher/</a>
++	 * @see <a href="https://github.com/QuiltMC/rfcs/blob/master/specification/0041-hashed-mappings-specification.md">github.com/QuiltMC/rfcs/blob/master/specification/0041-hashed-mappings-specification.md</a>
 +	 */
 +	HASHED,
 +
@@ -139,6 +139,66 @@ index 4e3a628ad20c9a6a774bc5914f71a2177466f0a3..4fa3eeec970453d17b22d976679018fb
  		case "named" -> NAMED;
  		default -> null;
  		};
+diff --git a/src/main/java/net/fabricmc/loom/build/FabricModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/FabricModMetadataHelper.java
+index b32a9cd69862b9a661b48587ebee70a036aaa6b8..6e959e5f838b0490eaac76de137b8a50796e5a18 100644
+--- a/src/main/java/net/fabricmc/loom/build/FabricModMetadataHelper.java
++++ b/src/main/java/net/fabricmc/loom/build/FabricModMetadataHelper.java
+@@ -43,6 +43,7 @@ import com.google.gson.JsonPrimitive;
+ import org.jetbrains.annotations.Nullable;
+ 
+ import net.fabricmc.loom.LoomGradlePlugin;
++import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+ import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.util.Constants;
+ import net.fabricmc.loom.util.ZipUtils;
+@@ -171,6 +172,11 @@ public final class FabricModMetadataHelper implements ModMetadataHelper {
+ 			return fabricModJson.get("id").getAsString();
+ 		}
+ 
++		@Override
++		public MappingsNamespace getIntermediateMappings() {
++			return MappingsNamespace.INTERMEDIARY;
++		}
++
+ 		@Override
+ 		public @Nullable String getAccessWidener() {
+ 			if (!fabricModJson.has("accessWidener") || !fabricModJson.get("accessWidener").isJsonPrimitive()) {
+diff --git a/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
+index 1babd7064b952db00f96d65476090abac6152976..7499c58790091f3945324a5af2c0ca66eb7f75f7 100644
+--- a/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
++++ b/src/main/java/net/fabricmc/loom/build/QuiltModMetadataHelper.java
+@@ -43,6 +43,7 @@ import com.google.gson.JsonPrimitive;
+ import org.jetbrains.annotations.Nullable;
+ 
+ import net.fabricmc.loom.LoomGradlePlugin;
++import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+ import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.util.ZipUtils;
+ 
+@@ -201,6 +202,23 @@ public final class QuiltModMetadataHelper implements ModMetadataHelper {
+ 			return loader.get("id").getAsString();
+ 		}
+ 
++		@Override
++		public MappingsNamespace getIntermediateMappings() {
++			if (!loader.has("intermediate_mappings")) {
++				return MappingsNamespace.HASHED;
++			}
++
++			String mappings = loader.get("intermediate_mappings").getAsString();
++
++			if (mappings.isEmpty() || mappings.equals("org.quiltmc:quilt-mappings")) {
++				return MappingsNamespace.HASHED;
++			} else if (mappings.equals("net.fabricmc:intermediary")) {
++				return MappingsNamespace.INTERMEDIARY;
++			}
++
++			throw new RuntimeException(getName() + "'s intermediate mappings " + mappings + " could not be loaded.");
++		}
++
+ 		@Override
+ 		public @Nullable String getAccessWidener() {
+ 			if (!qmj.has("access_widener")) {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/CompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/CompileConfiguration.java
 index 68c05d1f696370270f9bf11f62aaa946aaf58a97..8d184182b5ac8ec06187100d85c9ac462c60ba1c 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/CompileConfiguration.java
@@ -169,8 +229,29 @@ index 68c05d1f696370270f9bf11f62aaa946aaf58a97..8d184182b5ac8ec06187100d85c9ac46
  		extension.setNamedMinecraftProvider(namedMinecraftProvider);
  		namedMinecraftProvider.provide(true);
  	}
+diff --git a/src/main/java/net/fabricmc/loom/configuration/ModMetadataHelper.java b/src/main/java/net/fabricmc/loom/configuration/ModMetadataHelper.java
+index eaf4403a69463ba7f36a0ff2e953240e37cd640e..d92a83d566a3296364219c1ffa99cc6dd8a72f52 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/ModMetadataHelper.java
++++ b/src/main/java/net/fabricmc/loom/configuration/ModMetadataHelper.java
+@@ -35,6 +35,7 @@ import com.google.gson.JsonObject;
+ import org.jetbrains.annotations.ApiStatus;
+ import org.jetbrains.annotations.Nullable;
+ 
++import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+ import net.fabricmc.loom.util.ZipUtils;
+ 
+ @ApiStatus.Experimental // This may change at any time as new features are added to Loom
+@@ -79,6 +80,8 @@ public interface ModMetadataHelper extends Serializable {
+ 		@Nullable
+ 		String getId();
+ 
++		MappingsNamespace getIntermediateMappings();
++
+ 		/**
+ 		 * The path to the access widener of this mod.
+ 		 * @return null if the provided mod metadata does not include an access widener file
 diff --git a/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerJarProcessor.java b/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerJarProcessor.java
-index b9bdb85071225a8c6ece29e9584339712f0895f6..a2c5c550c5227cc5b721a056b52ba73a52e438ec 100644
+index b9bdb85071225a8c6ece29e9584339712f0895f6..d2c272c5bed5eeb70bae0e4ebc73913f60be0f09 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerJarProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerJarProcessor.java
 @@ -29,8 +29,10 @@ import java.io.IOException;
@@ -237,7 +318,7 @@ index b9bdb85071225a8c6ece29e9584339712f0895f6..a2c5c550c5227cc5b721a056b52ba73a
 +	private TinyRemapper createTinyRemapper(MappingsNamespace intermediateMappings) {
  		try {
 -			TinyRemapper tinyRemapper = TinyRemapperHelper.getTinyRemapper(project, "intermediary", "named");
-+			TinyRemapper tinyRemapper = TinyRemapperHelper.getTinyRemapper(project, "hashed", "named");
++			TinyRemapper tinyRemapper = TinyRemapperHelper.getTinyRemapper(project, intermediateMappings.toString(), "named");
  
  			tinyRemapper.readClassPath(TinyRemapperHelper.getMinecraftDependencies(project));
  
@@ -254,25 +335,85 @@ index b9bdb85071225a8c6ece29e9584339712f0895f6..a2c5c550c5227cc5b721a056b52ba73a
  	}
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerMappingsProcessor.java b/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerMappingsProcessor.java
-index e82ea83fc7ee735cc1922c35dbc0801bd7709a74..24d21d1cb4344032225a44724d2662ea040f3709 100644
+index e82ea83fc7ee735cc1922c35dbc0801bd7709a74..c632f39e7a29c3878c324b7a55d0b88984b06191 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerMappingsProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerMappingsProcessor.java
-@@ -48,8 +48,8 @@ public record TransitiveAccessWidenerMappingsProcessor(Project project) implemen
+@@ -24,6 +24,7 @@
+ 
+ package net.fabricmc.loom.configuration.accesswidener;
+ 
++import java.io.IOException;
+ import java.util.List;
+ 
+ import org.gradle.api.Project;
+@@ -33,8 +34,8 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
+ import net.fabricmc.accesswidener.AccessWidenerVisitor;
+ import net.fabricmc.accesswidener.TransitiveOnlyFilter;
+ import net.fabricmc.loom.LoomGradleExtension;
+-import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+ import net.fabricmc.loom.task.GenerateSourcesTask;
++import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
+ import net.fabricmc.mappingio.tree.MappingTree;
+ import net.fabricmc.mappingio.tree.MemoryMappingTree;
+ 
+@@ -48,12 +49,18 @@ public record TransitiveAccessWidenerMappingsProcessor(Project project) implemen
  			return false;
  		}
  
 -		if (!MappingsNamespace.INTERMEDIARY.toString().equals(mappings.getSrcNamespace())) {
 -			throw new IllegalStateException("Mapping tree must have intermediary src mappings not " + mappings.getSrcNamespace());
-+		if (!MappingsNamespace.HASHED.toString().equals(mappings.getSrcNamespace())) {
-+			throw new IllegalStateException("Mapping tree must have hashed src mappings not " + mappings.getSrcNamespace());
- 		}
- 
+-		}
+-
  		for (AccessWidenerFile accessWidener : accessWideners) {
+-			MappingCommentVisitor mappingCommentVisitor = new MappingCommentVisitor(accessWidener.modId(), mappings, project.getLogger());
++			MemoryMappingTree mappingTree = new MemoryMappingTree();
++			String namespace = AccessWidenerReader.readHeader(accessWidener.content()).getNamespace();
++			MappingSourceNsSwitch namespaceSwitch = new MappingSourceNsSwitch(mappingTree, namespace);
++
++			try {
++				mappings.accept(namespaceSwitch);
++			} catch (IOException e) {
++				throw new IllegalStateException("Failed to read access widener mappings for " + accessWidener.modId() + e);
++			}
++
++			MappingCommentVisitor mappingCommentVisitor = new MappingCommentVisitor(accessWidener.modId(), mappingTree, project.getLogger());
+ 			AccessWidenerReader accessWidenerReader = new AccessWidenerReader(new TransitiveOnlyFilter(mappingCommentVisitor));
+ 			accessWidenerReader.read(accessWidener.content());
+ 		}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index b4219e6e604cf26d7b140cc072b6b93ec69c90d7..7a82b99e49ebe06246acea1584cef756e1bb5a63 100644
+index b4219e6e604cf26d7b140cc072b6b93ec69c90d7..1c695de3ddb1a7aec0592107ce5c300c197c9c69 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-@@ -224,8 +224,8 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -51,13 +51,14 @@ import org.objectweb.asm.commons.Remapper;
+ 
+ import net.fabricmc.loom.LoomGradleExtension;
+ import net.fabricmc.loom.api.InterfaceInjectionExtensionAPI;
+-import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
++import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.configuration.RemappedConfigurationEntry;
+ import net.fabricmc.loom.configuration.processors.JarProcessor;
+ import net.fabricmc.loom.task.GenerateSourcesTask;
+ import net.fabricmc.loom.util.Checksum;
+ import net.fabricmc.loom.util.Constants;
++import net.fabricmc.loom.util.ModUtils;
+ import net.fabricmc.loom.util.Pair;
+ import net.fabricmc.loom.util.TinyRemapperHelper;
+ import net.fabricmc.loom.util.ZipUtils;
+@@ -102,9 +103,10 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+ 
+ 	@Override
+ 	public void process(File jarFile) {
+-		// Lazily remap from intermediary->named
++		// Lazily remap from intermediate->named
+ 		if (remappedInjectedInterfaces == null) {
+-			TinyRemapper tinyRemapper = createTinyRemapper();
++			MappingsNamespace namespace = ModUtils.readMetadataFromJar(extension, jarFile).getIntermediateMappings();
++			TinyRemapper tinyRemapper = createTinyRemapper(namespace);
+ 			Remapper remapper = tinyRemapper.getEnvironment().getRemapper();
+ 
+ 			try {
+@@ -224,8 +226,8 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  			return false;
  		}
  
@@ -283,21 +424,54 @@ index b4219e6e604cf26d7b140cc072b6b93ec69c90d7..7a82b99e49ebe06246acea1584cef756
  		}
  
  		for (Map.Entry<String, List<InjectedInterface>> entry : injectedInterfaces.entrySet()) {
-@@ -300,10 +300,10 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -298,18 +300,18 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+ 		}
+ 	}
  
- 	private TinyRemapper createTinyRemapper() {
+-	private TinyRemapper createTinyRemapper() {
++	private TinyRemapper createTinyRemapper(MappingsNamespace namespace) {
  		try {
 -			TinyRemapper tinyRemapper = TinyRemapperHelper.getTinyRemapper(project, "intermediary", "named");
-+			TinyRemapper tinyRemapper = TinyRemapperHelper.getTinyRemapper(project, "hashed", "named");
++			TinyRemapper tinyRemapper = TinyRemapperHelper.getTinyRemapper(project, namespace.toString(), "named");
  			tinyRemapper.readClassPath(TinyRemapperHelper.getMinecraftDependencies(project));
  
 -			for (Path minecraftJar : extension.getMinecraftJars(MappingsNamespace.INTERMEDIARY)) {
-+			for (Path minecraftJar : extension.getMinecraftJars(MappingsNamespace.HASHED)) {
++			for (Path minecraftJar : extension.getMinecraftJars(namespace)) {
  				tinyRemapper.readClassPath(minecraftJar);
  			}
  
+ 			return tinyRemapper;
+ 		} catch (IOException e) {
+-			throw new RuntimeException("Failed to create tiny remapper for intermediary->named", e);
++			throw new RuntimeException("Failed to create tiny remapper for " + namespace + "->named", e);
+ 		}
+ 	}
+ 
+diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModJavadocProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModJavadocProcessor.java
+index a35ebbdc5ed3d240dca2e168ee3ae94fca7c6a6f..b77dc857bdef184d63f7c435df8cc2ebdb9b6237 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/mods/ModJavadocProcessor.java
++++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModJavadocProcessor.java
+@@ -41,7 +41,6 @@ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+ import net.fabricmc.loom.LoomGradleExtension;
+-import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+ import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.configuration.RemappedConfigurationEntry;
+ import net.fabricmc.loom.configuration.processors.JarProcessor;
+@@ -139,10 +138,6 @@ public final class ModJavadocProcessor implements JarProcessor, GenerateSourcesT
+ 				MappingReader.read(reader, mappings);
+ 			}
+ 
+-			if (!mappings.getSrcNamespace().equals(MappingsNamespace.INTERMEDIARY.toString())) {
+-				throw new IllegalStateException("Javadoc provided by mod (%s) must be have an intermediary source namespace".formatted(modId));
+-			}
+-
+ 			if (!mappings.getDstNamespaces().isEmpty()) {
+ 				throw new IllegalStateException("Javadoc provided by mod (%s) must not contain any dst names".formatted(modId));
+ 			}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
-index bf0e6131faa112a96c8d245168cd3040aa877d68..d48c3857f32905537351c8813614f0fa1107b803 100644
+index bf0e6131faa112a96c8d245168cd3040aa877d68..7985da613eabb15f32face9fc42c895ded62cbbb 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 @@ -45,13 +45,14 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
@@ -312,7 +486,7 @@ index bf0e6131faa112a96c8d245168cd3040aa877d68..d48c3857f32905537351c8813614f0fa
  import net.fabricmc.loom.configuration.providers.mappings.MappingsProviderImpl;
  import net.fabricmc.loom.task.RemapJarTask;
  import net.fabricmc.loom.util.Constants;
-+import net.fabricmc.loom.util.ModRemappingHelper;
++import net.fabricmc.loom.util.ModUtils;
  import net.fabricmc.loom.util.TinyRemapperHelper;
  import net.fabricmc.loom.util.ZipUtils;
  import net.fabricmc.loom.util.kotlin.KotlinClasspathService;
@@ -333,13 +507,13 @@ index bf0e6131faa112a96c8d245168cd3040aa877d68..d48c3857f32905537351c8813614f0fa
 +		final Map<ModDependencyInfo, MappingsNamespace> intermediateMap = new HashMap<>();
 +
 +		for (ModDependencyInfo info : remapList) {
-+			intermediateMap.put(info, ModRemappingHelper.getIntermediateMappings(info.inputFile));
++			intermediateMap.put(info, ModUtils.readMetadataFromJar(LoomGradleExtension.get(project), info.inputFile).getIntermediateMappings());
 +		}
++
++		project.getLogger().lifecycle(":remapping " + remapList.size() + " mods");
  
 -		TinyRemapper.Builder builder = TinyRemapper.newRemapper()
 -				.withMappings(TinyRemapperHelper.create(mappingsProvider.getMappings(), fromM, toM, false))
-+		project.getLogger().lifecycle(":remapping " + remapList.size() + " mods");
-+
 +		TinyRemapper.Builder hashedBuilder = TinyRemapper.newRemapper()
 +				.withMappings(TinyRemapperHelper.create(mappingsProvider.getMappings(), MappingsNamespace.HASHED.toString(), toM, false))
 +				.renameInvalidLocals(false);
@@ -349,7 +523,7 @@ index bf0e6131faa112a96c8d245168cd3040aa877d68..d48c3857f32905537351c8813614f0fa
  				.renameInvalidLocals(false);
  
  		final KotlinClasspathService kotlinClasspathService = KotlinClasspathService.getOrCreateIfRequired(project);
-@@ -159,16 +170,22 @@ public class ModProcessor {
+@@ -159,16 +170,27 @@ public class ModProcessor {
  
  		if (kotlinClasspathService != null) {
  			kotlinRemapperClassloader = KotlinRemapperClassloader.create(kotlinClasspathService);
@@ -365,24 +539,29 @@ index bf0e6131faa112a96c8d245168cd3040aa877d68..d48c3857f32905537351c8813614f0fa
 +		final Map<MappingsNamespace, TinyRemapper> remapperMap = new HashMap<>();
 +		remapperMap.put(MappingsNamespace.HASHED, hashedRemapper);
 +		remapperMap.put(MappingsNamespace.INTERMEDIARY, intermediaryRemapper);
- 
--		for (Path minecraftJar : extension.getMinecraftJars(MappingsNamespace.INTERMEDIARY)) {
--			remapper.readClassPathAsync(minecraftJar);
++
 +		for (Path minecraftJar : extension.getMinecraftJars(MappingsNamespace.HASHED)) {
 +			hashedRemapper.readClassPathAsync(minecraftJar);
++		}
+ 
+ 		for (Path minecraftJar : extension.getMinecraftJars(MappingsNamespace.INTERMEDIARY)) {
+-			remapper.readClassPathAsync(minecraftJar);
++			intermediaryRemapper.readClassPathAsync(minecraftJar);
  		}
  
 -		remapper.readClassPathAsync(mcDeps);
 +		hashedRemapper.readClassPathAsync(mcDeps);
++		intermediaryRemapper.readClassPathAsync(mcDeps);
  
  		final Map<ModDependencyInfo, InputTag> tagMap = new HashMap<>();
  		final Map<ModDependencyInfo, OutputConsumerPath> outputConsumerMap = new HashMap<>();
-@@ -179,12 +196,13 @@ public class ModProcessor {
+@@ -179,12 +201,14 @@ public class ModProcessor {
  				if (remapList.stream().noneMatch(info -> info.getInputFile().equals(inputFile))) {
  					project.getLogger().debug("Adding " + inputFile + " onto the remap classpath");
  
 -					remapper.readClassPathAsync(inputFile.toPath());
 +					hashedRemapper.readClassPathAsync(inputFile.toPath());
++					intermediaryRemapper.readClassPathAsync(inputFile.toPath());
  				}
  			}
  		}
@@ -392,7 +571,7 @@ index bf0e6131faa112a96c8d245168cd3040aa877d68..d48c3857f32905537351c8813614f0fa
  			InputTag tag = remapper.createInputTag();
  
  			project.getLogger().debug("Adding " + info.getInputFile() + " as a remap input");
-@@ -197,6 +215,7 @@ public class ModProcessor {
+@@ -197,6 +221,7 @@ public class ModProcessor {
  			// Apply this in a second loop as we need to ensure all the inputs are on the classpath before remapping.
  			for (ModDependencyInfo info : remapList) {
  				try {
@@ -400,7 +579,7 @@ index bf0e6131faa112a96c8d245168cd3040aa877d68..d48c3857f32905537351c8813614f0fa
  					OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(info.getRemappedOutput().toPath()).build();
  
  					outputConsumer.addNonClassFiles(info.getInputFile().toPath(), NonClassCopyMode.FIX_META_INF, remapper);
-@@ -216,7 +235,8 @@ public class ModProcessor {
+@@ -216,7 +241,8 @@ public class ModProcessor {
  				}
  			}
  		} finally {
@@ -1380,7 +1559,7 @@ index e23460fd5d0a4fcf830e2c7ea013ca8ad76ee6f6..371775283f77eea7a11a4e34fb644d51
  	}
  
 diff --git a/src/main/java/net/fabricmc/loom/task/GenerateSourcesTask.java b/src/main/java/net/fabricmc/loom/task/GenerateSourcesTask.java
-index dbb81768b80ded12d499ff1f748c493d1a4fc956..1d8cb25e8334a538bb7e28ef677c48e22339b8e2 100644
+index dbb81768b80ded12d499ff1f748c493d1a4fc956..4e86fcd75b221cbbae86674f4d0a3cd00e4ee1b3 100644
 --- a/src/main/java/net/fabricmc/loom/task/GenerateSourcesTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/GenerateSourcesTask.java
 @@ -315,7 +315,7 @@ public abstract class GenerateSourcesTask extends AbstractLoomTask {
@@ -1388,7 +1567,7 @@ index dbb81768b80ded12d499ff1f748c493d1a4fc956..1d8cb25e8334a538bb7e28ef677c48e2
  
  		try (Reader reader = Files.newBufferedReader(inputMappings, StandardCharsets.UTF_8)) {
 -			MappingReader.read(reader, new MappingSourceNsSwitch(mappingTree, MappingsNamespace.INTERMEDIARY.toString()));
-+			MappingReader.read(reader, new MappingSourceNsSwitch(mappingTree, MappingsNamespace.HASHED.toString()));
++			MappingReader.read(reader, mappingTree);
  		} catch (IOException e) {
  			throw new RuntimeException("Failed to read mappings", e);
  		}
@@ -1460,71 +1639,8 @@ index d9fa4232fb03afb7ba4ab8cd9ecb5c4954ef2114..972091db25bf95c2deaa14e70720aa9b
  		public static final String OUT_REFMAP_FILE = "outRefMapFile";
  		public static final String DEFAULT_OBFUSCATION_ENV = "defaultObfuscationEnv";
  		public static final String QUIET = "quiet";
-diff --git a/src/main/java/net/fabricmc/loom/util/ModRemappingHelper.java b/src/main/java/net/fabricmc/loom/util/ModRemappingHelper.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..839777b63d2f06c257f09e9fcba7088ed89972e8
---- /dev/null
-+++ b/src/main/java/net/fabricmc/loom/util/ModRemappingHelper.java
-@@ -0,0 +1,57 @@
-+/*
-+ * This file is part of fabric-loom, licensed under the MIT License (MIT).
-+ *
-+ * Copyright (c) 2022 FabricMC
-+ *
-+ * Permission is hereby granted, free of charge, to any person obtaining a copy
-+ * of this software and associated documentation files (the "Software"), to deal
-+ * in the Software without restriction, including without limitation the rights
-+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-+ * copies of the Software, and to permit persons to whom the Software is
-+ * furnished to do so, subject to the following conditions:
-+ *
-+ * The above copyright notice and this permission notice shall be included in all
-+ * copies or substantial portions of the Software.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+package net.fabricmc.loom.util;
-+
-+import java.io.ByteArrayInputStream;
-+import java.io.File;
-+import java.io.IOException;
-+import java.io.InputStream;
-+import java.io.InputStreamReader;
-+
-+import com.google.gson.JsonObject;
-+
-+import net.fabricmc.loom.LoomGradlePlugin;
-+import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
-+
-+public final class ModRemappingHelper {
-+	public static MappingsNamespace getIntermediateMappings(File source) {
-+		if (!ZipUtils.contains(source.toPath(), "quilt.mod.json")) return MappingsNamespace.INTERMEDIARY;
-+
-+		InputStream qmj;
-+
-+		try {
-+			qmj = new ByteArrayInputStream(ZipUtils.unpack(source.toPath(), "quilt.mod.json"));
-+		} catch (IOException e) {
-+			throw new RuntimeException(e);
-+		}
-+
-+		JsonObject jsonObject = LoomGradlePlugin.GSON.fromJson(new InputStreamReader(qmj), JsonObject.class);
-+		String mappings = jsonObject.getAsJsonObject("quilt_loader").get("intermediate_mappings").getAsString();
-+
-+		if (mappings.equals("net.fabricmc:intermediary")) return MappingsNamespace.INTERMEDIARY;
-+
-+		return MappingsNamespace.HASHED;
-+	}
-+}
 diff --git a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
-index c866ffb74a1aad8b0c82faaae12e71016f1782e0..b3932e01545b4fef7c1a0b4cf09a0974c528cafc 100644
+index c866ffb74a1aad8b0c82faaae12e71016f1782e0..052d47356d9a1f005a58d9aa10945aa59d3bc482 100644
 --- a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
 @@ -102,7 +102,7 @@ public class SourceRemapper {
@@ -1532,7 +1648,7 @@ index c866ffb74a1aad8b0c82faaae12e71016f1782e0..b3932e01545b4fef7c1a0b4cf09a0974
  	private void remapSourcesInner(File source, File destination) throws Exception {
  		project.getLogger().info(":remapping source jar");
 -		Mercury mercury = getMercuryInstance();
-+		Mercury mercury = getMercuryInstance(ModRemappingHelper.getIntermediateMappings(source));
++		Mercury mercury = getMercuryInstance(ModUtils.readMetadataFromJar(LoomGradleExtension.get(project), source).getIntermediateMappings());
  
  		if (source.equals(destination)) {
  			if (source.isDirectory()) {
