@@ -1101,7 +1101,7 @@ index 0000000000000000000000000000000000000000..bc2a96c1264e970ecd66619a2eaf14a7
 +	}
 +}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/tiny/MappingsMerger.java b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/tiny/MappingsMerger.java
-index 5988f143d4df30c6f1df225552b35ae420ef97f9..4c987ea1fd84e310550b359c627c9e5c91334539 100644
+index 5988f143d4df30c6f1df225552b35ae420ef97f9..85715b5a33cf3cdd6fc22513c5abf4e996fb3c04 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/tiny/MappingsMerger.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/tiny/MappingsMerger.java
 @@ -31,6 +31,7 @@ import java.nio.file.Files;
@@ -1120,7 +1120,7 @@ index 5988f143d4df30c6f1df225552b35ae420ef97f9..4c987ea1fd84e310550b359c627c9e5c
  import net.fabricmc.mappingio.adapter.MappingNsCompleter;
  import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
  import net.fabricmc.mappingio.format.Tiny2Reader;
-@@ -49,26 +51,43 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
+@@ -49,26 +51,50 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
  public final class MappingsMerger {
  	private static final Logger LOGGER = LoggerFactory.getLogger(MappingsMerger.class);
  
@@ -1131,37 +1131,44 @@ index 5988f143d4df30c6f1df225552b35ae420ef97f9..4c987ea1fd84e310550b359c627c9e5c
  
 -		MemoryMappingTree intermediaryTree = new MemoryMappingTree();
 -		intermediateMappingsService.getMemoryMappingTree().accept(new MappingSourceNsSwitch(intermediaryTree, MappingsNamespace.INTERMEDIARY.toString()));
-+		IntermediateMappingsService hashedService = intermediateMappingsServices.get(MappingsNamespace.HASHED).get();
-+		IntermediateMappingsService intermediaryService = intermediateMappingsServices.get(MappingsNamespace.INTERMEDIARY).get();
-+
-+		MemoryMappingTree hashedTree = new MemoryMappingTree();
-+		hashedService.getMemoryMappingTree().accept(new MappingSourceNsSwitch(hashedTree, MappingsNamespace.HASHED.toString()));
++		// Need this to find the base tree's source namespace
++		MemoryMappingTree tempTree = new MemoryMappingTree();
  
  		try (BufferedReader reader = Files.newBufferedReader(from, StandardCharsets.UTF_8)) {
 -			Tiny2Reader.read(reader, intermediaryTree);
-+			Tiny2Reader.read(reader, hashedTree);
++			Tiny2Reader.read(reader, tempTree);
  		}
  
++		// Source namespace of the base tree (intermediate mappings used by provided mappings)
++		IntermediateMappingsService baseIntermediateService = intermediateMappingsServices.get(MappingsNamespace.of(tempTree.getSrcNamespace())).get();
++		IntermediateMappingsService mergeIntermediateService = intermediateMappingsServices.get(tempTree.getSrcNamespace().equals("hashed") ? MappingsNamespace.INTERMEDIARY : MappingsNamespace.HASHED).get();
++
++		// Merge the base tree into the base namespace's intermediate tree
++		MemoryMappingTree baseTree = baseIntermediateService.getMemoryMappingTree();
++
++		try (BufferedReader reader = Files.newBufferedReader(from, StandardCharsets.UTF_8)) {
++			Tiny2Reader.read(reader, baseTree);
++		}
++
 +		// Patch missing official mappings with hashed
  		MemoryMappingTree officialTree = new MemoryMappingTree();
 -		MappingNsCompleter nsCompleter = new MappingNsCompleter(officialTree, Map.of(MappingsNamespace.OFFICIAL.toString(), MappingsNamespace.INTERMEDIARY.toString()));
 +		MappingNsCompleter nsCompleter = new MappingNsCompleter(officialTree, Map.of(MappingsNamespace.OFFICIAL.toString(), MappingsNamespace.HASHED.toString()));
  		MappingSourceNsSwitch nsSwitch = new MappingSourceNsSwitch(nsCompleter, MappingsNamespace.OFFICIAL.toString());
 -		intermediaryTree.accept(nsSwitch);
-+		hashedTree.accept(nsSwitch);
++		baseTree.accept(nsSwitch);
 +
-+		// Merge the intermediate tree into the hashed tree
++		// Merge the intermediary tree into the hashed tree or vice-versa
 +		MemoryMappingTree mergedTree = new MemoryMappingTree();
-+		MappingNsCompleter mergedCompleter = new MappingNsCompleter(mergedTree, Map.of(MappingsNamespace.HASHED.toString(), MappingsNamespace.INTERMEDIARY.toString()));
-+		MappingSourceNsSwitch mergedSwitch = new MappingSourceNsSwitch(mergedCompleter, MappingsNamespace.OFFICIAL.toString());
-+		MappingDstNsReorder namespaceReorder = new MappingDstNsReorder(mergedSwitch, MappingsNamespace.HASHED.toString(), MappingsNamespace.INTERMEDIARY.toString(), MappingsNamespace.NAMED.toString());
-+		intermediaryService.getMemoryMappingTree().accept(namespaceReorder);
++		MappingDstNsReorder namespaceReorder = new MappingDstNsReorder(mergedTree, MappingsNamespace.HASHED.toString(), MappingsNamespace.INTERMEDIARY.toString(), MappingsNamespace.NAMED.toString());
++		mergeIntermediateService.getMemoryMappingTree().accept(namespaceReorder);
 +		officialTree.accept(mergedTree);
 +
-+		// Intermediary is missing a mapping for net/minecraft/client/main/Main$2, so we patch it to hashed
++		// Hashed and intermediary both contain some mappings the other doesn't have, this patches them together
 +		MemoryMappingTree patchedTree = new MemoryMappingTree();
-+		MappingNsCompleter patchedCompleter = new MappingNsCompleter(patchedTree, Map.of(MappingsNamespace.INTERMEDIARY.toString(), MappingsNamespace.HASHED.toString()));
-+		mergedTree.accept(patchedCompleter);
++		MappingNsCompleter intermediaryPatchedCompleter = new MappingNsCompleter(patchedTree, Map.of(MappingsNamespace.INTERMEDIARY.toString(), MappingsNamespace.HASHED.toString()));
++		MappingNsCompleter hashedPatchedCompleter = new MappingNsCompleter(intermediaryPatchedCompleter, Map.of(MappingsNamespace.HASHED.toString(), MappingsNamespace.INTERMEDIARY.toString()));
++		mergedTree.accept(hashedPatchedCompleter);
  
 -		inheritMappedNamesOfEnclosingClasses(officialTree);
 +		inheritMappedNamesOfEnclosingClasses(patchedTree);
@@ -1172,7 +1179,7 @@ index 5988f143d4df30c6f1df225552b35ae420ef97f9..4c987ea1fd84e310550b359c627c9e5c
  		}
  
  		LOGGER.info(":merged mappings in " + stopwatch.stop());
-@@ -79,7 +98,7 @@ public final class MappingsMerger {
+@@ -79,7 +105,7 @@ public final class MappingsMerger {
  	 * Currently, Yarn does not export mappings for these inner classes.
  	 */
  	private static void inheritMappedNamesOfEnclosingClasses(MemoryMappingTree tree) {
