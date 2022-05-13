@@ -381,7 +381,7 @@ index e82ea83fc7ee735cc1922c35dbc0801bd7709a74..c632f39e7a29c3878c324b7a55d0b889
  			accessWidenerReader.read(accessWidener.content());
  		}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index b4219e6e604cf26d7b140cc072b6b93ec69c90d7..1c695de3ddb1a7aec0592107ce5c300c197c9c69 100644
+index b4219e6e604cf26d7b140cc072b6b93ec69c90d7..6c2c2a305ce1e344b927034bf66c10f7d468c0f1 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 @@ -51,13 +51,14 @@ import org.objectweb.asm.commons.Remapper;
@@ -400,20 +400,65 @@ index b4219e6e604cf26d7b140cc072b6b93ec69c90d7..1c695de3ddb1a7aec0592107ce5c300c
  import net.fabricmc.loom.util.Pair;
  import net.fabricmc.loom.util.TinyRemapperHelper;
  import net.fabricmc.loom.util.ZipUtils;
-@@ -102,9 +103,10 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -102,30 +103,35 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  
  	@Override
  	public void process(File jarFile) {
 -		// Lazily remap from intermediary->named
 +		// Lazily remap from intermediate->named
++		ModMetadataHelper.Metadata metadata = ModUtils.readMetadataFromJar(extension, jarFile);
++
  		if (remappedInjectedInterfaces == null) {
 -			TinyRemapper tinyRemapper = createTinyRemapper();
-+			MappingsNamespace namespace = ModUtils.readMetadataFromJar(extension, jarFile).getIntermediateMappings();
-+			TinyRemapper tinyRemapper = createTinyRemapper(namespace);
- 			Remapper remapper = tinyRemapper.getEnvironment().getRemapper();
+-			Remapper remapper = tinyRemapper.getEnvironment().getRemapper();
+-
+-			try {
+-				remappedInjectedInterfaces = new HashMap<>(injectedInterfaces.size());
+-
+-				for (Map.Entry<String, List<InjectedInterface>> entry : injectedInterfaces.entrySet()) {
+-					String namedClassName = remapper.map(entry.getKey());
+-					remappedInjectedInterfaces.put(
+-							namedClassName,
+-							entry.getValue().stream()
+-									.map(injectedInterface ->
+-											new InjectedInterface(
+-													injectedInterface.modId(),
+-													namedClassName,
+-													remapper.map(injectedInterface.ifaceName())
+-											))
+-									.toList()
+-					);
++			remappedInjectedInterfaces = new HashMap<>(injectedInterfaces.size());
++
++			if (metadata != null) {
++				MappingsNamespace namespace = metadata.getIntermediateMappings();
++				TinyRemapper tinyRemapper = createTinyRemapper(namespace);
++				Remapper remapper = tinyRemapper.getEnvironment().getRemapper();
++
++				try {
++					for (Map.Entry<String, List<InjectedInterface>> entry : injectedInterfaces.entrySet()) {
++						String namedClassName = remapper.map(entry.getKey());
++						remappedInjectedInterfaces.put(
++								namedClassName,
++								entry.getValue().stream()
++										.map(injectedInterface ->
++												new InjectedInterface(
++														injectedInterface.modId(),
++														namedClassName,
++														remapper.map(injectedInterface.ifaceName())
++												))
++										.toList()
++						);
++					}
++				} finally {
++					tinyRemapper.finish();
+ 				}
+-			} finally {
+-				tinyRemapper.finish();
+ 			}
+ 		}
  
- 			try {
-@@ -224,8 +226,8 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -224,8 +230,8 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  			return false;
  		}
  
@@ -424,7 +469,7 @@ index b4219e6e604cf26d7b140cc072b6b93ec69c90d7..1c695de3ddb1a7aec0592107ce5c300c
  		}
  
  		for (Map.Entry<String, List<InjectedInterface>> entry : injectedInterfaces.entrySet()) {
-@@ -298,18 +300,18 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -298,18 +304,18 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  		}
  	}
  
