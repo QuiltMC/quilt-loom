@@ -88,7 +88,7 @@ index 9555e1d40dc11488d62608273b888769dc3227e6..99f05da4d42141ca41187a2cae3f517d
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
-index c6417c90684c6333d89694997f24d4e05807a706..d9fa4232fb03afb7ba4ab8cd9ecb5c4954ef2114 100644
+index 87c977e563a02a3b2e58a8eebbf97d29b0d8f4e6..844b8e36ce48cb651ac377ec52401c74b9b352f4 100644
 --- a/src/main/java/net/fabricmc/loom/util/Constants.java
 +++ b/src/main/java/net/fabricmc/loom/util/Constants.java
 @@ -39,6 +39,7 @@ public class Constants {

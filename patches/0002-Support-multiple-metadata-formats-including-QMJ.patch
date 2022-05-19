@@ -1807,7 +1807,7 @@ index ebf0f24647e6e85cf697507683e8878091d84c76..2b5055491d0c36a00e23074504e468ae
  	public Dependency layered(Action<LayeredMappingSpecBuilder> action) {
  		LayeredMappingSpecBuilderImpl builder = new LayeredMappingSpecBuilderImpl();
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index 86f434895ea29ed14cceca59d70d4d2e6909c328..ad4c2e3653231badc29eecfea91fb242ccddb30a 100644
+index fe1e53b47172b8ab0a2ddccc301483722a1fa125..214ba3564599b64149b32b1544c311abb915e6cd 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 @@ -66,9 +66,10 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
