@@ -2025,7 +2025,7 @@ index 6c4518fe96751470ae48c16b9f7c0a952c845a0d..26dee4aab0844bd7d63b5226ed1ba59a
  		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(zip, false);
  				Stream<Path> walk = Files.walk(fs.get().getPath("/"))) {
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-index c5893a12f8e3a3104669c3c2114dc16a1069f255..98e033f33a9d6c0bbc5ab2e8cdd71a194bca5723 100644
+index 54dbc9beac126e488014d160e9b6ce5b0effca16..772c710926930f5568d46088fc006466e1f742a9 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 @@ -231,7 +231,7 @@ trait GradleProjectTestTrait {

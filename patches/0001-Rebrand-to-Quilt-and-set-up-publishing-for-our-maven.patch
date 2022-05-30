@@ -348,6 +348,32 @@ index 18f8e684ec06195d143c290e07c3c0c8906e1e3f..152baa8b73b06dfac3fa189430041093
                  }
              '''
  
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy
+index 2ceb2a016e1c7d8a30ed8b7858477cd340e67989..1f3002c77e1a318b0a46047df6315aa53f335169 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy
+@@ -50,7 +50,7 @@ class SimpleProjectTest extends Specification implements GradleProjectTestTrait
+ 			def serverResult = server.run()
+ 		then:
+ 			result.task(":build").outcome == SUCCESS
+-			gradle.getOutputZipEntry("fabric-example-mod-1.0.0.jar", "META-INF/MANIFEST.MF").contains("Fabric-Loom-Version: 0.0.0+unknown")
++			gradle.getOutputZipEntry("fabric-example-mod-1.0.0.jar", "META-INF/MANIFEST.MF").contains("Fabric-Loom-Version: 0.12.0+unknown")
+ 			gradle.getOutputZipEntry("fabric-example-mod-1.0.0-sources.jar", "net/fabricmc/example/mixin/ExampleMixin.java").contains("class_442") // Very basic test to ensure sources got remapped
+ 
+ 			serverResult.successful()
+diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
+index c5893a12f8e3a3104669c3c2114dc16a1069f255..54dbc9beac126e488014d160e9b6ce5b0effca16 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
+@@ -235,7 +235,7 @@ trait GradleProjectTestTrait {
+         }
+ 
+         File getGeneratedLocalSources(String mappings) {
+-            return new File(getProjectDir(), ".gradle/loom-cache/${mappings}/minecraft-project-@-merged-named-sources.jar")
++            return new File(getProjectDir(), ".gradle/quilt-loom-cache/${mappings}/minecraft-project-@-merged-named-sources.jar")
+         }
+ 
+         void buildSrc(String name) {
 diff --git a/src/test/resources/projects/accesswidener/build.gradle b/src/test/resources/projects/accesswidener/build.gradle
 index 9fa3cc36ef23ee7f9a03120624596c6fe1788de4..c3950e8fbcc865a12a2a5a5ededf0fbddf3e6698 100644
 --- a/src/test/resources/projects/accesswidener/build.gradle
@@ -540,15 +566,24 @@ index cdc647ce754f229ba0daa586be4031a0b734251e..681c2d0af7e67f717c0f28bda66a911d
  
  mod_version = 1.0.0
 diff --git a/src/test/resources/projects/kotlin/build.gradle.kts b/src/test/resources/projects/kotlin/build.gradle.kts
-index 904c20a405edee316288fd34e9dee881679528b4..25d3aaf84bf815350a0be60530f457835fa3d766 100644
+index 904c20a405edee316288fd34e9dee881679528b4..d34295a5f679d8a0e273651bb54b1e8a0ec7e9d6 100644
 --- a/src/test/resources/projects/kotlin/build.gradle.kts
 +++ b/src/test/resources/projects/kotlin/build.gradle.kts
+@@ -3,7 +3,7 @@ import java.util.Properties
+ plugins {
+ 	kotlin("jvm") version "1.6.20"
+ 	kotlin("plugin.serialization") version "1.6.20"
+-	id("fabric-loom")
++	id("org.quiltmc.loom")
+ }
+ 
+ java {
 @@ -16,6 +16,6 @@ version = "0.0.1"
  dependencies {
  	minecraft(group = "com.mojang", name = "minecraft", version = "1.16.5")
  	mappings(group = "net.fabricmc", name = "yarn", version = "1.16.5+build.5", classifier = "v2")
 -	modImplementation("net.fabricmc:fabric-loader:0.12.12")
-+	modImplementation("org.quiltmc:quilt-loader:0.16.0-beta.5")
++	modImplementation("org.quiltmc:quilt-loader:0.16.1")
  	modImplementation(group = "net.fabricmc", name = "fabric-language-kotlin", version = "1.7.3+kotlin.1.6.20")
  }
 \ No newline at end of file
@@ -828,10 +863,10 @@ index 2e85dfd8d7d617d3e8d5c71e0eeab4c93891edbf..970667432831ef16d900cbb1822786e6
  # Mod Properties
  	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/multiproject/build.gradle b/src/test/resources/projects/multiproject/build.gradle
-index 17480a88c7ce6c16b53ce766ccb7722203fcb3a6..3c990d57f20f26e9a705a0ca5f739a5b95260426 100644
+index 17480a88c7ce6c16b53ce766ccb7722203fcb3a6..8c4f37e403154f561610a4d63ef9291a15c694f5 100644
 --- a/src/test/resources/projects/multiproject/build.gradle
 +++ b/src/test/resources/projects/multiproject/build.gradle
-@@ -1,7 +1,7 @@
+@@ -1,11 +1,11 @@
  plugins {
  	id "java"
  	id "java-library"
@@ -840,6 +875,11 @@ index 17480a88c7ce6c16b53ce766ccb7722203fcb3a6..3c990d57f20f26e9a705a0ca5f739a5b
  }
  
  allprojects {
+-	apply plugin: "fabric-loom"
++	apply plugin: "org.quiltmc.loom"
+ 
+ 	version = "1.0.0"
+ 
 @@ -25,7 +25,7 @@ allprojects {
  		// To change the versions see the gradle.properties file
  		minecraft "com.mojang:minecraft:1.16.5"
