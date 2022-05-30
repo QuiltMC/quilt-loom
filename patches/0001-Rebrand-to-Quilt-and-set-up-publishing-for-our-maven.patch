@@ -185,10 +185,10 @@ index 16752f5d1723e4b2b184a3df76bfd8d4cccfc6db..e34cf87a22585957528d5409ce3d092e
  
  	@Override
 diff --git a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
-index 3e0781315a3c437e4d310b273207a66a04b8a81b..96045e8bfb97ded2a9e479c7d9280ab56bec2771 100644
+index 49a6b1c12d71c1a7f2c235765a1cbcb3b23082e1..70a569db2a1c460de74cfcb447e6179697a0c951 100644
 --- a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
-@@ -57,8 +57,8 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+@@ -55,15 +55,17 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
  		}
  
  		final LaunchConfig launchConfig = new LaunchConfig()
@@ -199,7 +199,6 @@ index 3e0781315a3c437e4d310b273207a66a04b8a81b..96045e8bfb97ded2a9e479c7d9280ab5
  				.property("log4j.configurationFile", getAllLog4JConfigFiles())
  				.property("log4j2.formatMsgNoLookups", "true")
  
-@@ -68,15 +68,17 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
  				.argument("client", "--assetIndex")
  				.argument("client", getExtension().getMinecraftProvider().getVersionInfo().assetIndex().fabricId(getExtension().getMinecraftProvider().minecraftVersion()))
  				.argument("client", "--assetsDir")
@@ -207,6 +206,11 @@ index 3e0781315a3c437e4d310b273207a66a04b8a81b..96045e8bfb97ded2a9e479c7d9280ab5
 +				.argument("client", assetsDirectory.getAbsolutePath())
 +				.argument("client", "--version")
 +				.argument("client", "Quilt Loom");
+ 
+ 		if (versionInfo.hasNativesToExtract()) {
+ 			String nativesPath = getExtension().getFiles().getNativesDirectory(getProject()).getAbsolutePath();
+@@ -74,12 +76,12 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+ 		}
  
  		if (getExtension().areEnvironmentSourceSetsSplit()) {
 -			launchConfig.property("client", "fabric.gameJarPath.client", getGameJarPath("client"));
