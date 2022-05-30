@@ -22,7 +22,7 @@ index 36767715d89bade0d2dacac4bfc44d0bd6482cb4..70c867068c34cce86826a07cafa6ef15
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index d67a8ca13c127d7eb9cf1efaac6ee3d2b5cc4295..7743cbfccf6c3dd19914ef73c1982193a79924ed 100644
+index b378183e9c79f4eb5eafe7c08b6010336bc35449..68fb67ee287ef41d949e35ffcd6c48e46614a995 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -226,10 +226,10 @@ index 49a6b1c12d71c1a7f2c235765a1cbcb3b23082e1..70a569db2a1c460de74cfcb447e61796
  
  		final boolean plainConsole = getProject().getGradle().getStartParameter().getConsoleOutput() == ConsoleOutput.Plain;
 diff --git a/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java b/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java
-index 76dec9c3c6cd4fd88e0c8bf9062d36904c2f1caa..e792b1a6240aa1efffe384cd5523d7af4c79a539 100644
+index 30b1ea0fb56e2c313a76ac7a689e88ac1db304cd..13c9061fceb223093b5edeffb2b58a9cba537c96 100644
 --- a/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java
 +++ b/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java
-@@ -87,7 +87,7 @@ public final class SourceRemapperService implements SharedService {
+@@ -88,7 +88,7 @@ public final class SourceRemapperService implements SharedService {
  		// Create a temp directory with all of the sources
  		if (!Files.isDirectory(source)) {
  			isSrcTmp = true;
@@ -239,7 +239,7 @@ index 76dec9c3c6cd4fd88e0c8bf9062d36904c2f1caa..e792b1a6240aa1efffe384cd5523d7af
  		}
  
 diff --git a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
-index 64261ea8d0128f9fd7106a94c1d1602ff3ff7fc6..c866ffb74a1aad8b0c82faaae12e71016f1782e0 100644
+index 3f4f3c510e722588a8acba963109d8278b9a36fc..3d15d68e279ae630e19ac5a659cda65b96d8247c 100644
 --- a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
 @@ -124,7 +124,7 @@ public class SourceRemapper {
@@ -300,7 +300,7 @@ index 7461566c29a5e7d63ff2f48b7c45c0ea9db0a665..9d12f23af7c78b5dcf7b9956b5bec6f7
  			"""
  
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy
-index d58d0741d3764f3af8d11fc11dcc587a670965b1..f01ab3cee14d2281bc0e8dc73e68ee0be0e27033 100644
+index 66deb25fc0fcdd0ae5e7e2a6f405ebd0fbe957e7..1a3bc61de50aa5782fbdbbee8cea308eecfe568a 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy
 @@ -45,7 +45,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
@@ -353,7 +353,7 @@ index 18f8e684ec06195d143c290e07c3c0c8906e1e3f..152baa8b73b06dfac3fa189430041093
              '''
  
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy
-index 2ceb2a016e1c7d8a30ed8b7858477cd340e67989..1f3002c77e1a318b0a46047df6315aa53f335169 100644
+index ced58f6bbf2ec686dd59432b0972936d8e5e9e02..f0f35b03c13eb6ac7683e82d97f619f91f7791c5 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy
 @@ -50,7 +50,7 @@ class SimpleProjectTest extends Specification implements GradleProjectTestTrait
@@ -366,10 +366,10 @@ index 2ceb2a016e1c7d8a30ed8b7858477cd340e67989..1f3002c77e1a318b0a46047df6315aa5
  
  			serverResult.successful()
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-index c5893a12f8e3a3104669c3c2114dc16a1069f255..54dbc9beac126e488014d160e9b6ce5b0effca16 100644
+index 4dcecedd4a565b655cdd5c697a3466c48ae60410..379fdd8ce2db8d80459b79eb544354309f6afae0 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-@@ -235,7 +235,7 @@ trait GradleProjectTestTrait {
+@@ -240,7 +240,7 @@ trait GradleProjectTestTrait {
          }
  
          File getGeneratedLocalSources(String mappings) {
@@ -867,7 +867,7 @@ index 2e85dfd8d7d617d3e8d5c71e0eeab4c93891edbf..970667432831ef16d900cbb1822786e6
  # Mod Properties
  	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/multiproject/build.gradle b/src/test/resources/projects/multiproject/build.gradle
-index 17480a88c7ce6c16b53ce766ccb7722203fcb3a6..8c4f37e403154f561610a4d63ef9291a15c694f5 100644
+index 0a90269ad031fb7745140dcd80d3968bef40780e..e0e56e1f27702139b417c6961b02e1ed47ce41bf 100644
 --- a/src/test/resources/projects/multiproject/build.gradle
 +++ b/src/test/resources/projects/multiproject/build.gradle
 @@ -1,11 +1,11 @@
@@ -1030,7 +1030,7 @@ index 845c356072dbb73ddb31b97826e8cb4fbaf138e0..c01c88366c6038008ee1d2f668b63bc2
  # Mod Properties
  	maven_group = com.example
 diff --git a/src/test/resources/projects/splitSources/build.gradle b/src/test/resources/projects/splitSources/build.gradle
-index ea40b50207f0cfa8fe22441524d26b3cb75d2bd5..4965d7fc6311cd9280fd70545175d379392d08dc 100644
+index c4d5174f802499c7e6a6bddd3b1c7f45ea542fc7..450500ff6e7777ed4264b5150eb86bfd4b74ca2f 100644
 --- a/src/test/resources/projects/splitSources/build.gradle
 +++ b/src/test/resources/projects/splitSources/build.gradle
 @@ -1,5 +1,5 @@
@@ -1040,7 +1040,7 @@ index ea40b50207f0cfa8fe22441524d26b3cb75d2bd5..4965d7fc6311cd9280fd70545175d379
  	id 'maven-publish'
  }
  
-@@ -13,7 +13,7 @@ loom {
+@@ -26,7 +26,7 @@ loom {
  dependencies {
  	minecraft "com.mojang:minecraft:1.18.2"
  	mappings "net.fabricmc:yarn:1.18.2+build.1:v2"
@@ -1048,7 +1048,7 @@ index ea40b50207f0cfa8fe22441524d26b3cb75d2bd5..4965d7fc6311cd9280fd70545175d379
 +	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
  
  	modImplementation "net.fabricmc.fabric-api:fabric-api:0.47.8+1.18.2"
- }
+ 
 diff --git a/src/test/resources/projects/transitiveAccesswidener/build.gradle b/src/test/resources/projects/transitiveAccesswidener/build.gradle
 index 52f1fc39f472e431795ddfe94cd85c6a01eade48..301cfe010e0dcff7226d980f2c2c69e5a589e702 100644
 --- a/src/test/resources/projects/transitiveAccesswidener/build.gradle

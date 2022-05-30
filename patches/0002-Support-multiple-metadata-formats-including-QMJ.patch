@@ -1522,7 +1522,7 @@ index e6f1d4c3e23d367817b65fa7abb2cfdd86f5d46b..a35ebbdc5ed3d240dca2e168ee3ae94f
  			final MemoryMappingTree mappings = new MemoryMappingTree();
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
-index 0f982155971169716e96d8493b0ed91564208af5..bf0e6131faa112a96c8d245168cd3040aa877d68 100644
+index 958de19036bd50682589633dfd77acfcd38f94af..7e52481d05aec9c068cd56dbda92b444cfcca0bf 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 @@ -45,6 +45,7 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
@@ -1807,7 +1807,7 @@ index ebf0f24647e6e85cf697507683e8878091d84c76..2b5055491d0c36a00e23074504e468ae
  	public Dependency layered(Action<LayeredMappingSpecBuilder> action) {
  		LayeredMappingSpecBuilderImpl builder = new LayeredMappingSpecBuilderImpl();
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index fe1e53b47172b8ab0a2ddccc301483722a1fa125..214ba3564599b64149b32b1544c311abb915e6cd 100644
+index ccdcccde1fd474d89c4e8d4e9ec01dbd7b18e31f..1ce1412604edf9dd70d2acbc9a6e05c43983333d 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 @@ -66,9 +66,10 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
@@ -1822,7 +1822,7 @@ index fe1e53b47172b8ab0a2ddccc301483722a1fa125..214ba3564599b64149b32b1544c311ab
  import net.fabricmc.loom.configuration.accesswidener.AccessWidenerFile;
  import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
  import net.fabricmc.loom.extension.MixinExtension;
-@@ -139,6 +140,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -143,6 +144,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  
  			final boolean legacyMixin = extension.getMixin().getUseLegacyMixinAp().get();
  			params.getUseMixinExtension().set(!legacyMixin);
@@ -1831,7 +1831,7 @@ index fe1e53b47172b8ab0a2ddccc301483722a1fa125..214ba3564599b64149b32b1544c311ab
  
  			if (legacyMixin) {
  				setupLegacyMixinRefmapRemapping(params);
-@@ -160,14 +163,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -168,14 +171,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  		final LoomGradleExtension extension = LoomGradleExtension.get(getProject());
  		final MixinExtension mixinExtension = extension.getMixin();
  
@@ -1850,7 +1850,7 @@ index fe1e53b47172b8ab0a2ddccc301483722a1fa125..214ba3564599b64149b32b1544c311ab
  
  		for (SourceSet sourceSet : mixinExtension.getMixinSourceSets()) {
  			MixinExtension.MixinInformationContainer container = Objects.requireNonNull(
-@@ -203,6 +206,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -211,6 +214,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  
  		MapProperty<String, String> getManifestAttributes();
  		ListProperty<String> getClientOnlyClasses();
@@ -1859,7 +1859,7 @@ index fe1e53b47172b8ab0a2ddccc301483722a1fa125..214ba3564599b64149b32b1544c311ab
  	}
  
  	public abstract static class RemapAction extends AbstractRemapAction<RemapParams> {
-@@ -263,7 +268,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -271,7 +276,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  		}
  
  		private void remapAccessWidener() throws IOException {
@@ -1868,7 +1868,7 @@ index fe1e53b47172b8ab0a2ddccc301483722a1fa125..214ba3564599b64149b32b1544c311ab
  
  			if (accessWidenerFile == null) {
  				return;
-@@ -299,7 +304,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -307,7 +312,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  				return;
  			}
  
@@ -2025,10 +2025,10 @@ index 6c4518fe96751470ae48c16b9f7c0a952c845a0d..26dee4aab0844bd7d63b5226ed1ba59a
  		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(zip, false);
  				Stream<Path> walk = Files.walk(fs.get().getPath("/"))) {
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-index 54dbc9beac126e488014d160e9b6ce5b0effca16..772c710926930f5568d46088fc006466e1f742a9 100644
+index 379fdd8ce2db8d80459b79eb544354309f6afae0..cb0938f26a48d5970913d49997264e1bc13c8359 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-@@ -231,7 +231,7 @@ trait GradleProjectTestTrait {
+@@ -236,7 +236,7 @@ trait GradleProjectTestTrait {
          }
  
          File getGeneratedSources(String mappings) {
