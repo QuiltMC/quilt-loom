@@ -1,0 +1,80 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Glitch <glitch.g3431@gmail.com>
+Date: Thu, 9 Jun 2022 23:40:54 -0500
+Subject: [PATCH] Exclude Fabric dependencies replaced by Quilt
+
+
+diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
+index 67209a2005680f71219011d1b74106e25640311e..63792c6e3661ba39a078b963689548b4d57e53fd 100644
+--- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
++++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
+@@ -24,6 +24,7 @@
+ 
+ package net.fabricmc.loom;
+ 
++import java.util.Map;
+ import java.util.Objects;
+ 
+ import com.fasterxml.jackson.databind.DeserializationFeature;
+@@ -91,5 +92,12 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+ 
+ 		project.apply(ImmutableMap.of("plugin", "org.quiltmc.quilt-mappings-on-loom"));
+ 		project.apply(ImmutableMap.of("plugin", "io.github.juuxel.loom-quiltflower"));
++
++		if (LoomGradleExtension.get(project).excludeFabricReplacedDependencies().get()) {
++			project.getConfigurations().all(a -> {
++				a.exclude(Map.of("group", "net.fabricmc", "module", "fabric-loader"));
++				a.exclude(Map.of("group", "net.fabricmc.fabric-api"));
++			});
++		}
+ 	}
+ }
+diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
+index 400cbb55fa3163b13f4d5765dc5b88ce08014a9d..9a4e39e8254cb0c665fca9f859f4029ff5a9a653 100644
+--- a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
++++ b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
+@@ -209,4 +209,10 @@ public interface LoomGradleExtensionAPI {
+ 	boolean areEnvironmentSourceSetsSplit();
+ 
+ 	Property<Boolean> getRuntimeOnlyLog4j();
++
++	/**
++	 * Whether or not to exclude dependencies that have Fabric replacements, like Fabric Loader and Fabric API.
++	 * Defaults to true.
++	 */
++	Property<Boolean> excludeFabricReplacedDependencies();
+ }
+diff --git a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
+index 2b5055491d0c36a00e23074504e468aeac3d15d3..b1dfcb5cd2c22248f4d7aef668d9655f2b3fb62b 100644
+--- a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
++++ b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
+@@ -77,6 +77,7 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+ 	protected final Property<String> intermediary;
+ 	protected final Property<IntermediateMappingsProvider> intermediateMappingsProvider;
+ 	private final Property<Boolean> runtimeOnlyLog4j;
++	private final Property<Boolean> replaceFabric;
+ 	private final Property<MinecraftJarConfiguration> minecraftJarConfiguration;
+ 	private final Property<Boolean> splitEnvironmentalSourceSet;
+ 	private final InterfaceInjectionExtensionAPI interfaceInjectionExtension;
+@@ -133,6 +134,9 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+ 		this.runtimeOnlyLog4j = project.getObjects().property(Boolean.class).convention(false);
+ 		this.runtimeOnlyLog4j.finalizeValueOnRead();
+ 
++		this.replaceFabric = project.getObjects().property(Boolean.class).convention(true);
++		this.replaceFabric.finalizeValueOnRead();
++
+ 		this.interfaceInjectionExtension = project.getObjects().newInstance(InterfaceInjectionExtensionAPI.class);
+ 
+ 		this.splitEnvironmentalSourceSet = project.getObjects().property(Boolean.class).convention(false);
+@@ -349,6 +353,11 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+ 		return mods;
+ 	}
+ 
++	@Override
++	public Property<Boolean> excludeFabricReplacedDependencies() {
++		return replaceFabric;
++	}
++
+ 	// This is here to ensure that LoomGradleExtensionApiImpl compiles without any unimplemented methods
+ 	private final class EnsureCompile extends LoomGradleExtensionApiImpl {
+ 		private EnsureCompile() {
