@@ -88,11 +88,11 @@ index 9555e1d40dc11488d62608273b888769dc3227e6..99f05da4d42141ca41187a2cae3f517d
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
-index b01c8c5842a53156d464f7951588d127fe972a94..593406ce41e4ee42b53cadcbcf31fe74974813f8 100644
+index c8a302293f0fef7b3d0a4673b441ec0d3c531c9a..3571e286a95fc4bd95648e325730ab45e130879c 100644
 --- a/src/main/java/net/fabricmc/loom/util/Constants.java
 +++ b/src/main/java/net/fabricmc/loom/util/Constants.java
 @@ -40,6 +40,7 @@ public class Constants {
- 	public static final String VERSION_MANIFESTS = "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
+ 	public static final String VERSION_MANIFESTS = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
  	public static final String EXPERIMENTAL_VERSIONS = "https://maven.fabricmc.net/net/minecraft/experimental_versions.json";
  	public static final String FABRIC_REPOSITORY = "https://maven.fabricmc.net/";
 +	public static final String QUILT_REPOSITORY = "https://maven.quiltmc.org/repository/release/";
