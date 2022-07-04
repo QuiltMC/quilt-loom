@@ -59,7 +59,7 @@ index 5a3cfbd337827f0fe4df2971ef68b3e169ae6b9f..30caf442a8650cebb11daeea280671a5
  	 *
  	 * @return the list property containing the {@link SourceSet}
 diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-index 68bb181d7b43148011e8c8b50b8292d00f52fb27..400cbb55fa3163b13f4d5765dc5b88ce08014a9d 100644
+index 841b2102d61a917dbe365b31ad9db2bd18e64fbf..68a6712f4e33c1d82c4c0979642d6dde87d1bf5b 100644
 --- a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 +++ b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 @@ -30,6 +30,7 @@ import org.gradle.api.artifacts.Dependency;
