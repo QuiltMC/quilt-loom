@@ -239,7 +239,7 @@ index 30b1ea0fb56e2c313a76ac7a689e88ac1db304cd..13c9061fceb223093b5edeffb2b58a9c
  		}
  
 diff --git a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
-index 3f4f3c510e722588a8acba963109d8278b9a36fc..3d15d68e279ae630e19ac5a659cda65b96d8247c 100644
+index 7ef9e10ae976365ecc6a0b07f55e8a117cbd089b..f886faaefa61c96b7f997104a29c12d115b357f9 100644
 --- a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
 @@ -124,7 +124,7 @@ public class SourceRemapper {
