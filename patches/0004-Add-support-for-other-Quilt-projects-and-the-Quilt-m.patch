@@ -6,7 +6,7 @@ Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
 Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
 
 diff --git a/build.gradle b/build.gradle
-index 68fb67ee287ef41d949e35ffcd6c48e46614a995..d31649f64b64e99308249201d32f96fe08ff09c4 100644
+index 68fb67ee287ef41d949e35ffcd6c48e46614a995..e8df8b81c691a1f7431fc1771ccb161d73f7df58 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -44,6 +44,11 @@ repositories {
@@ -29,7 +29,7 @@ index 68fb67ee287ef41d949e35ffcd6c48e46614a995..d31649f64b64e99308249201d32f96fe
 +	implementation("io.github.juuxel:loom-quiltflower:1.7.3") {
 +		exclude group: "net.fabricmc", module: "fabric-loom"
 +	}
-+	implementation("org.quiltmc:quilt-mappings-on-loom:4.2.1") {
++	implementation("org.quiltmc:quilt-mappings-on-loom:4.2.0") {
 +		exclude group: "net.fabricmc", module: "fabric-loom"
 +	}
 +
