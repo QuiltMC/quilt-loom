@@ -1,0 +1,479 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kneelawk <kneelawk@gmail.com>
+Date: Mon, 2 May 2022 17:01:59 -0700
+Subject: [PATCH] Add basic FMJ JIJ post-processing and ability to opt-out
+
+This also separates metadata configuration of the project from the metadata configuration of the project's dependencies
+
+diff --git a/src/main/java/net/fabricmc/loom/LoomGradleExtension.java b/src/main/java/net/fabricmc/loom/LoomGradleExtension.java
+index c047822dedfcf9833ddf1ab73f9b1e4cb0722972..53068175d6f074c21fd48589cdb8329f8d07291f 100644
+--- a/src/main/java/net/fabricmc/loom/LoomGradleExtension.java
++++ b/src/main/java/net/fabricmc/loom/LoomGradleExtension.java
+@@ -123,9 +123,13 @@ public interface LoomGradleExtension extends LoomGradleExtensionAPI {
+ 	void addTransitiveAccessWideners(List<AccessWidenerFile> accessWidenerFiles);
+ 
+ 	/**
+-	 * @throws UnsupportedOperationException if the jar file has more than one kind of metadata, or the metadata that is found cannot be read.
++	 * @throws UnsupportedOperationException if the metadata that is found cannot be read.
+ 	 */
+ 	default ModMetadataHelper.Metadata readMetadataFromJar(File jar) {
+-		return ModUtils.readMetadataFromJar(getModMetadataHelpers().get(), getMetadataPriorities().get(), jar);
++		return ModUtils.readMetadataFromJar(getModMetadataHelpers().get(), getMetadataConfig().get(), jar);
++	}
++
++	default ModMetadataHelper.Metadata readMetadataFromDependency(File jar) {
++		return ModUtils.readMetadataFromJar(getModMetadataHelpers().get(), getDependencyMetadataConfig().get(), jar);
+ 	}
+ }
+diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
+index 8668c0a4c298eafd486f39fc9ecbe054128d18f7..a896d600201cffd0bf1cd525593fbeb67f077532 100644
+--- a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
++++ b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
+@@ -24,7 +24,7 @@
+ 
+ package net.fabricmc.loom.api;
+ 
+-import net.fabricmc.loom.api.metadata.MetadataPriorities;
++import net.fabricmc.loom.api.metadata.MetadataConfig;
+ 
+ import org.gradle.api.Action;
+ import org.gradle.api.NamedDomainObjectContainer;
+@@ -78,9 +78,21 @@ public interface LoomGradleExtensionAPI {
+ 		getModMetadataHelpers().put(api.getFileName(), api);
+ 	}
+ 
+-	void metadataPriorities(Action<MetadataPriorities> action);
++	void metadataConfig(Action<MetadataConfig> action);
+ 
+-	Property<MetadataPriorities> getMetadataPriorities();
++	Property<MetadataConfig> getMetadataConfig();
++
++	/**
++	 * Configures how dependencies' metadatas should be processed.
++	 * <p>
++	 * Likely, even if you want to completely ignore your own <code>fabric.mod.json</code> file, you probably don't want
++	 * to ignore your dependencies' <code>fabric.mod.json</code> files. This allows you to configure the two separately.
++	 *
++	 * @param action the action performed on the dependencies' MetadataConfig to configure it.
++	 */
++	void dependencyMetadataConfig(Action<MetadataConfig> action);
++
++	Property<MetadataConfig> getDependencyMetadataConfig();
+ 
+ 	ConfigurableFileCollection getLog4jConfigs();
+ 
+diff --git a/src/main/java/net/fabricmc/loom/api/metadata/MetadataPriorities.java b/src/main/java/net/fabricmc/loom/api/metadata/MetadataConfig.java
+similarity index 50%
+rename from src/main/java/net/fabricmc/loom/api/metadata/MetadataPriorities.java
+rename to src/main/java/net/fabricmc/loom/api/metadata/MetadataConfig.java
+index 9c550936f092b3a87bc94c1c0b083026fce66331..335db4e00b9938e1bc318df39293cc059f3f7308 100644
+--- a/src/main/java/net/fabricmc/loom/api/metadata/MetadataPriorities.java
++++ b/src/main/java/net/fabricmc/loom/api/metadata/MetadataConfig.java
+@@ -3,7 +3,10 @@ package net.fabricmc.loom.api.metadata;
+ import java.io.Serializable;
+ 
+ /**
+- * Configures different metadata file priorities.
++ * Configures the different metadata files when multiple are encountered.
++ * <p>
++ * This manages priorities for which metadata file primary metadata is drawn from. This also manages whether a
++ * particular metadata is even touched by loom at all.
+  * <p>
+  * The default priorities are:
+  * <ul>
+@@ -12,7 +15,7 @@ import java.io.Serializable;
+  *     <li>All other metadata kinds have a priority of -1 by default.</li>
+  * </ul>
+  */
+-public interface MetadataPriorities extends Serializable {
++public interface MetadataConfig extends Serializable {
+ 	/**
+ 	 * Sets the priority of a metadata kind by filename.
+ 	 *
+@@ -28,4 +31,21 @@ public interface MetadataPriorities extends Serializable {
+ 	 * @return the priority of the requested metadata kind.
+ 	 */
+ 	int getPriority(String filename);
++
++	/**
++	 * Sets that a metadata file should be ignored entirely by quilt-loom and not be transformed.
++	 * <p>
++	 * This does not prevent nested-jar stripping.
++	 *
++	 * @param filename the filename of the metadata kind to be ignored.
++	 */
++	void ignore(String filename);
++
++	/**
++	 * Indicates whether a given metadata file should be processed by quilt-loom.
++	 *
++	 * @param filename the filename of the metadata kind that is being processed.
++	 * @return whether the metadata should be processed.
++	 */
++	boolean shouldProcess(String filename);
+ }
+diff --git a/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java b/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
+index 974a9c47ca7cbd9d03b90c28dda248de2ba6531b..2090baa26ecdc5e7af0502135832df5e1ea9742e 100644
+--- a/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
++++ b/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
+@@ -37,7 +37,7 @@ import java.util.stream.Stream;
+ import com.google.common.base.Preconditions;
+ import com.google.gson.JsonObject;
+ 
+-import net.fabricmc.loom.api.metadata.MetadataPriorities;
++import net.fabricmc.loom.api.metadata.MetadataConfig;
+ 
+ import org.gradle.api.UncheckedIOException;
+ import org.slf4j.Logger;
+@@ -48,7 +48,7 @@ import net.fabricmc.loom.util.Pair;
+ import net.fabricmc.loom.util.ZipUtils;
+ 
+ public class JarNester {
+-	public static void nestJars(Map<String, ModMetadataHelper> helpers, MetadataPriorities priorities, Collection<File> jars, File modJar, Logger logger) {
++	public static void nestJars(Map<String, ModMetadataHelper> helpers, MetadataConfig config, Collection<File> jars, File modJar, Logger logger) {
+ 		if (jars.isEmpty()) {
+ 			logger.debug("Nothing to nest into " + modJar.getName());
+ 			return;
+@@ -72,11 +72,15 @@ public class JarNester {
+ 				files.add(nestedJarPath);
+ 			}
+ 
+-			ModMetadataHelper helper = ModUtils.readMetadataFromJar(helpers, priorities, modJar).getParent();
++			List<ModMetadataHelper.Metadata> availableHelpers = ModUtils.readAllMetadatasFromJar(helpers, config, modJar);
+ 
+-			int count = ZipUtils.transformJson(JsonObject.class, modJar.toPath(), Stream.of(new Pair<>(helper.getFileName(), helper.addNestedJarsFunction(files))));
++			for (ModMetadataHelper.Metadata metadata : availableHelpers) {
++				ModMetadataHelper helper = metadata.getParent();
+ 
+-			Preconditions.checkState(count > 0, "Failed to transform fabric.mod.json");
++				int count = ZipUtils.transformJson(JsonObject.class, modJar.toPath(), Stream.of(new Pair<>(helper.getFileName(), helper.addNestedJarsFunction(files))));
++
++				Preconditions.checkState(count > 0, "Failed to transform {}", helper.getFileName());
++			}
+ 		} catch (IOException e) {
+ 			throw new java.io.UncheckedIOException("Failed to nest jars into " + modJar.getName(), e);
+ 		}
+diff --git a/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java b/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java
+index e3343e29dd5ad0eff926d48c52f5455cf32e5d9f..3e534b9e9ea255427d1f2b72297e7c8462f6f88e 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java
++++ b/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java
+@@ -94,7 +94,7 @@ public class FileDependencyInfo extends DependencyInfo {
+ 			File root = classifierToFile.get(""); //We've built the classifierToFile map, now to try find a name and version for our dependency
+ 			ModMetadataHelper.Metadata metadata;
+ 
+-			if ("jar".equals(FilenameUtils.getExtension(root.getName())) && (metadata = LoomGradleExtension.get(project).readMetadataFromJar(root)) != null) {
++			if ("jar".equals(FilenameUtils.getExtension(root.getName())) && (metadata = LoomGradleExtension.get(project).readMetadataFromDependency(root)) != null) {
+ 				// It has metadata we can parse; try to extract as much as we can out of it
+ 				String name;
+ 				name = metadata.getName();
+diff --git a/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java b/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
+index 054ff0d0d65348498e6db46d5a1652040c67d664..6be97e04078c0765245e32bff1ce0d3ad569415f 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
++++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
+@@ -31,7 +31,7 @@ import java.util.Arrays;
+ import java.util.Map;
+ import java.util.Objects;
+ 
+-import net.fabricmc.loom.api.metadata.MetadataPriorities;
++import net.fabricmc.loom.api.metadata.MetadataConfig;
+ import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.util.ModUtils;
+ import net.fabricmc.loom.util.ZipUtils;
+@@ -44,8 +44,8 @@ public record AccessWidenerFile(
+ 	/**
+ 	 * Reads the access-widener contained in a mod jar, or returns null if there is none.
+ 	 */
+-	public static AccessWidenerFile fromModJar(Map<String, ModMetadataHelper> helpers, MetadataPriorities priorities, Path modJarPath) {
+-		ModMetadataHelper.Metadata metadata = ModUtils.readMetadataFromJar(helpers, priorities, modJarPath.toFile());
++	public static AccessWidenerFile fromModJar(Map<String, ModMetadataHelper> helpers, MetadataConfig config, Path modJarPath) {
++		ModMetadataHelper.Metadata metadata = ModUtils.readMetadataFromJar(helpers, config, modJarPath.toFile());
+ 
+ 		if (metadata == null) {
+ 			return null;
+diff --git a/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerJarProcessor.java b/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerJarProcessor.java
+index b9bdb85071225a8c6ece29e9584339712f0895f6..d605c1efde9250058218d3c2c701f8af1356418e 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerJarProcessor.java
++++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/TransitiveAccessWidenerJarProcessor.java
+@@ -118,7 +118,8 @@ public class TransitiveAccessWidenerJarProcessor implements JarProcessor {
+ 				continue;
+ 			}
+ 
+-			AccessWidenerFile accessWidener = AccessWidenerFile.fromModJar(extension.getModMetadataHelpers().get(), extension.getMetadataPriorities().get(), path);
++			AccessWidenerFile accessWidener = AccessWidenerFile.fromModJar(extension.getModMetadataHelpers().get(),
++					extension.getDependencyMetadataConfig().get(), path);
+ 
+ 			if (accessWidener == null) {
+ 				continue;
+diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
+index b4219e6e604cf26d7b140cc072b6b93ec69c90d7..d7774eee52ffc86291c2822a2add17faf1535640 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
++++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
+@@ -189,7 +189,7 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+ 					.resolve();
+ 
+ 			for (File artifact : artifacts) {
+-				ModMetadataHelper.Metadata meta = extension.readMetadataFromJar(artifact);
++				ModMetadataHelper.Metadata meta = extension.readMetadataFromDependency(artifact);
+ 
+ 				if (meta == null) {
+ 					continue;
+diff --git a/src/main/java/net/fabricmc/loom/configuration/metadata/MetadataPrioritiesImpl.java b/src/main/java/net/fabricmc/loom/configuration/metadata/MetadataConfigImpl.java
+similarity index 55%
+rename from src/main/java/net/fabricmc/loom/configuration/metadata/MetadataPrioritiesImpl.java
+rename to src/main/java/net/fabricmc/loom/configuration/metadata/MetadataConfigImpl.java
+index 23049ec78396755ef6ff38da5505b5f88816819b..56c041290860e031376f605c5cbe4bd0e6368ed8 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/metadata/MetadataPrioritiesImpl.java
++++ b/src/main/java/net/fabricmc/loom/configuration/metadata/MetadataConfigImpl.java
+@@ -1,13 +1,15 @@
+ package net.fabricmc.loom.configuration.metadata;
+ 
+-import net.fabricmc.loom.api.metadata.MetadataPriorities;
++import net.fabricmc.loom.api.metadata.MetadataConfig;
+ 
+ import java.util.HashMap;
++import java.util.HashSet;
+ 
+-public class MetadataPrioritiesImpl implements MetadataPriorities {
++public class MetadataConfigImpl implements MetadataConfig {
+ 	private final HashMap<String, Integer> priorities = new HashMap<>();
++	private final HashSet<String> ignored = new HashSet<>();
+ 
+-	public MetadataPrioritiesImpl() {
++	public MetadataConfigImpl() {
+ 		priorities.put("quilt.mod.json", 1);
+ 		priorities.put("fabric.mod.json", 0);
+ 	}
+@@ -25,4 +27,14 @@ public class MetadataPrioritiesImpl implements MetadataPriorities {
+ 		}
+ 		return priority;
+ 	}
++
++	@Override
++	public void ignore(String filename) {
++		ignored.add(filename);
++	}
++
++	@Override
++	public boolean shouldProcess(String filename) {
++		return !ignored.contains(filename);
++	}
+ }
+diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/dependency/ModDependencyInfo.java b/src/main/java/net/fabricmc/loom/configuration/processors/dependency/ModDependencyInfo.java
+index f98a9fb5fe6d7a9ed7c004d284859a9573d3debf..7534255f0ffe8c5924258c18c1019dec4fef12ec 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/processors/dependency/ModDependencyInfo.java
++++ b/src/main/java/net/fabricmc/loom/configuration/processors/dependency/ModDependencyInfo.java
+@@ -31,6 +31,8 @@ import java.io.UncheckedIOException;
+ import java.nio.charset.StandardCharsets;
+ import java.nio.file.Path;
+ 
++import net.fabricmc.loom.configuration.ModMetadataHelper;
++
+ import org.apache.commons.io.FileUtils;
+ import org.gradle.api.artifacts.Configuration;
+ import org.jetbrains.annotations.Nullable;
+@@ -193,7 +195,15 @@ public class ModDependencyInfo {
+ 	}
+ 
+ 	private static AccessWidenerData tryReadAccessWidenerData(LoomGradleExtension ext, Path inputJar) throws IOException {
+-		String accessWidenerPath = ext.readMetadataFromJar(inputJar.toFile()).getAccessWidener();
++		ModMetadataHelper.Metadata metadata = ext.readMetadataFromDependency(inputJar.toFile());
++
++		if (metadata == null) {
++			// Metadata could be null if a dependency only supplies one kind of metadata and that kind of metadata is
++			// being ignored.
++			return null;
++		}
++
++		String accessWidenerPath = metadata.getAccessWidener();
+ 
+ 		if (accessWidenerPath == null) {
+ 			return null;
+diff --git a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
+index 63ad38462a63587baa3d14bb42d2d6b79ad4260e..4b8814629dc7d8fa291aefbf55c64d1909ec7929 100644
+--- a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
++++ b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
+@@ -44,12 +44,12 @@ import net.fabricmc.loom.api.ModSettings;
+ import net.fabricmc.loom.api.decompilers.DecompilerOptions;
+ import net.fabricmc.loom.api.mappings.intermediate.IntermediateMappingsProvider;
+ import net.fabricmc.loom.api.mappings.layered.spec.LayeredMappingSpecBuilder;
+-import net.fabricmc.loom.api.metadata.MetadataPriorities;
++import net.fabricmc.loom.api.metadata.MetadataConfig;
+ import net.fabricmc.loom.build.FabricModMetadataHelper;
+ import net.fabricmc.loom.build.QuiltModMetadataHelper;
+ import net.fabricmc.loom.configuration.ModMetadataHelper;
+ import net.fabricmc.loom.configuration.ide.RunConfigSettings;
+-import net.fabricmc.loom.configuration.metadata.MetadataPrioritiesImpl;
++import net.fabricmc.loom.configuration.metadata.MetadataConfigImpl;
+ import net.fabricmc.loom.configuration.mods.ModVersionParser;
+ import net.fabricmc.loom.configuration.processors.JarProcessor;
+ import net.fabricmc.loom.configuration.providers.mappings.GradleMappingContext;
+@@ -80,7 +80,8 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+ 	private final Property<Boolean> splitEnvironmentalSourceSet;
+ 	private final InterfaceInjectionExtensionAPI interfaceInjectionExtension;
+ 	private final MapProperty<String, ModMetadataHelper> modMetadataHelpers;
+-	private final Property<MetadataPriorities> metadataPriorities;
++	private final Property<MetadataConfig> metadataConfig;
++	private final Property<MetadataConfig> dependencyMetadataConfig;
+ 	private final ModVersionParser versionParser;
+ 
+ 	private final NamedDomainObjectContainer<RunConfigSettings> runConfigs;
+@@ -139,8 +140,10 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+ 		this.addModMetadataHelper(new QuiltModMetadataHelper());
+ 		this.modMetadataHelpers.finalizeValueOnRead();
+ 
+-		this.metadataPriorities = project.getObjects().property(MetadataPriorities.class).convention(new MetadataPrioritiesImpl());
+-		this.metadataPriorities.finalizeValueOnRead();
++		this.metadataConfig = project.getObjects().property(MetadataConfig.class).convention(new MetadataConfigImpl());
++		this.metadataConfig.finalizeValueOnRead();
++		this.dependencyMetadataConfig = project.getObjects().property(MetadataConfig.class).convention(new MetadataConfigImpl());
++		this.dependencyMetadataConfig.finalizeValueOnRead();
+ 
+ 		// Add main source set by default
+ 		interfaceInjection(interfaceInjection -> {
+@@ -197,13 +200,23 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+ 	}
+ 
+ 	@Override
+-	public void metadataPriorities(Action<MetadataPriorities> action) {
+-		action.execute(metadataPriorities.get());
++	public void metadataConfig(Action<MetadataConfig> action) {
++		action.execute(metadataConfig.get());
+ 	}
+ 
+ 	@Override
+-	public Property<MetadataPriorities> getMetadataPriorities() {
+-		return metadataPriorities;
++	public Property<MetadataConfig> getMetadataConfig() {
++		return metadataConfig;
++	}
++
++	@Override
++	public void dependencyMetadataConfig(Action<MetadataConfig> action) {
++		action.execute(dependencyMetadataConfig.get());
++	}
++
++	@Override
++	public Property<MetadataConfig> getDependencyMetadataConfig() {
++		return dependencyMetadataConfig;
+ 	}
+ 
+ 	@Override
+diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
+index 10629034c62d64be1a22b6be4d2e2ea72ae292a1..a9d1137aabf4806c57dff070d73d8006a700ae95 100644
+--- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
++++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
+@@ -48,7 +48,7 @@ import com.google.common.base.Preconditions;
+ import com.google.common.base.Suppliers;
+ import com.google.gson.JsonObject;
+ 
+-import net.fabricmc.loom.api.metadata.MetadataPriorities;
++import net.fabricmc.loom.api.metadata.MetadataConfig;
+ 
+ import org.gradle.api.artifacts.Configuration;
+ import org.gradle.api.file.ConfigurableFileCollection;
+@@ -143,7 +143,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+ 			final boolean legacyMixin = extension.getMixin().getUseLegacyMixinAp().get();
+ 			params.getUseMixinExtension().set(!legacyMixin);
+ 			params.getMetadataHelpers().set(extension.getModMetadataHelpers());
+-			params.getMetadataPriorities().set(extension.getMetadataPriorities());
++			params.getMetadataConfig().set(extension.getMetadataConfig());
+ 
+ 			if (legacyMixin) {
+ 				setupLegacyMixinRefmapRemapping(params);
+@@ -209,7 +209,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+ 		MapProperty<String, String> getManifestAttributes();
+ 		ListProperty<String> getClientOnlyClasses();
+ 		MapProperty<String, ModMetadataHelper> getMetadataHelpers();
+-		Property<MetadataPriorities> getMetadataPriorities();
++		Property<MetadataConfig> getMetadataConfig();
+ 	}
+ 
+ 	public abstract static class RemapAction extends AbstractRemapAction<RemapParams> {
+@@ -270,7 +270,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+ 		}
+ 
+ 		private void remapAccessWidener() throws IOException {
+-			final AccessWidenerFile accessWidenerFile = AccessWidenerFile.fromModJar(getParameters().getMetadataHelpers().get(), getParameters().getMetadataPriorities().get(), inputFile);
++			final AccessWidenerFile accessWidenerFile = AccessWidenerFile.fromModJar(getParameters().getMetadataHelpers().get(), getParameters().getMetadataConfig().get(), inputFile);
+ 
+ 			if (accessWidenerFile == null) {
+ 				return;
+@@ -306,7 +306,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+ 				return;
+ 			}
+ 
+-			JarNester.nestJars(this.getParameters().getMetadataHelpers().get(), this.getParameters().getMetadataPriorities().get(), nestedJars.getFiles(), outputFile.toFile(), LOGGER);
++			JarNester.nestJars(this.getParameters().getMetadataHelpers().get(), this.getParameters().getMetadataConfig().get(), nestedJars.getFiles(), outputFile.toFile(), LOGGER);
+ 		}
+ 
+ 		private void modifyJarManifest() throws IOException {
+diff --git a/src/main/java/net/fabricmc/loom/util/ModUtils.java b/src/main/java/net/fabricmc/loom/util/ModUtils.java
+index 97ac359a898c343c01e895c659efe778cdc58bce..1da236e9d5bebe10f511fb692a828e1067f72ec3 100644
+--- a/src/main/java/net/fabricmc/loom/util/ModUtils.java
++++ b/src/main/java/net/fabricmc/loom/util/ModUtils.java
+@@ -32,7 +32,7 @@ import java.util.Map;
+ import java.util.zip.ZipFile;
+ 
+ import net.fabricmc.loom.api.LoomGradleExtensionAPI;
+-import net.fabricmc.loom.api.metadata.MetadataPriorities;
++import net.fabricmc.loom.api.metadata.MetadataConfig;
+ import net.fabricmc.loom.configuration.ModMetadataHelper;
+ 
+ public final class ModUtils {
+@@ -51,17 +51,17 @@ public final class ModUtils {
+ 	 * @throws UnsupportedOperationException if the metadata that is found cannot be read.
+ 	 */
+ 	public static ModMetadataHelper.Metadata readMetadataFromJar(LoomGradleExtensionAPI ext, File jar) {
+-		return ModUtils.readMetadataFromJar(ext.getModMetadataHelpers().get(), ext.getMetadataPriorities().get(), jar);
++		return ModUtils.readMetadataFromJar(ext.getModMetadataHelpers().get(), ext.getMetadataConfig().get(), jar);
+ 	}
+ 
+ 	/**
+ 	 * @throws UnsupportedOperationException if the metadata that is found cannot be read.
+ 	 */
+-	public static ModMetadataHelper.Metadata readMetadataFromJar(Map<String, ModMetadataHelper> helpers, MetadataPriorities priorities, File jar) {
++	public static ModMetadataHelper.Metadata readMetadataFromJar(Map<String, ModMetadataHelper> helpers, MetadataConfig config, File jar) {
+ 		try (var zip = new ZipFile(jar)) {
+ 			List<String> entries = helpers.keySet()
+ 					.stream()
+-					.filter(name -> zip.getEntry(name) != null)
++					.filter(name -> zip.getEntry(name) != null && config.shouldProcess(name))
+ 					.toList();
+ 
+ 			if (entries.isEmpty()) {
+@@ -72,10 +72,10 @@ public final class ModUtils {
+ 			String fileName = entries.get(0);
+ 
+ 			if (entries.size() > 1) {
+-				int curPriority = priorities.getPriority(fileName);
++				int curPriority = config.getPriority(fileName);
+ 
+ 				for (String entry : entries) {
+-					int newPriority = priorities.getPriority(entry);
++					int newPriority = config.getPriority(entry);
+ 
+ 					if (newPriority > curPriority) {
+ 						curPriority = newPriority;
+@@ -91,4 +91,22 @@ public final class ModUtils {
+ 			throw new UnsupportedOperationException("Cannot read metadata in the jar.", e);
+ 		}
+ 	}
++
++	public static List<ModMetadataHelper.Metadata> readAllMetadatasFromJar(Map<String, ModMetadataHelper> helpers, MetadataConfig config, File jar) {
++		try (var zip = new ZipFile(jar)) {
++			return helpers.keySet()
++					.stream()
++					.filter(name -> zip.getEntry(name) != null && config.shouldProcess(name))
++					.map(name -> {
++						try (InputStreamReader reader = new InputStreamReader(zip.getInputStream(zip.getEntry(name)))) {
++							return helpers.get(name).createMetadata(reader);
++						} catch (IOException e) {
++							throw new UnsupportedOperationException("Cannot read metadata in the jar.", e);
++						}
++					})
++					.toList();
++		} catch (IOException e) {
++			throw new UnsupportedOperationException("Cannot read metadata in the jar.", e);
++		}
++	}
+ }
