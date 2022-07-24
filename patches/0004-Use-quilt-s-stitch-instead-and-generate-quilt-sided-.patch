@@ -1,0 +1,40 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AlexIIL <alexj9@me.com>
+Date: Fri, 15 Apr 2022 22:57:28 +0100
+Subject: [PATCH] Use quilt's stitch instead, and generate quilt sided
+ annotations instead of fabric's.
+
+See https://github.com/QuiltMC/quilt-loader/pull/63 for the relevant annotations, and https://github.com/QuiltMC/stitch/pull/5 for the relevant stitch changes.
+
+diff --git a/build.gradle b/build.gradle
+index 9203cc545b937b09c6f93450f45d7b5ae801e7df..015e06944fed091feedf38a4ee482e740c823f93 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -88,7 +88,7 @@ dependencies {
+ 	implementation ('org.ow2.asm:asm-util:9.2')
+ 
+ 	// game handling utils
+-	implementation ('net.fabricmc:stitch:0.6.1') {
++	implementation ('org.quiltmc:stitch:0.6.2') {
+ 		exclude module: 'enigma'
+ 	}
+ 
+@@ -356,4 +356,4 @@ task downloadGradleSources() {
+ 		println("Downloading (${url}) to (${gradleApiSources})")
+ 		gradleApiSources << new URL(url).newInputStream()
+ 	}
+-}
+\ No newline at end of file
++}
+diff --git a/src/main/java/net/fabricmc/loom/configuration/providers/minecraft/MergedMinecraftProvider.java b/src/main/java/net/fabricmc/loom/configuration/providers/minecraft/MergedMinecraftProvider.java
+index 54c3d89c28d2c0cfc31ac7103c921af0c4f9d81f..ff2b071860a10eac571ee798c585799d6ab85d1a 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/providers/minecraft/MergedMinecraftProvider.java
++++ b/src/main/java/net/fabricmc/loom/configuration/providers/minecraft/MergedMinecraftProvider.java
+@@ -90,6 +90,7 @@ public final class MergedMinecraftProvider extends MinecraftProvider {
+ 
+ 		try (JarMerger jarMerger = new JarMerger(getMinecraftClientJar(), jarToMerge, minecraftMergedJar.toFile())) {
+ 			jarMerger.enableSyntheticParamsOffset();
++			jarMerger.setUseQuiltAnnotations(true);
+ 			jarMerger.merge();
+ 		}
+ 	}
