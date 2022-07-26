@@ -1245,7 +1245,7 @@ index 60cd79322c210a99c8baf74c8649974a0d82c217..599188329eebc902180cf96ff20f3051
  import java.io.File;
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index b29002fe1f19c48f5a9642a0b49b194efc36b98e..b4219e6e604cf26d7b140cc072b6b93ec69c90d7 100644
+index f24ce79664295a73b81e50bb77bb2a5c11ce3095..d0dc98a32cecfe4a24320033ae031fc246c87ffd 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 @@ -24,11 +24,11 @@
@@ -1289,7 +1289,7 @@ index b29002fe1f19c48f5a9642a0b49b194efc36b98e..b4219e6e604cf26d7b140cc072b6b93e
  import net.fabricmc.loom.util.Pair;
  import net.fabricmc.loom.util.TinyRemapperHelper;
  import net.fabricmc.loom.util.ZipUtils;
-@@ -193,7 +189,13 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -194,7 +190,13 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  					.resolve();
  
  			for (File artifact : artifacts) {
@@ -1304,7 +1304,7 @@ index b29002fe1f19c48f5a9642a0b49b194efc36b98e..b4219e6e604cf26d7b140cc072b6b93e
  			}
  		}
  
-@@ -201,28 +203,19 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -202,28 +204,19 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  	}
  
  	private List<InjectedInterface> getSourceInjectedInterface(SourceSet sourceSet) {
@@ -1338,7 +1338,7 @@ index b29002fe1f19c48f5a9642a0b49b194efc36b98e..b4219e6e604cf26d7b140cc072b6b93e
  	}
  
  	@Override
-@@ -255,7 +248,7 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -256,7 +249,7 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  
  	private static String appendComment(String comment, List<InjectedInterface> injectedInterfaces) {
  		for (InjectedInterface injectedInterface : injectedInterfaces) {
@@ -1347,7 +1347,7 @@ index b29002fe1f19c48f5a9642a0b49b194efc36b98e..b4219e6e604cf26d7b140cc072b6b93e
  
  			if (comment == null || !comment.contains(iiComment)) {
  				if (comment == null) {
-@@ -269,49 +262,6 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -270,49 +263,6 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  		return comment;
  	}
  
