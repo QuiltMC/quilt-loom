@@ -11,18 +11,18 @@ This includes:
 - Using `quilt_installer.json`
 
 diff --git a/bootstrap/test-project/build.gradle b/bootstrap/test-project/build.gradle
-index 36767715d89bade0d2dacac4bfc44d0bd6482cb4..70c867068c34cce86826a07cafa6ef152c7c04cd 100644
+index 561915428a80131439ea9e1d9f12804c491d399a..db648181f772520d1607ce2510a66be1d00167c2 100644
 --- a/bootstrap/test-project/build.gradle
 +++ b/bootstrap/test-project/build.gradle
 @@ -1,5 +1,5 @@
  plugins {
--	id 'fabric-loom' version '0.12.local'
-+	id 'org.quiltmc.loom' version '0.12.local'
+-	id 'fabric-loom' version '0.13.local'
++	id 'org.quiltmc.loom' version '0.13.local'
  }
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index b378183e9c79f4eb5eafe7c08b6010336bc35449..68fb67ee287ef41d949e35ffcd6c48e46614a995 100644
+index ff96a6f3c04178def2ccc6110f6dfff263bfa10e..0e1a2857513fe54f976258a89847f65be2d4832a 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -32,7 +32,7 @@ index b378183e9c79f4eb5eafe7c08b6010336bc35449..68fb67ee287ef41d949e35ffcd6c48e4
 -group = 'net.fabricmc'
 +group = 'org.quiltmc'
  archivesBaseName = project.name
- def baseVersion = '0.12'
+ def baseVersion = '0.13'
  
 @@ -166,8 +166,8 @@ codenarc {
  
@@ -45,7 +45,7 @@ index b378183e9c79f4eb5eafe7c08b6010336bc35449..68fb67ee287ef41d949e35ffcd6c48e4
  			implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
  		}
  	}
-@@ -218,8 +218,8 @@ publishing {
+@@ -223,8 +223,8 @@ publishing {
  
  		// Manually crate the plugin marker for snapshot versions
  		snapshotPlugin(MavenPublication) { publication ->
@@ -56,7 +56,7 @@ index b378183e9c79f4eb5eafe7c08b6010336bc35449..68fb67ee287ef41d949e35ffcd6c48e4
  			version baseVersion + '-SNAPSHOT'
  
  			pom.withXml({
-@@ -229,9 +229,9 @@ publishing {
+@@ -234,9 +234,9 @@ publishing {
  				Node dependencies = root.appendChild(document.createElement('dependencies'))
  				Node dependency = dependencies.appendChild(document.createElement('dependency'))
  				Node groupId = dependency.appendChild(document.createElement('groupId'))
@@ -68,7 +68,7 @@ index b378183e9c79f4eb5eafe7c08b6010336bc35449..68fb67ee287ef41d949e35ffcd6c48e4
  				Node version = dependency.appendChild(document.createElement('version'))
  				version.setTextContent(baseVersion + '-SNAPSHOT')
  			})
-@@ -239,6 +239,7 @@ publishing {
+@@ -244,6 +244,7 @@ publishing {
  	}
  	repositories {
  		maven {
@@ -76,7 +76,7 @@ index b378183e9c79f4eb5eafe7c08b6010336bc35449..68fb67ee287ef41d949e35ffcd6c48e4
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -247,6 +248,27 @@ publishing {
+@@ -252,6 +253,27 @@ publishing {
  				}
  			}
  		}
@@ -119,10 +119,10 @@ index 31014b156127886c44921900f480e68d4528da25..ee1d4c3083cdb729df09522e88a41351
  kotlin.stdlib.default.dependency = false
 \ No newline at end of file
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-index 3544ffb17fb0c9b77dfb478abaca0cb9a801cc13..b1566881415ff4786386b5dc96db7128a39898d0 100644
+index a75b67fcbd76a74b9e6f4786dd5bc5e19690790b..49fc762edec712bec2f51cadd0dc95d0f7787c90 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-@@ -63,7 +63,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+@@ -62,7 +62,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
  	}
  
  	public void apply(Project project) {
@@ -130,12 +130,12 @@ index 3544ffb17fb0c9b77dfb478abaca0cb9a801cc13..b1566881415ff4786386b5dc96db7128
 +		project.getLogger().lifecycle("Quilt Loom: " + LOOM_VERSION);
  		LibraryLocationLogger.logLibraryVersions();
  
- 		refreshDeps = project.getGradle().getStartParameter().isRefreshDependencies() || Boolean.getBoolean("loom.refresh");
+ 		// Apply default plugins
 diff --git a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java b/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
-index a5dcb811fe4d034315bf6154df0124d0c7242c21..33ec74d0989643710d080628d2d6f7386425231d 100644
+index 22ce5a3cadb2c63f3a6af65743070b5989bb8b2b..e6752f6a57e3cb1039200d5d9d2873296a408e07 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
-@@ -85,7 +85,7 @@ public class LoomDependencyManager {
+@@ -83,7 +83,7 @@ public class LoomDependencyManager {
  		sourceRemapper.remapAll();
  
  		if (extension.getInstallerData() == null) {
@@ -144,7 +144,7 @@ index a5dcb811fe4d034315bf6154df0124d0c7242c21..33ec74d0989643710d080628d2d6f738
  		}
  
  		for (Runnable runnable : afterTasks) {
-@@ -95,7 +95,7 @@ public class LoomDependencyManager {
+@@ -93,7 +93,7 @@ public class LoomDependencyManager {
  
  	public static JsonObject readInstallerJson(File file) {
  		try {
@@ -239,10 +239,10 @@ index 30b1ea0fb56e2c313a76ac7a689e88ac1db304cd..13c9061fceb223093b5edeffb2b58a9c
  		}
  
 diff --git a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
-index 7ef9e10ae976365ecc6a0b07f55e8a117cbd089b..f886faaefa61c96b7f997104a29c12d115b357f9 100644
+index 4c069aea7852903f862a87b4da5d78b8237e7a46..1af2ca59d6ba87675aa74d1f2e1e3b4c7bc2442d 100644
 --- a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
-@@ -124,7 +124,7 @@ public class SourceRemapper {
+@@ -122,7 +122,7 @@ public class SourceRemapper {
  		if (!source.isDirectory()) {
  			// create tmp directory
  			isSrcTmp = true;
@@ -366,10 +366,10 @@ index ced58f6bbf2ec686dd59432b0972936d8e5e9e02..f0f35b03c13eb6ac7683e82d97f619f9
  
  			serverResult.successful()
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-index 4dcecedd4a565b655cdd5c697a3466c48ae60410..379fdd8ce2db8d80459b79eb544354309f6afae0 100644
+index c3dd4727a11158f712445f9910d78a09c2e397c2..521b24bc4f670718d738f6f2df5e1bbae499e385 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-@@ -240,7 +240,7 @@ trait GradleProjectTestTrait {
+@@ -247,7 +247,7 @@ trait GradleProjectTestTrait {
          }
  
          File getGeneratedLocalSources(String mappings) {
@@ -514,7 +514,7 @@ index c05e369995a4d8c5479de657d6c8ab52a6cba940..6b77297f004043508453a0907ea19bca
  
  dependencyResolutionManagement {
 diff --git a/src/test/resources/projects/interfaceInjection/build.gradle b/src/test/resources/projects/interfaceInjection/build.gradle
-index 52f1fc39f472e431795ddfe94cd85c6a01eade48..301cfe010e0dcff7226d980f2c2c69e5a589e702 100644
+index 2396f3c34efc5d82e7af392cfa52ef420e5735fd..83e677a053b55621c93b843c012f23e84b79e7d2 100644
 --- a/src/test/resources/projects/interfaceInjection/build.gradle
 +++ b/src/test/resources/projects/interfaceInjection/build.gradle
 @@ -1,7 +1,7 @@
@@ -533,9 +533,8 @@ index 52f1fc39f472e431795ddfe94cd85c6a01eade48..301cfe010e0dcff7226d980f2c2c69e5
 -	modImplementation "net.fabricmc:fabric-loader:0.11.6"
 +	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
  
- 	modImplementation files("dummy.jar")
- }
-\ No newline at end of file
+ 	// I-faces will still be applied as the jar is on both configurations.
+ 	modCompileOnly files("dummy.jar")
 diff --git a/src/test/resources/projects/java16/build.gradle b/src/test/resources/projects/java16/build.gradle
 index 45acf714efb54893e7867807d3bed47aa1a58223..e2bfaeebb5df8090259eb9d18ebdf28eddf66504 100644
 --- a/src/test/resources/projects/java16/build.gradle
@@ -778,7 +777,7 @@ index 60cb9a4f2c0b4fca94a187862c8a28afbb2a00cf..0925278e52f63aa39b68cf7aa6b51075
  # Mod Properties
  	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/mixinApSimple/build.gradle b/src/test/resources/projects/mixinApSimple/build.gradle
-index f641e66b1cc5919df2eb3356948d08a111c710eb..a55cf71651e8659025d84d862de6da0b3d94b0d0 100644
+index b21803ea86251da5162273226c5b38e3e4907f3f..c09ae75c545d4fb51d1a54fcd2437d3bfc8e7f9e 100644
 --- a/src/test/resources/projects/mixinApSimple/build.gradle
 +++ b/src/test/resources/projects/mixinApSimple/build.gradle
 @@ -1,5 +1,5 @@
@@ -867,7 +866,7 @@ index 2e85dfd8d7d617d3e8d5c71e0eeab4c93891edbf..970667432831ef16d900cbb1822786e6
  # Mod Properties
  	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/multiproject/build.gradle b/src/test/resources/projects/multiproject/build.gradle
-index 0a90269ad031fb7745140dcd80d3968bef40780e..e0e56e1f27702139b417c6961b02e1ed47ce41bf 100644
+index 62858e2f46a1c7d4e7cbc5fe7337bb90961c8490..f9fc1afa54be944b364d021cd4dc007bfac4f84a 100644
 --- a/src/test/resources/projects/multiproject/build.gradle
 +++ b/src/test/resources/projects/multiproject/build.gradle
 @@ -1,11 +1,11 @@

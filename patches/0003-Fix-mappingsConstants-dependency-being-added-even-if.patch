@@ -7,10 +7,10 @@ Subject: [PATCH] Fix mappingsConstants dependency being added even if already
 Implements https://github.com/FabricMC/fabric-loom/pull/605
 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingsProviderImpl.java b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingsProviderImpl.java
-index 7c02ee4db932c7b1bdac526ac87fcd0689d702c1..cca25457820bbcc2e9821521576504de5d900fb8 100644
+index c780a8cc63ced2e7dba8704104e7a0b5a069e727..e14c160c61bf3b4fa01d41759e9e3f44e4cff22d 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingsProviderImpl.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingsProviderImpl.java
-@@ -158,13 +158,19 @@ public class MappingsProviderImpl implements MappingsProvider, SharedService {
+@@ -159,13 +159,19 @@ public class MappingsProviderImpl implements MappingsProvider, SharedService {
  
  	public void applyToProject(Project project, DependencyInfo dependency) {
  		if (hasUnpickDefinitions()) {

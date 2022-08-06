@@ -6,7 +6,7 @@ Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
 Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
 
 diff --git a/build.gradle b/build.gradle
-index 68fb67ee287ef41d949e35ffcd6c48e46614a995..e8df8b81c691a1f7431fc1771ccb161d73f7df58 100644
+index 0e1a2857513fe54f976258a89847f65be2d4832a..48cfffba04c18bc3afe41dbdcbb0d0bf1e1d3944 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -44,6 +44,11 @@ repositories {
@@ -19,11 +19,11 @@ index 68fb67ee287ef41d949e35ffcd6c48e46614a995..e8df8b81c691a1f7431fc1771ccb161d
 +	}
 +	gradlePluginPortal()
  	mavenCentral()
- 	mavenLocal()
  }
+ 
 @@ -108,6 +113,14 @@ dependencies {
  	// Kapt integration
- 	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31') // Must match the version included with gradle.
+ 	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10') // Must match the version included with gradle.
  
 +	// Plugins we apply
 +	implementation("io.github.juuxel:loom-quiltflower:1.7.3") {
@@ -37,11 +37,11 @@ index 68fb67ee287ef41d949e35ffcd6c48e46614a995..e8df8b81c691a1f7431fc1771ccb161d
  	testImplementation(gradleTestKit())
  	testImplementation('org.spockframework:spock-core:2.1-groovy-3.0') {
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-index b1566881415ff4786386b5dc96db7128a39898d0..67209a2005680f71219011d1b74106e25640311e 100644
+index 49fc762edec712bec2f51cadd0dc95d0f7787c90..969db77e44263f58bd0fa40b6e08e0b7be3efd8f 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-@@ -51,7 +51,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
- 	public static boolean refreshDeps;
+@@ -50,7 +50,7 @@ import net.fabricmc.loom.util.LibraryLocationLogger;
+ public class LoomGradlePlugin implements BootstrappedPlugin {
  	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
  	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 -	public static final String LOOM_VERSION = Objects.requireNonNullElse(LoomGradlePlugin.class.getPackage().getImplementationVersion(), "0.0.0+unknown");
@@ -49,7 +49,7 @@ index b1566881415ff4786386b5dc96db7128a39898d0..67209a2005680f71219011d1b74106e2
  
  	@Override
  	public void apply(PluginAware target) {
-@@ -88,5 +88,8 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+@@ -81,5 +81,8 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
  		LoomTasks.registerTasks(project);
  		DecompilerConfiguration.setup(project);
  		IdeaConfiguration.setup(project);
@@ -59,7 +59,7 @@ index b1566881415ff4786386b5dc96db7128a39898d0..67209a2005680f71219011d1b74106e2
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
-index 2301f575ce5ac42c6cb062a194d85f214d387082..b522d14fd654157632884c3812393e9a6d657adb 100644
+index c0da3e8dabbd1a3419ca12a66ffc5f9652ccd1dc..d029ace8a701453b2603b270e810fec97e53c816 100644
 --- a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
 @@ -70,7 +70,10 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
@@ -88,10 +88,10 @@ index 9555e1d40dc11488d62608273b888769dc3227e6..99f05da4d42141ca41187a2cae3f517d
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
-index c8a302293f0fef7b3d0a4673b441ec0d3c531c9a..3571e286a95fc4bd95648e325730ab45e130879c 100644
+index f5e694ea750ab9b3c67a2946146cd105908ecc8c..61dbece8cb5ee52bb468cf2ecd7d3375937d2f3a 100644
 --- a/src/main/java/net/fabricmc/loom/util/Constants.java
 +++ b/src/main/java/net/fabricmc/loom/util/Constants.java
-@@ -40,6 +40,7 @@ public class Constants {
+@@ -33,6 +33,7 @@ public class Constants {
  	public static final String VERSION_MANIFESTS = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
  	public static final String EXPERIMENTAL_VERSIONS = "https://maven.fabricmc.net/net/minecraft/experimental_versions.json";
  	public static final String FABRIC_REPOSITORY = "https://maven.fabricmc.net/";
