@@ -22,7 +22,7 @@ index 561915428a80131439ea9e1d9f12804c491d399a..db648181f772520d1607ce2510a66be1
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index 4c8e1cc5cc4e60ef0873bcdbfd5e3b8fcc06c4c1..7e829457c8c7272a2fefeb8ea51d3a2a07bf469f 100644
+index b9a24c948551c0fc4563caa889da8d4763471a91..65e0232085682b78bffda4c8821e16f180926471 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -32,7 +32,7 @@ index 4c8e1cc5cc4e60ef0873bcdbfd5e3b8fcc06c4c1..7e829457c8c7272a2fefeb8ea51d3a2a
 -group = 'net.fabricmc'
 +group = 'org.quiltmc'
  archivesBaseName = project.name
- def baseVersion = '0.13'
+ def baseVersion = '1.0'
  
 @@ -170,8 +170,8 @@ codenarc {
  
