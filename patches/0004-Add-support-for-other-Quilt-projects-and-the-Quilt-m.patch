@@ -6,7 +6,7 @@ Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
 Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
 
 diff --git a/build.gradle b/build.gradle
-index 0e1a2857513fe54f976258a89847f65be2d4832a..48cfffba04c18bc3afe41dbdcbb0d0bf1e1d3944 100644
+index 7e829457c8c7272a2fefeb8ea51d3a2a07bf469f..9550a7f8ce1b106ea778c63ee3ddd69fe6be426d 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -44,6 +44,11 @@ repositories {
@@ -75,7 +75,7 @@ index c0da3e8dabbd1a3419ca12a66ffc5f9652ccd1dc..d029ace8a701453b2603b270e810fec9
  			repo.setName("Mojang");
  			repo.setUrl(MirrorUtil.getLibrariesBase(target));
 diff --git a/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java
-index 9555e1d40dc11488d62608273b888769dc3227e6..99f05da4d42141ca41187a2cae3f517dae060bda 100644
+index 6e4bed4c3fcfa6fca81cd8541234d609e6c028d1..d1511ee6b27c1ad37ff9a2f2efa90d5a9df65805 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java
 @@ -80,7 +80,7 @@ public class SingleJarDecompileConfiguration extends DecompileConfiguration<Mapp

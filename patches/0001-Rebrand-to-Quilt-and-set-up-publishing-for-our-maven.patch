@@ -22,7 +22,7 @@ index 561915428a80131439ea9e1d9f12804c491d399a..db648181f772520d1607ce2510a66be1
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index ff96a6f3c04178def2ccc6110f6dfff263bfa10e..0e1a2857513fe54f976258a89847f65be2d4832a 100644
+index 4c8e1cc5cc4e60ef0873bcdbfd5e3b8fcc06c4c1..7e829457c8c7272a2fefeb8ea51d3a2a07bf469f 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -34,7 +34,7 @@ index ff96a6f3c04178def2ccc6110f6dfff263bfa10e..0e1a2857513fe54f976258a89847f65b
  archivesBaseName = project.name
  def baseVersion = '0.13'
  
-@@ -166,8 +166,8 @@ codenarc {
+@@ -170,8 +170,8 @@ codenarc {
  
  gradlePlugin {
  	plugins {
@@ -45,7 +45,7 @@ index ff96a6f3c04178def2ccc6110f6dfff263bfa10e..0e1a2857513fe54f976258a89847f65b
  			implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
  		}
  	}
-@@ -223,8 +223,8 @@ publishing {
+@@ -227,8 +227,8 @@ publishing {
  
  		// Manually crate the plugin marker for snapshot versions
  		snapshotPlugin(MavenPublication) { publication ->
@@ -56,7 +56,7 @@ index ff96a6f3c04178def2ccc6110f6dfff263bfa10e..0e1a2857513fe54f976258a89847f65b
  			version baseVersion + '-SNAPSHOT'
  
  			pom.withXml({
-@@ -234,9 +234,9 @@ publishing {
+@@ -238,9 +238,9 @@ publishing {
  				Node dependencies = root.appendChild(document.createElement('dependencies'))
  				Node dependency = dependencies.appendChild(document.createElement('dependency'))
  				Node groupId = dependency.appendChild(document.createElement('groupId'))
@@ -68,7 +68,7 @@ index ff96a6f3c04178def2ccc6110f6dfff263bfa10e..0e1a2857513fe54f976258a89847f65b
  				Node version = dependency.appendChild(document.createElement('version'))
  				version.setTextContent(baseVersion + '-SNAPSHOT')
  			})
-@@ -244,6 +244,7 @@ publishing {
+@@ -248,6 +248,7 @@ publishing {
  	}
  	repositories {
  		maven {
@@ -76,7 +76,7 @@ index ff96a6f3c04178def2ccc6110f6dfff263bfa10e..0e1a2857513fe54f976258a89847f65b
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -252,6 +253,27 @@ publishing {
+@@ -256,6 +257,27 @@ publishing {
  				}
  			}
  		}

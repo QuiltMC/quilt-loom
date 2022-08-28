@@ -59,10 +59,10 @@ index 5a3cfbd337827f0fe4df2971ef68b3e169ae6b9f..30caf442a8650cebb11daeea280671a5
  	 *
  	 * @return the list property containing the {@link SourceSet}
 diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-index 82bb2341898fd0ff1e05d157099940aaad61e044..18cb0f84a070c425f151864b0ecb04a2fa14b107 100644
+index 693f1d55b51965416208a8a27e07fdc391f0741f..5b8b42580c5351f6ae27e58b376c9c7a6e729361 100644
 --- a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 +++ b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.Dependency;
+@@ -34,6 +34,7 @@ import org.gradle.api.artifacts.Dependency;
  import org.gradle.api.file.ConfigurableFileCollection;
  import org.gradle.api.file.RegularFileProperty;
  import org.gradle.api.provider.ListProperty;
@@ -70,7 +70,7 @@ index 82bb2341898fd0ff1e05d157099940aaad61e044..18cb0f84a070c425f151864b0ecb04a2
  import org.gradle.api.provider.Property;
  import org.gradle.api.publish.maven.MavenPublication;
  import org.gradle.api.tasks.SourceSet;
-@@ -41,6 +42,8 @@ import org.jetbrains.annotations.ApiStatus;
+@@ -42,6 +43,8 @@ import org.jetbrains.annotations.ApiStatus;
  import net.fabricmc.loom.api.decompilers.DecompilerOptions;
  import net.fabricmc.loom.api.mappings.intermediate.IntermediateMappingsProvider;
  import net.fabricmc.loom.api.mappings.layered.spec.LayeredMappingSpecBuilder;
@@ -79,7 +79,7 @@ index 82bb2341898fd0ff1e05d157099940aaad61e044..18cb0f84a070c425f151864b0ecb04a2
  import net.fabricmc.loom.configuration.ide.RunConfigSettings;
  import net.fabricmc.loom.configuration.processors.JarProcessor;
  import net.fabricmc.loom.configuration.providers.mappings.NoOpIntermediateMappingsProvider;
-@@ -66,6 +69,16 @@ public interface LoomGradleExtensionAPI {
+@@ -68,6 +71,16 @@ public interface LoomGradleExtensionAPI {
  		getGameJarProcessors().add(processor);
  	}
  
@@ -96,7 +96,7 @@ index 82bb2341898fd0ff1e05d157099940aaad61e044..18cb0f84a070c425f151864b0ecb04a2
  	ConfigurableFileCollection getLog4jConfigs();
  
  	Dependency officialMojangMappings();
-@@ -124,10 +137,10 @@ public interface LoomGradleExtensionAPI {
+@@ -126,10 +139,10 @@ public interface LoomGradleExtensionAPI {
  	void disableDeprecatedPomGeneration(MavenPublication publication);
  
  	/**
@@ -1087,7 +1087,7 @@ diff --git a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDe
 similarity index 98%
 rename from src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
 rename to src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java
-index ccaf627d9952c4b8aada19042299ec16127cdef8..9555e1d40dc11488d62608273b888769dc3227e6 100644
+index 782da7096a0eb1a9b604e77adf1a4fe1fb24a243..6e4bed4c3fcfa6fca81cd8541234d609e6c028d1 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java
 @@ -22,7 +22,7 @@
@@ -1103,7 +1103,7 @@ diff --git a/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecomp
 similarity index 98%
 rename from src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java
 rename to src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SplitDecompileConfiguration.java
-index 817dba8ed1b5bce9d0b572beeee8ecb43efdaf19..e7ed1a499dc08fa5214bee8179cbd660639cfb37 100644
+index deb2982d3bdaafc1fc8a131873c76e3d68455c23..2edab5f6c70c64a3de51875e22410ee216bfbed2 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SplitDecompileConfiguration.java
 @@ -22,7 +22,7 @@
@@ -1116,7 +1116,7 @@ index 817dba8ed1b5bce9d0b572beeee8ecb43efdaf19..e7ed1a499dc08fa5214bee8179cbd660
  import java.io.File;
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index 305a7648e9798f6633c3724f2d32b5a6cc8381dc..653a91715ee1723edc908b01957233fa4e03af9e 100644
+index 033211390944bb090942ed7d8f167bacb244e158..600a85603d7302a7e1dff54efae10848c2a20880 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 @@ -24,11 +24,11 @@
@@ -1160,7 +1160,7 @@ index 305a7648e9798f6633c3724f2d32b5a6cc8381dc..653a91715ee1723edc908b01957233fa
  import net.fabricmc.loom.util.Pair;
  import net.fabricmc.loom.util.TinyRemapperHelper;
  import net.fabricmc.loom.util.ZipUtils;
-@@ -195,33 +191,24 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -193,33 +189,24 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  		return extension.getCompileRemapConfigurations().stream()
  				.flatMap(resolve)
  				.filter(runtimeEntries::contains) // Use the intersection of the two configurations.
@@ -1200,7 +1200,7 @@ index 305a7648e9798f6633c3724f2d32b5a6cc8381dc..653a91715ee1723edc908b01957233fa
  	}
  
  	@Override
-@@ -254,7 +241,7 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -252,7 +239,7 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  
  	private static String appendComment(String comment, List<InjectedInterface> injectedInterfaces) {
  		for (InjectedInterface injectedInterface : injectedInterfaces) {
@@ -1209,7 +1209,7 @@ index 305a7648e9798f6633c3724f2d32b5a6cc8381dc..653a91715ee1723edc908b01957233fa
  
  			if (comment == null || !comment.contains(iiComment)) {
  				if (comment == null) {
-@@ -268,49 +255,6 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -266,49 +253,6 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  		return comment;
  	}
  
@@ -1458,10 +1458,10 @@ index 48a4ca9cf0be251c00f3328b615303ff6dfe44cc..9d6901af75e8e6e057735b2d5317c63d
  import net.fabricmc.loom.configuration.providers.minecraft.mapped.IntermediaryMinecraftProvider;
  import net.fabricmc.loom.configuration.providers.minecraft.mapped.MappedMinecraftProvider;
 diff --git a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
-index a083272d04535300ce4ba1190945e9ad861ace3e..a5e6abf1f0d3e92abd67af3d846bcaf9510070ff 100644
+index abfc70bdc6b7ab6e99a4bb4b2b5df173f660b2d2..8a3ec738fe0ffcca17dfd8734cf2e67dabf498fd 100644
 --- a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
 +++ b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
-@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.Dependency;
+@@ -34,6 +34,7 @@ import org.gradle.api.artifacts.Dependency;
  import org.gradle.api.file.ConfigurableFileCollection;
  import org.gradle.api.file.RegularFileProperty;
  import org.gradle.api.provider.ListProperty;
@@ -1469,7 +1469,7 @@ index a083272d04535300ce4ba1190945e9ad861ace3e..a5e6abf1f0d3e92abd67af3d846bcaf9
  import org.gradle.api.provider.Property;
  import org.gradle.api.publish.maven.MavenPublication;
  import org.gradle.api.tasks.SourceSet;
-@@ -46,6 +47,11 @@ import net.fabricmc.loom.api.mappings.intermediate.IntermediateMappingsProvider;
+@@ -49,6 +50,11 @@ import net.fabricmc.loom.api.mappings.intermediate.IntermediateMappingsProvider;
  import net.fabricmc.loom.api.mappings.layered.spec.LayeredMappingSpecBuilder;
  import net.fabricmc.loom.configuration.RemapConfigurations;
  import net.fabricmc.loom.configuration.ide.RunConfigSettings;
@@ -1481,7 +1481,7 @@ index a083272d04535300ce4ba1190945e9ad861ace3e..a5e6abf1f0d3e92abd67af3d846bcaf9
  import net.fabricmc.loom.configuration.processors.JarProcessor;
  import net.fabricmc.loom.configuration.providers.mappings.GradleMappingContext;
  import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingSpec;
-@@ -74,7 +80,8 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+@@ -78,7 +84,8 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  	private final Property<MinecraftJarConfiguration> minecraftJarConfiguration;
  	private final Property<Boolean> splitEnvironmentalSourceSet;
  	private final InterfaceInjectionExtensionAPI interfaceInjectionExtension;
@@ -1491,7 +1491,7 @@ index a083272d04535300ce4ba1190945e9ad861ace3e..a5e6abf1f0d3e92abd67af3d846bcaf9
  	private final ModVersionParser versionParser;
  
  	private final NamedDomainObjectContainer<RunConfigSettings> runConfigs;
-@@ -130,6 +137,14 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+@@ -134,6 +141,14 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  		this.splitEnvironmentalSourceSet = project.getObjects().property(Boolean.class).convention(false);
  		this.splitEnvironmentalSourceSet.finalizeValueOnRead();
  
@@ -1506,7 +1506,7 @@ index a083272d04535300ce4ba1190945e9ad861ace3e..a5e6abf1f0d3e92abd67af3d846bcaf9
  		// Add main source set by default
  		interfaceInjection(interfaceInjection -> {
  			final SourceSet main = SourceSetHelper.getMainSourceSet(project);
-@@ -174,6 +189,20 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+@@ -178,6 +193,20 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  		return layered(LayeredMappingSpecBuilder::officialMojangMappings);
  	}
  
