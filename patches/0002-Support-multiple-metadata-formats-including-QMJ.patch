@@ -5,6 +5,8 @@ Subject: [PATCH] Support multiple metadata formats, including QMJ
 
 Co-authored-by: Kneelawk <kneelawk@gmail.com>
 
+fix reading access wideners
+
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradleExtension.java b/src/main/java/net/fabricmc/loom/LoomGradleExtension.java
 index 72546cdb6255dbbd7dae478e6b0dd50616d7f9f7..aafeeb9644d51c024500301bed42074f36c01408 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradleExtension.java
@@ -1319,6 +1321,57 @@ index 0000000000000000000000000000000000000000..83b15f333ae7a75658878fa9a91173a6
 +		return priority;
 +	}
 +}
+diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java b/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
+index 3f463919bddc185f2567ac00f5a3df888ed3f148..731977f8924cd23f592ea935578c04ced8db2a16 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
++++ b/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
+@@ -25,16 +25,21 @@
+ package net.fabricmc.loom.configuration.mods;
+ 
+ import java.io.IOException;
+-import java.nio.charset.StandardCharsets;
+ import java.nio.file.Path;
++import java.util.Map;
++
++import com.google.common.base.Preconditions;
++
++import net.fabricmc.loom.api.metadata.MetadataPriorities;
++import net.fabricmc.loom.configuration.ModMetadataHelper;
++
++import net.fabricmc.loom.util.ModUtils;
+ 
+-import com.google.gson.JsonObject;
+ import org.objectweb.asm.commons.Remapper;
+ 
+ import net.fabricmc.accesswidener.AccessWidenerReader;
+ import net.fabricmc.accesswidener.AccessWidenerRemapper;
+ import net.fabricmc.accesswidener.AccessWidenerWriter;
+-import net.fabricmc.loom.LoomGradlePlugin;
+ import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+ import net.fabricmc.loom.util.ZipUtils;
+ 
+@@ -57,15 +62,16 @@ public class AccessWidenerUtils {
+ 		return writer.write();
+ 	}
+ 
+-	public static AccessWidenerData readAccessWidenerData(Path inputJar) throws IOException {
+-		byte[] modJsonBytes = ZipUtils.unpack(inputJar, "fabric.mod.json");
+-		JsonObject jsonObject = LoomGradlePlugin.GSON.fromJson(new String(modJsonBytes, StandardCharsets.UTF_8), JsonObject.class);
++	public static AccessWidenerData readAccessWidenerData(Map<String, ModMetadataHelper> helpers, MetadataPriorities priorities, Path inputJar) throws IOException {
++		Preconditions.checkArgument(ModUtils.isMod(helpers, inputJar), "Cannot nest jars into non-mod jar " + inputJar.toFile().getName());
++
++		ModMetadataHelper.Metadata metadata = ModUtils.readMetadataFromJar(helpers, priorities, inputJar.toFile());
++		String accessWidenerPath = metadata.getAccessWidener();
+ 
+-		if (!jsonObject.has("accessWidener")) {
++		if (accessWidenerPath == null) {
+ 			return null;
+ 		}
+ 
+-		String accessWidenerPath = jsonObject.get("accessWidener").getAsString();
+ 		byte[] accessWidener = ZipUtils.unpack(inputJar, accessWidenerPath);
+ 		AccessWidenerReader.Header header = AccessWidenerReader.readHeader(accessWidener);
+ 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 index 3f9f8bceb89b80709bd72eab4af0df5aa3a9bdb1..0b54c0de003db7da6fc76c6bc9c0cf2a20e580cb 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
@@ -1333,7 +1386,7 @@ index 3f9f8bceb89b80709bd72eab4af0df5aa3a9bdb1..0b54c0de003db7da6fc76c6bc9c0cf2a
  						continue;
  					}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
-index a5998ff8cb7c47ccfc2bd8b697771f85855896e7..eea1ed8aff7d977327607386cd482802851efa56 100644
+index a5998ff8cb7c47ccfc2bd8b697771f85855896e7..e542fc576a660446f545992311a54aade1a92eae 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 @@ -43,6 +43,7 @@ import org.gradle.api.artifacts.Configuration;
@@ -1367,6 +1420,15 @@ index a5998ff8cb7c47ccfc2bd8b697771f85855896e7..eea1ed8aff7d977327607386cd482802
  		} catch (IOException e) {
  			throw new UncheckedIOException("Failed to strip nested jars from %s".formatted(path), e);
  		}
+@@ -151,7 +156,7 @@ public class ModProcessor {
+ 					outputConsumer.addNonClassFiles(dependency.getInputFile(), NonClassCopyMode.FIX_META_INF, remapper);
+ 					outputConsumerMap.put(dependency, outputConsumer);
+ 
+-					final AccessWidenerUtils.AccessWidenerData accessWidenerData = AccessWidenerUtils.readAccessWidenerData(dependency.getInputFile());
++					final AccessWidenerUtils.AccessWidenerData accessWidenerData = AccessWidenerUtils.readAccessWidenerData(extension.getModMetadataHelpers().get(), extension.getMetadataPriorities().get(), dependency.getInputFile());
+ 
+ 					if (accessWidenerData != null) {
+ 						project.getLogger().debug("Remapping access widener in {}", dependency.getInputFile());
 @@ -182,7 +187,7 @@ public class ModProcessor {
  				ZipUtils.replace(output, accessWidener.right(), accessWidener.left());
  			}
