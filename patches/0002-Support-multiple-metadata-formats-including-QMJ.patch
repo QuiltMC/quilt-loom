@@ -1169,7 +1169,7 @@ index 033211390944bb090942ed7d8f167bacb244e158..600a85603d7302a7e1dff54efae10848
 -				.flatMap(path -> InjectedInterface.fromModJar(path).stream())
 +				.map(path -> extension.readMetadataFromJar(path.toFile()))
 +				.filter(data -> data != null)
-+				.flatMap(data.getInjectedInterfaces().stream())
++				.flatMap(data -> data.getInjectedInterfaces().stream())
  				.toList();
  	}
  
