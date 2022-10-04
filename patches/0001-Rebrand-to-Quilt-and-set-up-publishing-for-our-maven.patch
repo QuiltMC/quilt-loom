@@ -22,10 +22,10 @@ index 561915428a80131439ea9e1d9f12804c491d399a..db648181f772520d1607ce2510a66be1
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index b9a24c948551c0fc4563caa889da8d4763471a91..65e0232085682b78bffda4c8821e16f180926471 100644
+index 9c18bf1f61ab67c0ed5307d3c6b1784b985951a6..e3c488a5b8265f4841a67cb7b8d60cc9b8b325d3 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -28,7 +28,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+@@ -29,7 +29,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
  	}
  }
  
@@ -45,7 +45,7 @@ index b9a24c948551c0fc4563caa889da8d4763471a91..65e0232085682b78bffda4c8821e16f1
  			implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
  		}
  	}
-@@ -227,8 +227,8 @@ publishing {
+@@ -234,8 +234,8 @@ publishing {
  
  		// Manually crate the plugin marker for snapshot versions
  		snapshotPlugin(MavenPublication) { publication ->
@@ -56,7 +56,7 @@ index b9a24c948551c0fc4563caa889da8d4763471a91..65e0232085682b78bffda4c8821e16f1
  			version baseVersion + '-SNAPSHOT'
  
  			pom.withXml({
-@@ -238,9 +238,9 @@ publishing {
+@@ -245,9 +245,9 @@ publishing {
  				Node dependencies = root.appendChild(document.createElement('dependencies'))
  				Node dependency = dependencies.appendChild(document.createElement('dependency'))
  				Node groupId = dependency.appendChild(document.createElement('groupId'))
@@ -68,7 +68,7 @@ index b9a24c948551c0fc4563caa889da8d4763471a91..65e0232085682b78bffda4c8821e16f1
  				Node version = dependency.appendChild(document.createElement('version'))
  				version.setTextContent(baseVersion + '-SNAPSHOT')
  			})
-@@ -248,6 +248,7 @@ publishing {
+@@ -255,6 +255,7 @@ publishing {
  	}
  	repositories {
  		maven {
@@ -76,7 +76,7 @@ index b9a24c948551c0fc4563caa889da8d4763471a91..65e0232085682b78bffda4c8821e16f1
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -256,6 +257,27 @@ publishing {
+@@ -263,6 +264,27 @@ publishing {
  				}
  			}
  		}
@@ -366,10 +366,10 @@ index ced58f6bbf2ec686dd59432b0972936d8e5e9e02..f0f35b03c13eb6ac7683e82d97f619f9
  
  			serverResult.successful()
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-index c3dd4727a11158f712445f9910d78a09c2e397c2..521b24bc4f670718d738f6f2df5e1bbae499e385 100644
+index 7cf121b72cc82fb3683e451b6445db631ccc1cc6..8de24317875a50aa8c5c759871a02cd341053ba8 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-@@ -247,7 +247,7 @@ trait GradleProjectTestTrait {
+@@ -248,7 +248,7 @@ trait GradleProjectTestTrait {
          }
  
          File getGeneratedLocalSources(String mappings) {

@@ -1118,7 +1118,7 @@ index deb2982d3bdaafc1fc8a131873c76e3d68455c23..2edab5f6c70c64a3de51875e22410ee2
  import java.io.File;
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index 033211390944bb090942ed7d8f167bacb244e158..600a85603d7302a7e1dff54efae10848c2a20880 100644
+index 033211390944bb090942ed7d8f167bacb244e158..4c31146968ab7e6cd3f895a87f6e0695b1868620 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 @@ -24,11 +24,11 @@
@@ -1204,7 +1204,7 @@ index 033211390944bb090942ed7d8f167bacb244e158..600a85603d7302a7e1dff54efae10848
  	}
  
  	@Override
-@@ -252,7 +239,7 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -252,7 +241,7 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  
  	private static String appendComment(String comment, List<InjectedInterface> injectedInterfaces) {
  		for (InjectedInterface injectedInterface : injectedInterfaces) {
@@ -1213,7 +1213,7 @@ index 033211390944bb090942ed7d8f167bacb244e158..600a85603d7302a7e1dff54efae10848
  
  			if (comment == null || !comment.contains(iiComment)) {
  				if (comment == null) {
-@@ -266,49 +253,6 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -266,49 +255,6 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
  		return comment;
  	}
  
@@ -1522,7 +1522,7 @@ index 48a4ca9cf0be251c00f3328b615303ff6dfe44cc..9d6901af75e8e6e057735b2d5317c63d
  import net.fabricmc.loom.configuration.providers.minecraft.mapped.IntermediaryMinecraftProvider;
  import net.fabricmc.loom.configuration.providers.minecraft.mapped.MappedMinecraftProvider;
 diff --git a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
-index abfc70bdc6b7ab6e99a4bb4b2b5df173f660b2d2..8a3ec738fe0ffcca17dfd8734cf2e67dabf498fd 100644
+index af111e9fddd0e67616073f78960d87d8c4f2d00d..72e2eabe268f71457ebed355dd5d3f5b9f174a8b 100644
 --- a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
 +++ b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
 @@ -34,6 +34,7 @@ import org.gradle.api.artifacts.Dependency;
@@ -1890,10 +1890,10 @@ index f6214aed8a99b99af52dcca76d78a36c2cf29213..8bfbc8c69cdcbf60b3f73dada8e12b03
  		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(zip, false);
  				Stream<Path> walk = Files.walk(fs.get().getPath("/"))) {
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-index 521b24bc4f670718d738f6f2df5e1bbae499e385..d2684c0fa8023bdff7ce8fe85e4a11594ce62eeb 100644
+index 8de24317875a50aa8c5c759871a02cd341053ba8..0d56ff40457c9b2a31225fdd1278388d27f8fb77 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-@@ -243,7 +243,7 @@ trait GradleProjectTestTrait {
+@@ -244,7 +244,7 @@ trait GradleProjectTestTrait {
          }
  
          File getGeneratedSources(String mappings) {
