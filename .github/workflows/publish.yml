@@ -6,9 +6,9 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - uses: gradle/wrapper-validation-action@v1
@@ -22,9 +22,10 @@ jobs:
           prefix: ${{ github.ref }}
       - run: git config --global user.email "nobody@example.com"
       - run: git config --global user.name "Nobody"
-      - name: setup jdk
-        uses: actions/setup-java@v1
+      - name: Setup JDK
+        uses: actions/setup-java@v3
         with:
+          distribution: 'temurin'
           java-version: 17
       - run: ./gradlew applyPatches
       - run: ./gradlew build publish -x check -x test --stacktrace
