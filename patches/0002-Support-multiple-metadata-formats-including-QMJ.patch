@@ -1324,25 +1324,19 @@ index 0000000000000000000000000000000000000000..83b15f333ae7a75658878fa9a91173a6
 +	}
 +}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java b/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
-index 3f463919bddc185f2567ac00f5a3df888ed3f148..731977f8924cd23f592ea935578c04ced8db2a16 100644
+index 3f463919bddc185f2567ac00f5a3df888ed3f148..a02d5de4dff6b74cd4e1f05e13c1ec9f5bb5b338 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
-@@ -25,16 +25,21 @@
+@@ -25,17 +25,19 @@
  package net.fabricmc.loom.configuration.mods;
  
  import java.io.IOException;
 -import java.nio.charset.StandardCharsets;
  import java.nio.file.Path;
 +import java.util.Map;
-+
-+import com.google.common.base.Preconditions;
-+
-+import net.fabricmc.loom.api.metadata.MetadataPriorities;
-+import net.fabricmc.loom.configuration.ModMetadataHelper;
-+
-+import net.fabricmc.loom.util.ModUtils;
  
 -import com.google.gson.JsonObject;
++import com.google.common.base.Preconditions;
  import org.objectweb.asm.commons.Remapper;
  
  import net.fabricmc.accesswidener.AccessWidenerReader;
@@ -1350,9 +1344,13 @@ index 3f463919bddc185f2567ac00f5a3df888ed3f148..731977f8924cd23f592ea935578c04ce
  import net.fabricmc.accesswidener.AccessWidenerWriter;
 -import net.fabricmc.loom.LoomGradlePlugin;
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
++import net.fabricmc.loom.api.metadata.MetadataPriorities;
++import net.fabricmc.loom.configuration.ModMetadataHelper;
++import net.fabricmc.loom.util.ModUtils;
  import net.fabricmc.loom.util.ZipUtils;
  
-@@ -57,15 +62,16 @@ public class AccessWidenerUtils {
+ public class AccessWidenerUtils {
+@@ -57,15 +59,16 @@ public class AccessWidenerUtils {
  		return writer.write();
  	}
  
@@ -1361,11 +1359,11 @@ index 3f463919bddc185f2567ac00f5a3df888ed3f148..731977f8924cd23f592ea935578c04ce
 -		JsonObject jsonObject = LoomGradlePlugin.GSON.fromJson(new String(modJsonBytes, StandardCharsets.UTF_8), JsonObject.class);
 +	public static AccessWidenerData readAccessWidenerData(Map<String, ModMetadataHelper> helpers, MetadataPriorities priorities, Path inputJar) throws IOException {
 +		Preconditions.checkArgument(ModUtils.isMod(helpers, inputJar), "Cannot nest jars into non-mod jar " + inputJar.toFile().getName());
-+
-+		ModMetadataHelper.Metadata metadata = ModUtils.readMetadataFromJar(helpers, priorities, inputJar.toFile());
-+		String accessWidenerPath = metadata.getAccessWidener();
  
 -		if (!jsonObject.has("accessWidener")) {
++		ModMetadataHelper.Metadata metadata = ModUtils.readMetadataFromJar(helpers, priorities, inputJar.toFile());
++		String accessWidenerPath = metadata.getAccessWidener();
++
 +		if (accessWidenerPath == null) {
  			return null;
  		}
@@ -1441,7 +1439,7 @@ index a5998ff8cb7c47ccfc2bd8b697771f85855896e7..e542fc576a660446f545992311a54aad
  			dependency.copyToCache(project, output, null);
  		}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java b/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
-index b06447fe6660f3664a2febcdde0897840e15df33..f17a6c683593fa79a3c72bd45b3dda962faa4fd3 100644
+index b06447fe6660f3664a2febcdde0897840e15df33..04e46fc3c88146de4a2c650b7fff49126b0507b8 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
 @@ -35,7 +35,6 @@ import java.util.ArrayList;
@@ -1452,15 +1450,17 @@ index b06447fe6660f3664a2febcdde0897840e15df33..f17a6c683593fa79a3c72bd45b3dda96
  import org.gradle.api.Project;
  import org.jetbrains.annotations.Nullable;
  import org.slf4j.Logger;
-@@ -44,6 +43,7 @@ import org.slf4j.LoggerFactory;
+@@ -44,8 +43,8 @@ import org.slf4j.LoggerFactory;
  import net.fabricmc.loom.LoomGradleExtension;
  import net.fabricmc.loom.api.RemapConfigurationSettings;
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
 +import net.fabricmc.loom.configuration.ModMetadataHelper;
  import net.fabricmc.loom.task.GenerateSourcesTask;
- import net.fabricmc.loom.util.Constants;
+-import net.fabricmc.loom.util.Constants;
  import net.fabricmc.loom.util.ModUtils;
-@@ -70,14 +70,14 @@ public final class ModJavadocProcessor implements JarProcessor, GenerateSourcesT
+ import net.fabricmc.loom.util.ZipUtils;
+ import net.fabricmc.mappingio.MappingReader;
+@@ -70,14 +69,14 @@ public final class ModJavadocProcessor implements JarProcessor, GenerateSourcesT
  			final Set<File> artifacts = entry.getSourceConfiguration().get().resolve();
  
  			for (File artifact : artifacts) {
@@ -1477,7 +1477,7 @@ index b06447fe6660f3664a2febcdde0897840e15df33..f17a6c683593fa79a3c72bd45b3dda96
  				} catch (IOException e) {
  					throw new UncheckedIOException("Failed to read mod jar (%s)".formatted(artifact), e);
  				}
-@@ -120,21 +120,15 @@ public final class ModJavadocProcessor implements JarProcessor, GenerateSourcesT
+@@ -120,21 +119,15 @@ public final class ModJavadocProcessor implements JarProcessor, GenerateSourcesT
  
  	public record ModJavadoc(String modId, MemoryMappingTree mappingTree) {
  		@Nullable
@@ -1672,7 +1672,7 @@ index 0ded46291e053224f91e053ecd5a70c25e2720a2..c56f83fcd0f59dcd38a8ca048bb35823
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index 5fc7a01f24dcd788c7feac507c3b3f5f984c8a26..1139bfb0b86f07de97e1071c072cad9d5aa87fcc 100644
+index 5fc7a01f24dcd788c7feac507c3b3f5f984c8a26..056cbf281f1c3d1a8eaad70fe1c20d852caa33ac 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 @@ -45,6 +45,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
@@ -1683,7 +1683,7 @@ index 5fc7a01f24dcd788c7feac507c3b3f5f984c8a26..1139bfb0b86f07de97e1071c072cad9d
  import org.gradle.api.provider.Property;
  import org.gradle.api.tasks.Input;
  import org.gradle.api.tasks.InputFiles;
-@@ -58,9 +59,10 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
+@@ -58,16 +59,16 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
  import net.fabricmc.accesswidener.AccessWidenerRemapper;
  import net.fabricmc.accesswidener.AccessWidenerWriter;
  import net.fabricmc.loom.LoomGradleExtension;
@@ -1695,7 +1695,14 @@ index 5fc7a01f24dcd788c7feac507c3b3f5f984c8a26..1139bfb0b86f07de97e1071c072cad9d
  import net.fabricmc.loom.configuration.accesswidener.AccessWidenerFile;
  import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
  import net.fabricmc.loom.extension.MixinExtension;
-@@ -127,6 +129,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+ import net.fabricmc.loom.task.service.TinyRemapperService;
+ import net.fabricmc.loom.util.Constants;
+ import net.fabricmc.loom.util.ExceptionUtil;
+-import net.fabricmc.loom.util.ModUtils;
+ import net.fabricmc.loom.util.Pair;
+ import net.fabricmc.loom.util.SidedClassVisitor;
+ import net.fabricmc.loom.util.ZipUtils;
+@@ -127,6 +128,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  
  			final boolean legacyMixin = extension.getMixin().getUseLegacyMixinAp().get();
  			params.getUseMixinExtension().set(!legacyMixin);
@@ -1704,7 +1711,7 @@ index 5fc7a01f24dcd788c7feac507c3b3f5f984c8a26..1139bfb0b86f07de97e1071c072cad9d
  
  			if (legacyMixin) {
  				setupLegacyMixinRefmapRemapping(params);
-@@ -138,14 +142,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -138,14 +141,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  		final LoomGradleExtension extension = LoomGradleExtension.get(getProject());
  		final MixinExtension mixinExtension = extension.getMixin();
  
@@ -1723,7 +1730,7 @@ index 5fc7a01f24dcd788c7feac507c3b3f5f984c8a26..1139bfb0b86f07de97e1071c072cad9d
  
  		for (SourceSet sourceSet : mixinExtension.getMixinSourceSets()) {
  			MixinExtension.MixinInformationContainer container = Objects.requireNonNull(
-@@ -177,6 +181,10 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -177,6 +180,10 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  		ListProperty<RefmapData> getMixinData();
  
  		Property<String> getTinyRemapperBuildServiceUuid();
@@ -1734,7 +1741,7 @@ index 5fc7a01f24dcd788c7feac507c3b3f5f984c8a26..1139bfb0b86f07de97e1071c072cad9d
  	}
  
  	public abstract static class RemapAction extends AbstractRemapAction<RemapParams> {
-@@ -237,7 +245,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -237,7 +244,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  		}
  
  		private void remapAccessWidener() throws IOException {
@@ -1743,7 +1750,7 @@ index 5fc7a01f24dcd788c7feac507c3b3f5f984c8a26..1139bfb0b86f07de97e1071c072cad9d
  
  			if (accessWidenerFile == null) {
  				return;
-@@ -273,7 +281,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -273,7 +280,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  				return;
  			}
  
