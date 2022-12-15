@@ -30,7 +30,7 @@ index 969db77e44263f58bd0fa40b6e08e0b7be3efd8f..fcb8e99d9bfc1dc2838013b11b0bbde5
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-index 5b8b42580c5351f6ae27e58b376c9c7a6e729361..bedcc2e28843d429cac240aedf2e0388b44aa27d 100644
+index 76886a5a99a26e68fa351896f4c49ed6001293d7..8bb8dc22916aabb77a4da8e6c17711baf6fba9ce 100644
 --- a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 +++ b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 @@ -216,4 +216,10 @@ public interface LoomGradleExtensionAPI {
