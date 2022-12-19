@@ -6,7 +6,7 @@ Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
 Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
 
 diff --git a/build.gradle b/build.gradle
-index e3c488a5b8265f4841a67cb7b8d60cc9b8b325d3..c5e4f00e65af2e931750ac7b01692755db1983df 100644
+index 66d4a06aabbb0e9f67a7ba4bcfac063d386b7129..5c07981fec76fae0bc1511983e56f6ea7c084890 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -45,6 +45,11 @@ repositories {
@@ -88,17 +88,17 @@ index 6e4bed4c3fcfa6fca81cd8541234d609e6c028d1..d1511ee6b27c1ad37ff9a2f2efa90d5a
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
-index f5e694ea750ab9b3c67a2946146cd105908ecc8c..61dbece8cb5ee52bb468cf2ecd7d3375937d2f3a 100644
+index 63e94443c091f3b313ba08a3b8877f90cf9d123b..3d8d22486c16212fc5999de77d3e5244f7ae139c 100644
 --- a/src/main/java/net/fabricmc/loom/util/Constants.java
 +++ b/src/main/java/net/fabricmc/loom/util/Constants.java
-@@ -33,6 +33,7 @@ public class Constants {
+@@ -32,6 +32,7 @@ public class Constants {
  	public static final String VERSION_MANIFESTS = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
  	public static final String EXPERIMENTAL_VERSIONS = "https://maven.fabricmc.net/net/minecraft/experimental_versions.json";
  	public static final String FABRIC_REPOSITORY = "https://maven.fabricmc.net/";
 +	public static final String QUILT_REPOSITORY = "https://maven.quiltmc.org/repository/release/";
  
  	public static final int ASM_VERSION = Opcodes.ASM9;
- 	public static final String MERCURY_SOURCE_VERSION = JavaCore.VERSION_17;
+ 	public static final String MERCURY_SOURCE_VERSION = "17";
 diff --git a/src/main/java/net/fabricmc/loom/util/MirrorUtil.java b/src/main/java/net/fabricmc/loom/util/MirrorUtil.java
 index 3350a985f73e403f086a2a988283cbe4644d0cc2..eef1cd42b1e53497012165e1580c6199600f2f04 100644
 --- a/src/main/java/net/fabricmc/loom/util/MirrorUtil.java
