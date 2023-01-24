@@ -5,32 +5,26 @@ Subject: [PATCH] Fix interface injection of inner class interfaces
 
 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index ea0a7327246fe1da86ad80a4342e3f2299988541..5c616c6ad025780d2354646daeb4952c468ed6c3 100644
+index ea0a7327246fe1da86ad80a4342e3f2299988541..4a2cf669fea5fe1198660fa54b31e9056fe78b88 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-@@ -28,6 +28,8 @@ import java.io.IOException;
+@@ -28,6 +28,7 @@ import java.io.IOException;
  import java.nio.file.Path;
  import java.util.ArrayList;
  import java.util.Collections;
-+import java.util.HashMap;
 +import java.util.HashSet;
  import java.util.LinkedHashSet;
  import java.util.List;
  import java.util.Map;
-@@ -46,6 +48,8 @@ import org.objectweb.asm.ClassVisitor;
+@@ -44,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
+ import org.objectweb.asm.ClassReader;
+ import org.objectweb.asm.ClassVisitor;
  import org.objectweb.asm.ClassWriter;
++import org.objectweb.asm.Opcodes;
  import org.slf4j.Logger;
  import org.slf4j.LoggerFactory;
-+import org.objectweb.asm.Opcodes;
-+import org.objectweb.asm.commons.Remapper;
  
- import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
- import net.fabricmc.loom.api.processor.MinecraftJarProcessor;
-@@ -57,9 +61,11 @@ import net.fabricmc.loom.util.ZipUtils;
- import net.fabricmc.loom.util.fmj.FabricModJson;
- import net.fabricmc.mappingio.tree.MappingTree;
- import net.fabricmc.mappingio.tree.MemoryMappingTree;
-+import net.fabricmc.tinyremapper.TinyRemapper;
+@@ -60,6 +62,7 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
  
  public abstract class InterfaceInjectionProcessor implements MinecraftJarProcessor<InterfaceInjectionProcessor.Spec> {
  	private static final Logger LOGGER = LoggerFactory.getLogger(InterfaceInjectionProcessor.class);
@@ -38,7 +32,7 @@ index ea0a7327246fe1da86ad80a4342e3f2299988541..5c616c6ad025780d2354646daeb4952c
  
  	private final String name;
  	private final boolean fromDependencies;
-@@ -173,14 +179,18 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
+@@ -173,14 +176,18 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  	}
  
  	private static String appendComment(String comment, List<InjectedInterface> injectedInterfaces) {
@@ -62,7 +56,7 @@ index ea0a7327246fe1da86ad80a4342e3f2299988541..5c616c6ad025780d2354646daeb4952c
  				}
  			}
  		}
-@@ -222,6 +232,7 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
+@@ -222,6 +229,7 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  
  	private static class InjectingClassVisitor extends ClassVisitor {
  		private final List<InjectedInterface> injectedInterfaces;
@@ -70,7 +64,7 @@ index ea0a7327246fe1da86ad80a4342e3f2299988541..5c616c6ad025780d2354646daeb4952c
  
  		InjectingClassVisitor(int asmVersion, ClassWriter writer, List<InjectedInterface> injectedInterfaces) {
  			super(asmVersion, writer);
-@@ -254,5 +265,53 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
+@@ -254,5 +262,53 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  
  			super.visit(version, access, name, signature, superName, modifiedInterfaces.toArray(new String[0]));
  		}
