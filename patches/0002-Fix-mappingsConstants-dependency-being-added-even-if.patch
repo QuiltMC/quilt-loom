@@ -6,11 +6,11 @@ Subject: [PATCH] Fix mappingsConstants dependency being added even if already
 
 Implements https://github.com/FabricMC/fabric-loom/pull/605
 
-diff --git a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingsProviderImpl.java b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingsProviderImpl.java
-index c780a8cc63ced2e7dba8704104e7a0b5a069e727..e14c160c61bf3b4fa01d41759e9e3f44e4cff22d 100644
---- a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingsProviderImpl.java
-+++ b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingsProviderImpl.java
-@@ -159,13 +159,19 @@ public class MappingsProviderImpl implements MappingsProvider, SharedService {
+diff --git a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingConfiguration.java
+index 5cf477755e4666e91c86a27f361f22653ab405a1..c775059042d32d5347d6a794a97b90508924c22e 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingConfiguration.java
++++ b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingConfiguration.java
+@@ -141,13 +141,19 @@ public class MappingConfiguration {
  
  	public void applyToProject(Project project, DependencyInfo dependency) {
  		if (hasUnpickDefinitions()) {

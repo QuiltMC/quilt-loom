@@ -5,42 +5,48 @@ Subject: [PATCH] Fix interface injection of inner class interfaces
 
 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index 4c31146968ab7e6cd3f895a87f6e0695b1868620..4af6494b672a60ee9c69ebaa3a3939f9adc2c894 100644
+index ea0a7327246fe1da86ad80a4342e3f2299988541..5c616c6ad025780d2354646daeb4952c468ed6c3 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-@@ -33,6 +33,7 @@ import java.nio.file.Path;
+@@ -28,6 +28,8 @@ import java.io.IOException;
+ import java.nio.file.Path;
  import java.util.ArrayList;
  import java.util.Collections;
- import java.util.HashMap;
++import java.util.HashMap;
 +import java.util.HashSet;
  import java.util.LinkedHashSet;
  import java.util.List;
  import java.util.Map;
-@@ -49,6 +50,7 @@ import org.gradle.api.tasks.SourceSet;
- import org.objectweb.asm.ClassReader;
- import org.objectweb.asm.ClassVisitor;
+@@ -46,6 +48,8 @@ import org.objectweb.asm.ClassVisitor;
  import org.objectweb.asm.ClassWriter;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
 +import org.objectweb.asm.Opcodes;
- import org.objectweb.asm.commons.Remapper;
++import org.objectweb.asm.commons.Remapper;
  
- import net.fabricmc.loom.LoomGradleExtension;
-@@ -70,6 +72,7 @@ import net.fabricmc.tinyremapper.TinyRemapper;
- public class InterfaceInjectionProcessor implements JarProcessor, GenerateSourcesTask.MappingsProcessor {
- 	// Filename used to store hash of injected interfaces in processed jar file
- 	private static final String HASH_FILENAME = "injected_interfaces.sha256";
+ import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+ import net.fabricmc.loom.api.processor.MinecraftJarProcessor;
+@@ -57,9 +61,11 @@ import net.fabricmc.loom.util.ZipUtils;
+ import net.fabricmc.loom.util.fmj.FabricModJson;
+ import net.fabricmc.mappingio.tree.MappingTree;
+ import net.fabricmc.mappingio.tree.MemoryMappingTree;
++import net.fabricmc.tinyremapper.TinyRemapper;
+ 
+ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcessor<InterfaceInjectionProcessor.Spec> {
+ 	private static final Logger LOGGER = LoggerFactory.getLogger(InterfaceInjectionProcessor.class);
 +	private static final int INTERFACE_ACCESS = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE;
  
- 	private final Map<String, List<InjectedInterface>> injectedInterfaces;
- 	private final Project project;
-@@ -240,14 +243,18 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+ 	private final String name;
+ 	private final boolean fromDependencies;
+@@ -173,14 +179,18 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  	}
  
  	private static String appendComment(String comment, List<InjectedInterface> injectedInterfaces) {
 +		final StringBuilder commentBuilder = comment == null ? new StringBuilder() : new StringBuilder(comment);
 +
  		for (InjectedInterface injectedInterface : injectedInterfaces) {
--			String iiComment = "Interface {@link %s} injected by mod %s".formatted(injectedInterface.ifaceName().substring(injectedInterface.ifaceName().lastIndexOf("/") + 1), injectedInterface.modId());
-+			String iiComment = "<p>Interface {@link %s} injected by mod %s</p>".formatted(injectedInterface.ifaceName().replace('/', '.').replace('$', '.'), injectedInterface.modId());
+-			String iiComment = "Interface {@link %s} injected by mod %s".formatted(injectedInterface.ifaceName.substring(injectedInterface.ifaceName.lastIndexOf("/") + 1), injectedInterface.modId);
++			String iiComment = "<p>Interface {@link %s} injected by mod %s</p>".formatted(injectedInterface.ifaceName.replace('/', '.').replace('$', '.'), injectedInterface.modId);
  
 -			if (comment == null || !comment.contains(iiComment)) {
 -				if (comment == null) {
@@ -56,7 +62,7 @@ index 4c31146968ab7e6cd3f895a87f6e0695b1868620..4af6494b672a60ee9c69ebaa3a3939f9
  				}
  			}
  		}
-@@ -257,6 +264,7 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -222,6 +232,7 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  
  	private static class InjectingClassVisitor extends ClassVisitor {
  		private final List<InjectedInterface> injectedInterfaces;
@@ -64,7 +70,7 @@ index 4c31146968ab7e6cd3f895a87f6e0695b1868620..4af6494b672a60ee9c69ebaa3a3939f9
  
  		InjectingClassVisitor(int asmVersion, ClassWriter writer, List<InjectedInterface> injectedInterfaces) {
  			super(asmVersion, writer);
-@@ -289,6 +297,54 @@ public class InterfaceInjectionProcessor implements JarProcessor, GenerateSource
+@@ -254,5 +265,53 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  
  			super.visit(version, access, name, signature, superName, modifiedInterfaces.toArray(new String[0]));
  		}
@@ -117,5 +123,4 @@ index 4c31146968ab7e6cd3f895a87f6e0695b1868620..4af6494b672a60ee9c69ebaa3a3939f9
 +			super.visitEnd();
 +		}
  	}
- 
- 	private TinyRemapper createTinyRemapper() {
+ }

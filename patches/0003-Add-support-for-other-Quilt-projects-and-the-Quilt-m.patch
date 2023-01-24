@@ -6,10 +6,10 @@ Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
 Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
 
 diff --git a/build.gradle b/build.gradle
-index 66d4a06aabbb0e9f67a7ba4bcfac063d386b7129..5c07981fec76fae0bc1511983e56f6ea7c084890 100644
+index 1c80c3c8b75a347daab1b6f6f5e81de778c47e8f..55fdffead0075b4cd50eb60e92a092324fa98eb2 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -45,6 +45,11 @@ repositories {
+@@ -39,6 +39,11 @@ repositories {
  		name = 'Fabric'
  		url = 'https://maven.fabricmc.net/'
  	}
@@ -21,7 +21,7 @@ index 66d4a06aabbb0e9f67a7ba4bcfac063d386b7129..5c07981fec76fae0bc1511983e56f6ea
  	mavenCentral()
  }
  
-@@ -108,6 +113,14 @@ dependencies {
+@@ -102,6 +107,14 @@ dependencies {
  	// Kapt integration
  	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10') // Must match the version included with gradle.
  
@@ -35,7 +35,7 @@ index 66d4a06aabbb0e9f67a7ba4bcfac063d386b7129..5c07981fec76fae0bc1511983e56f6ea
 +
  	// Testing
  	testImplementation(gradleTestKit())
- 	testImplementation('org.spockframework:spock-core:2.1-groovy-3.0') {
+ 	testImplementation('org.spockframework:spock-core:2.3-groovy-3.0') {
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 index 49fc762edec712bec2f51cadd0dc95d0f7787c90..969db77e44263f58bd0fa40b6e08e0b7be3efd8f 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
@@ -59,10 +59,10 @@ index 49fc762edec712bec2f51cadd0dc95d0f7787c90..969db77e44263f58bd0fa40b6e08e0b7
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
-index c0da3e8dabbd1a3419ca12a66ffc5f9652ccd1dc..d029ace8a701453b2603b270e810fec97e53c816 100644
+index ca1311363a102aee2da03eafc48f0559775bde02..ce1b24c25722fde8905e35bf9d33f4b069185dba 100644
 --- a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
-@@ -70,7 +70,10 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
+@@ -67,7 +67,10 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
  			repo.setName("Fabric");
  			repo.setUrl(MirrorUtil.getFabricRepository(target));
  		});
@@ -74,11 +74,11 @@ index c0da3e8dabbd1a3419ca12a66ffc5f9652ccd1dc..d029ace8a701453b2603b270e810fec9
  		MavenArtifactRepository mojangRepo = repositories.maven(repo -> {
  			repo.setName("Mojang");
  			repo.setUrl(MirrorUtil.getLibrariesBase(target));
-diff --git a/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java
-index 6e4bed4c3fcfa6fca81cd8541234d609e6c028d1..d1511ee6b27c1ad37ff9a2f2efa90d5a9df65805 100644
---- a/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java
-+++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/decompile/SingleJarDecompileConfiguration.java
-@@ -80,7 +80,7 @@ public class SingleJarDecompileConfiguration extends DecompileConfiguration<Mapp
+diff --git a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
+index 6fa25b5c570d6db178453bfa386fd863fdcfc490..19aff2ffffab39c5a870050bc9697f5fa39c495c 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
++++ b/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
+@@ -79,7 +79,7 @@ public class SingleJarDecompileConfiguration extends DecompileConfiguration<Mapp
  			task.setDescription("Decompile minecraft using the default decompiler.");
  			task.setGroup(Constants.TaskGroup.FABRIC);
  
@@ -88,7 +88,7 @@ index 6e4bed4c3fcfa6fca81cd8541234d609e6c028d1..d1511ee6b27c1ad37ff9a2f2efa90d5a
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
-index 63e94443c091f3b313ba08a3b8877f90cf9d123b..3d8d22486c16212fc5999de77d3e5244f7ae139c 100644
+index 2c62174ecd61136dd3ec9fbb1e8d250f7301f703..dac67ef72306738af834423fcfe75006d3dec5ed 100644
 --- a/src/main/java/net/fabricmc/loom/util/Constants.java
 +++ b/src/main/java/net/fabricmc/loom/util/Constants.java
 @@ -32,6 +32,7 @@ public class Constants {
@@ -98,7 +98,7 @@ index 63e94443c091f3b313ba08a3b8877f90cf9d123b..3d8d22486c16212fc5999de77d3e5244
 +	public static final String QUILT_REPOSITORY = "https://maven.quiltmc.org/repository/release/";
  
  	public static final int ASM_VERSION = Opcodes.ASM9;
- 	public static final String MERCURY_SOURCE_VERSION = "17";
+ 
 diff --git a/src/main/java/net/fabricmc/loom/util/MirrorUtil.java b/src/main/java/net/fabricmc/loom/util/MirrorUtil.java
 index 3350a985f73e403f086a2a988283cbe4644d0cc2..eef1cd42b1e53497012165e1580c6199600f2f04 100644
 --- a/src/main/java/net/fabricmc/loom/util/MirrorUtil.java
