@@ -144,6 +144,29 @@ index b41b39bf86c6bfcd8c600eb70d160d801e66f510..7d52086caedb771641e5355abddb3cb8
  		}
  	}
  }
+diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
+index 024a35c8843e8f866f3885a1414124854bfe97ef..c927a45b190944c80574eb82405ad2e96dc3089f 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
++++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
+@@ -42,7 +42,7 @@ import net.fabricmc.loom.util.FileSystemUtil;
+ import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
+ 
+ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData) {
+-	private static final String INSTALLER_PATH = "fabric-installer.json";
++	private static final String INSTALLER_PATH = "quilt_installer.json";
+ 	private static final String MANIFEST_PATH = "META-INF/MANIFEST.MF";
+ 	private static final String MANIFEST_REMAP_KEY = "Fabric-Loom-Remap";
+ 
+@@ -52,7 +52,8 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
+ 		InstallerData installerData = null;
+ 
+ 		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(artifact.path())) {
+-			isFabricMod = FabricModJsonFactory.containsMod(fs);
++			// isFabricMod = FabricModJsonFactory.containsMod(fs);
++			isFabricMod = true; // TODO Quilt: Temporary, until QMJ reading is re-supported
+ 			final Path manifestPath = fs.getPath(MANIFEST_PATH);
+ 
+ 			if (Files.exists(manifestPath)) {
 diff --git a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
 index d7f0c469b92b3acfb24a623306f8d63bf44eafbe..12f19648c39d6eec91d8bd09cdd3400aadac3ca3 100644
 --- a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
@@ -681,7 +704,7 @@ index 845c356072dbb73ddb31b97826e8cb4fbaf138e0..c01c88366c6038008ee1d2f668b63bc2
  # Mod Properties
  	maven_group = com.example
 diff --git a/src/test/resources/projects/maven/build.gradle b/src/test/resources/projects/maven/build.gradle
-index 0b19a3addd2b7f9e4dd18d9d3c9f0cd143be5296..31388aa4502daf927fddde416d781130fa6fcf2c 100644
+index 2c3e3786ffb233a2d4e355d21918552a067bf2da..9b9b0d46cfe04f46987ad135ba95b5de047e495c 100644
 --- a/src/test/resources/projects/maven/build.gradle
 +++ b/src/test/resources/projects/maven/build.gradle
 @@ -1,5 +1,5 @@
@@ -691,14 +714,14 @@ index 0b19a3addd2b7f9e4dd18d9d3c9f0cd143be5296..31388aa4502daf927fddde416d781130
  	id 'maven-publish'
  }
  
-@@ -19,7 +19,7 @@ repositories {
+@@ -24,7 +24,7 @@ configurations {
  dependencies {
  	minecraft "com.mojang:minecraft:1.16.5"
  	mappings "net.fabricmc:yarn:1.16.5+build.5:v2"
 -	modImplementation "net.fabricmc:fabric-loader:0.11.2"
 +	modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
  
- 	modImplementation System.getProperty("loom.test.resolve")
+ 	testConfig System.getProperty("loom.test.resolve")
  }
 diff --git a/src/test/resources/projects/mavenLibrary/build.gradle b/src/test/resources/projects/mavenLibrary/build.gradle
 index 0001e2b7dd835ce6e1ef90415bb373563ec8e823..eb3d45b9780c05557162ffefe0cd8c8ec23a37c4 100644
