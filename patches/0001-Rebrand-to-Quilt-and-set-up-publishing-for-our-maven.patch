@@ -145,14 +145,11 @@ index b41b39bf86c6bfcd8c600eb70d160d801e66f510..7d52086caedb771641e5355abddb3cb8
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-index 024a35c8843e8f866f3885a1414124854bfe97ef..805d584355e937cdf49a45c27c4ebbb6405428ff 100644
+index 024a35c8843e8f866f3885a1414124854bfe97ef..7274912e12820e697991389626d5bda87ddd1162 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-@@ -39,10 +39,9 @@ import org.jetbrains.annotations.Nullable;
- import net.fabricmc.loom.LoomGradlePlugin;
- import net.fabricmc.loom.configuration.InstallerData;
- import net.fabricmc.loom.util.FileSystemUtil;
--import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
+@@ -42,7 +42,7 @@ import net.fabricmc.loom.util.FileSystemUtil;
+ import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
  
  public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData) {
 -	private static final String INSTALLER_PATH = "fabric-installer.json";
@@ -160,16 +157,6 @@ index 024a35c8843e8f866f3885a1414124854bfe97ef..805d584355e937cdf49a45c27c4ebbb6
  	private static final String MANIFEST_PATH = "META-INF/MANIFEST.MF";
  	private static final String MANIFEST_REMAP_KEY = "Fabric-Loom-Remap";
  
-@@ -52,7 +51,8 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
- 		InstallerData installerData = null;
- 
- 		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(artifact.path())) {
--			isFabricMod = FabricModJsonFactory.containsMod(fs);
-+			// isFabricMod = FabricModJsonFactory.containsMod(fs);
-+			isFabricMod = true; // TODO Quilt: Temporary, until QMJ reading is re-supported
- 			final Path manifestPath = fs.getPath(MANIFEST_PATH);
- 
- 			if (Files.exists(manifestPath)) {
 diff --git a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
 index d7f0c469b92b3acfb24a623306f8d63bf44eafbe..12f19648c39d6eec91d8bd09cdd3400aadac3ca3 100644
 --- a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
