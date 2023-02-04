@@ -131,6 +131,30 @@ index a75b67fcbd76a74b9e6f4786dd5bc5e19690790b..49fc762edec712bec2f51cadd0dc95d0
  		LibraryLocationLogger.logLibraryVersions();
  
  		// Apply default plugins
+diff --git a/src/main/java/net/fabricmc/loom/configuration/CompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/CompileConfiguration.java
+index 36b1f028245af300baa1d1122bb3aa42d29cffd0..a641ed27de3c4c9505971c5385f6ad0c9edc1df0 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/CompileConfiguration.java
++++ b/src/main/java/net/fabricmc/loom/configuration/CompileConfiguration.java
+@@ -221,16 +221,16 @@ public final class CompileConfiguration {
+ 		final LoomGradleExtension extension = configContext.extension();
+ 
+ 		final boolean enableTransitiveAccessWideners = extension.getEnableTransitiveAccessWideners().get();
+-		extension.addMinecraftJarProcessor(AccessWidenerJarProcessor.class, "fabric-loom:access-widener", enableTransitiveAccessWideners, extension.getAccessWidenerPath());
++		extension.addMinecraftJarProcessor(AccessWidenerJarProcessor.class, "quilt-loom:access-widener", enableTransitiveAccessWideners, extension.getAccessWidenerPath());
+ 
+ 		if (extension.getEnableModProvidedJavadoc().get()) {
+-			extension.addMinecraftJarProcessor(ModJavadocProcessor.class, "fabric-loom:mod-javadoc");
++			extension.addMinecraftJarProcessor(ModJavadocProcessor.class, "quilt-loom:mod-javadoc");
+ 		}
+ 
+ 		final InterfaceInjectionExtensionAPI interfaceInjection = extension.getInterfaceInjection();
+ 
+ 		if (interfaceInjection.isEnabled()) {
+-			extension.addMinecraftJarProcessor(InterfaceInjectionProcessor.class, "fabric-loom:interface-inject", interfaceInjection.getEnableDependencyInterfaceInjection().get());
++			extension.addMinecraftJarProcessor(InterfaceInjectionProcessor.class, "quilt-loom:interface-inject", interfaceInjection.getEnableDependencyInterfaceInjection().get());
+ 		}
+ 	}
+ 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java b/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
 index b41b39bf86c6bfcd8c600eb70d160d801e66f510..7d52086caedb771641e5355abddb3cb8f2345036 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
@@ -303,6 +327,19 @@ index 7461566c29a5e7d63ff2f48b7c45c0ea9db0a665..9d12f23af7c78b5dcf7b9956b5bec6f7
                  }
  			"""
  
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy
+index 1835ef273aaf0798afb6f19d5dba980e4093ac92..bba64335088196fa09080d9df3c28cc4d25cb77f 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy
+@@ -44,7 +44,7 @@ class LocalRuntimeTest extends Specification implements GradleProjectTestTrait {
+ 			result.task(":build").outcome == SUCCESS
+ 			def pomFile = new File(gradle.getProjectDir(), "build/publications/mavenJava/pom-default.xml")
+ 			def pom = pomFile.text
+-			!pom.contains("fabric-api")
++			// !pom.contains("fabric-api") Quilt: this doesn't work because Quilt Loader specifies a `fabric-api` exclusion
+ 			!pom.contains("enigma")
+ 
+ 		where:
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy
 index 66deb25fc0fcdd0ae5e7e2a6f405ebd0fbe957e7..1a3bc61de50aa5782fbdbbee8cea308eecfe568a 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy
@@ -370,10 +407,15 @@ index ced58f6bbf2ec686dd59432b0972936d8e5e9e02..f0f35b03c13eb6ac7683e82d97f619f9
  
  			serverResult.successful()
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-index ad590af4e02f480fa5b84d6cdd09ec4cbc454d5e..5767b9402ba1873a4dea48e8413fd2eb2e0248c5 100644
+index ad590af4e02f480fa5b84d6cdd09ec4cbc454d5e..68e725b8b77eea59069b817a3815013b95e0d2c4 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-@@ -240,7 +240,7 @@ trait GradleProjectTestTrait {
+@@ -236,11 +236,11 @@ trait GradleProjectTestTrait {
+         }
+ 
+         File getGeneratedSources(String mappings) {
+-            return new File(getGradleHomeDir(), "caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/${mappings}/minecraft-merged-${mappings}-sources.jar")
++            return new File(getGradleHomeDir(), "caches/quilt-loom/minecraftMaven/net/minecraft/minecraft-merged/${mappings}/minecraft-merged-${mappings}-sources.jar")
          }
  
          File getGeneratedLocalSources(String mappings) {
@@ -868,6 +910,28 @@ index 2e85dfd8d7d617d3e8d5c71e0eeab4c93891edbf..970667432831ef16d900cbb1822786e6
  
  # Mod Properties
  	mod_version = 1.0.0
+diff --git a/src/test/resources/projects/multi-mc-versions/build.gradle b/src/test/resources/projects/multi-mc-versions/build.gradle
+index 7d271f97277fa6ed4b05992bf6b4692476e0598f..d46c2277b51ff886a505572a17f2e435e2cf6c20 100644
+--- a/src/test/resources/projects/multi-mc-versions/build.gradle
++++ b/src/test/resources/projects/multi-mc-versions/build.gradle
+@@ -2,7 +2,7 @@ import groovy.json.JsonSlurper
+ 
+ plugins {
+ 	id "java"
+-	id 'fabric-loom' apply false
++	id 'org.quiltmc.loom' apply false
+ }
+ 
+ allprojects {
+@@ -19,7 +19,7 @@ def getMappingVersion(String mcVersion) {
+ }
+ 
+ subprojects {
+-	apply plugin: "fabric-loom"
++	apply plugin: "org.quiltmc.loom"
+ 
+ 	archivesBaseName = rootProject.name + "-" + project.name
+ 
 diff --git a/src/test/resources/projects/multiproject/build.gradle b/src/test/resources/projects/multiproject/build.gradle
 index 62858e2f46a1c7d4e7cbc5fe7337bb90961c8490..f9fc1afa54be944b364d021cd4dc007bfac4f84a 100644
 --- a/src/test/resources/projects/multiproject/build.gradle
