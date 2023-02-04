@@ -636,7 +636,7 @@ index 7a773e781f1698a0ffaa48f65472911b03a2a9b3..8bc192f6ce473c7e3d2332d4b0ed4633
  				try (Reader reader = new InputStreamReader(new ByteArrayInputStream(data))) {
  					MappingReader.read(reader, mappings);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java b/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
-index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..85e13af9bcf1e9a059b3247e9212a7c1230adea0 100644
+index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..9ac9270456eb329cea75d95f1a7e34a1a8f11ed1 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
 @@ -43,36 +43,38 @@ import org.gradle.api.plugins.JavaPlugin;
@@ -678,7 +678,7 @@ index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..85e13af9bcf1e9a059b3247e9212a7c1
  			for (File artifact : artifacts) {
 -				final FabricModJson fabricModJson = FabricModJsonFactory.createFromZipNullable(artifact.toPath());
 +				// TODO: Create based on prioritiy
-+				final ModJson modJson = FabricModJsonFactory.createFromZipNullable(artifact.toPath());
++				final ModJson modJson = ModMetadataHelper.isQuiltMod(artifact.toPath()) ? QuiltModJsonFactory.createFromZipNullable(artifact.toPath()) : FabricModJsonFactory.createFromZipNullable(artifact.toPath());
  
 -				if (fabricModJson != null) {
 -					mods.add(fabricModJson);
@@ -780,6 +780,50 @@ index 0ded46291e053224f91e053ecd5a70c25e2720a2..dbfd66104fc96e44e9294dcf74ba25db
 +		return resources.matching(patternFilterable -> patternFilterable.include("fabric.mod.json")).getSingleFile();
  	}
  }
+diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
+index 872ce42edab7e1c73a0677d9904507c70041f907..7f369506ec9823922decf7212e1aace514eda7c4 100644
+--- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
++++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
+@@ -59,9 +59,11 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
+ import net.fabricmc.accesswidener.AccessWidenerRemapper;
+ import net.fabricmc.accesswidener.AccessWidenerWriter;
+ import net.fabricmc.loom.LoomGradleExtension;
++import net.fabricmc.loom.api.metadata.ModJson;
+ import net.fabricmc.loom.build.nesting.IncludedJarFactory;
+ import net.fabricmc.loom.build.nesting.JarNester;
+ import net.fabricmc.loom.configuration.accesswidener.AccessWidenerFile;
++import net.fabricmc.loom.configuration.metadata.ModMetadataHelper;
+ import net.fabricmc.loom.extension.MixinExtension;
+ import net.fabricmc.loom.task.service.TinyRemapperService;
+ import net.fabricmc.loom.util.Constants;
+@@ -69,8 +71,8 @@ import net.fabricmc.loom.util.ExceptionUtil;
+ import net.fabricmc.loom.util.Pair;
+ import net.fabricmc.loom.util.SidedClassVisitor;
+ import net.fabricmc.loom.util.ZipUtils;
+-import net.fabricmc.loom.util.fmj.FabricModJson;
+ import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
++import net.fabricmc.loom.util.qmj.QuiltModJsonFactory;
+ import net.fabricmc.loom.util.service.BuildSharedServiceManager;
+ import net.fabricmc.loom.util.service.UnsafeWorkQueueHelper;
+ import net.fabricmc.tinyremapper.OutputConsumerPath;
+@@ -147,13 +149,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+ 		final LoomGradleExtension extension = LoomGradleExtension.get(getProject());
+ 		final MixinExtension mixinExtension = extension.getMixin();
+ 
+-		final FabricModJson fabricModJson = FabricModJsonFactory.createFromZipNullable(getInputFile().getAsFile().get().toPath());
++		final Path jar = getInputFile().getAsFile().get().toPath();
++		final ModJson modJson = ModMetadataHelper.isQuiltMod(jar) ? QuiltModJsonFactory.createFromZipNullable(jar) : FabricModJsonFactory.createFromZipNullable(jar);
+ 
+-		if (fabricModJson == null) {
++		if (modJson == null) {
+ 			return;
+ 		}
+ 
+-		final Collection<String> allMixinConfigs = fabricModJson.getMixinConfigurations();
++		final Collection<String> allMixinConfigs = modJson.getMixinConfigurations();
+ 
+ 		for (SourceSet sourceSet : mixinExtension.getMixinSourceSets()) {
+ 			MixinExtension.MixinInformationContainer container = Objects.requireNonNull(
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java b/src/main/java/net/fabricmc/loom/util/ModJsonSource.java
 similarity index 86%
 rename from src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java
