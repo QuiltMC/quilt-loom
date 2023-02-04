@@ -1371,10 +1371,10 @@ index 0000000000000000000000000000000000000000..04185cfd753fd67f6adbef9c497968ef
 +}
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..12a712cfd94a56f97f477184a0487735c81dc314
+index 0000000000000000000000000000000000000000..a86861179dc9a74f090881fe21019a490c9cb19f
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java
-@@ -0,0 +1,99 @@
+@@ -0,0 +1,104 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -1471,7 +1471,12 @@ index 0000000000000000000000000000000000000000..12a712cfd94a56f97f477184a0487735
 +
 +	@Override
 +	public @Nullable JsonElement getInjectedInterfaces() {
-+		return Objects.requireNonNull(getCustom("quilt_loom")).getAsJsonObject().get("injected_interfaces");
++		final JsonElement loom = getCustom("quilt_loom");
++		if (loom != null) {
++			return loom.getAsJsonObject().get("injected_interfaces");
++		} else {
++			return null;
++		}
 +	}
 +}
 diff --git a/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV0Test.groovy b/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV0Test.groovy
