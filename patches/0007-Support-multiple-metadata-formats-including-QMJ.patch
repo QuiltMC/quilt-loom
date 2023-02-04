@@ -1371,7 +1371,7 @@ index 0000000000000000000000000000000000000000..04185cfd753fd67f6adbef9c497968ef
 +}
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a86861179dc9a74f090881fe21019a490c9cb19f
+index 0000000000000000000000000000000000000000..792e6472b3ff366c8c9153a317f4f9afdf05ca25
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java
 @@ -0,0 +1,104 @@
@@ -1404,7 +1404,6 @@ index 0000000000000000000000000000000000000000..a86861179dc9a74f090881fe21019a49
 +import java.util.Collections;
 +import java.util.List;
 +import java.util.Map;
-+import java.util.Objects;
 +import java.util.stream.Collectors;
 +import java.util.stream.StreamSupport;
 +
@@ -1472,6 +1471,7 @@ index 0000000000000000000000000000000000000000..a86861179dc9a74f090881fe21019a49
 +	@Override
 +	public @Nullable JsonElement getInjectedInterfaces() {
 +		final JsonElement loom = getCustom("quilt_loom");
++
 +		if (loom != null) {
 +			return loom.getAsJsonObject().get("injected_interfaces");
 +		} else {
