@@ -5,7 +5,7 @@ Subject: [PATCH] Exclude Fabric dependencies replaced by Quilt
 
 
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-index 969db77e44263f58bd0fa40b6e08e0b7be3efd8f..fcb8e99d9bfc1dc2838013b11b0bbde5464122e3 100644
+index 0a4c7c9036810f6ef8ac2903d49638975231bee0..6a1eed3e8fe4c5dada3034e8ac020dd0b26c566e 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 @@ -24,6 +24,7 @@
@@ -16,9 +16,9 @@ index 969db77e44263f58bd0fa40b6e08e0b7be3efd8f..fcb8e99d9bfc1dc2838013b11b0bbde5
  import java.util.Objects;
  
  import com.fasterxml.jackson.databind.DeserializationFeature;
-@@ -84,5 +85,12 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+@@ -83,5 +84,12 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+ 		IdeaConfiguration.setup(project);
  
- 		project.apply(ImmutableMap.of("plugin", "org.quiltmc.quilt-mappings-on-loom"));
  		project.apply(ImmutableMap.of("plugin", "io.github.juuxel.loom-quiltflower"));
 +
 +		if (LoomGradleExtension.get(project).excludeFabricReplacedDependencies().get()) {
