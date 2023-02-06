@@ -108,7 +108,7 @@ index e0480168c7231e6a3ab09dd1d1e0beccc679c9a3..af78c5ee1cb008ad7a08a66291555413
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java b/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
-index 288f1d0bc20e2d4b8c32fe382f7393fc2837fc5e..13710fd12e362bb3f2bb9834ec015b4e7caa4746 100644
+index 288f1d0bc20e2d4b8c32fe382f7393fc2837fc5e..42c2fde370ed65b00b4f5b54b7f4130ff7e128da 100644
 --- a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
 +++ b/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
 @@ -52,9 +52,9 @@ import org.jetbrains.annotations.Nullable;
@@ -131,51 +131,6 @@ index 288f1d0bc20e2d4b8c32fe382f7393fc2837fc5e..13710fd12e362bb3f2bb9834ec015b4e
  			// Input is a mod, nothing needs to be done.
  			return input;
  		}
-@@ -163,7 +163,7 @@ public final class IncludedJarFactory {
- 
- 		try {
- 			FileUtils.copyFile(input, tempFile);
--			ZipUtils.add(tempFile.toPath(), "fabric.mod.json", generateModForDependency(metadata).getBytes(StandardCharsets.UTF_8));
-+			ZipUtils.add(tempFile.toPath(), "quilt.mod.json", generateModForDependency(metadata).getBytes(StandardCharsets.UTF_8));
- 		} catch (IOException e) {
- 			throw new UncheckedIOException("Failed to add dummy mod while including %s".formatted(input), e);
- 		}
-@@ -177,7 +177,7 @@ public final class IncludedJarFactory {
- 				.replaceAll("\\.", "_")
- 				.toLowerCase(Locale.ENGLISH);
- 
--		// Fabric Loader can't handle modIds longer than 64 characters
-+		// Loader can't handle modIds longer than 64 characters
- 		if (modId.length() > 64) {
- 			String hash = Hashing.sha256()
- 					.hashString(modId, StandardCharsets.UTF_8)
-@@ -186,15 +186,19 @@ public final class IncludedJarFactory {
- 		}
- 
- 		final JsonObject jsonObject = new JsonObject();
--		jsonObject.addProperty("schemaVersion", 1);
-+		jsonObject.addProperty("schema_version", 1);
- 
--		jsonObject.addProperty("id", modId);
--		jsonObject.addProperty("version", metadata.version());
--		jsonObject.addProperty("name", metadata.name());
-+		JsonObject loader = new JsonObject();
-+		loader.addProperty("id", modId);
-+		loader.addProperty("version", metadata.version());
- 
--		JsonObject custom = new JsonObject();
--		custom.addProperty("fabric-loom:generated", true);
--		jsonObject.add("custom", custom);
-+		JsonObject meta = new JsonObject();
-+		meta.addProperty("name", metadata.name());
-+
-+		loader.add("metadata", meta);
-+		jsonObject.add("quilt_loader", loader);
-+
-+		jsonObject.addProperty("quilt-loom:generated", true);
- 
- 		return LoomGradlePlugin.GSON.toJson(jsonObject);
- 	}
 diff --git a/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java b/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
 index e495d6a8351132b1e8b89a7f20b3ecc60f7f8d7f..1d1cc5c02361c8ab0a4ac999d58fbbe36726e9fd 100644
 --- a/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
