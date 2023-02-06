@@ -108,7 +108,7 @@ index e0480168c7231e6a3ab09dd1d1e0beccc679c9a3..af78c5ee1cb008ad7a08a66291555413
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java b/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
-index 288f1d0bc20e2d4b8c32fe382f7393fc2837fc5e..42c2fde370ed65b00b4f5b54b7f4130ff7e128da 100644
+index d5f01171db92b4a61f036fecb5a8b924684661b0..e2d445ae0d0648da3081ff2c3bc404dc3cf029bf 100644
 --- a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
 +++ b/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
 @@ -52,9 +52,9 @@ import org.jetbrains.annotations.Nullable;
@@ -603,10 +603,10 @@ index 7a773e781f1698a0ffaa48f65472911b03a2a9b3..8bc192f6ce473c7e3d2332d4b0ed4633
  				try (Reader reader = new InputStreamReader(new ByteArrayInputStream(data))) {
  					MappingReader.read(reader, mappings);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java b/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
-index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..a2cde017177f059ba484f339efdb5c8a01e72e2c 100644
+index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..f8b77264f1d57f14f958de7592df9842024290ad 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
-@@ -43,36 +43,37 @@ import org.gradle.api.plugins.JavaPlugin;
+@@ -43,36 +43,36 @@ import org.gradle.api.plugins.JavaPlugin;
  
  import net.fabricmc.loom.LoomGradleExtension;
  import net.fabricmc.loom.api.RemapConfigurationSettings;
@@ -644,7 +644,6 @@ index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..a2cde017177f059ba484f339efdb5c8a
  
  			for (File artifact : artifacts) {
 -				final FabricModJson fabricModJson = FabricModJsonFactory.createFromZipNullable(artifact.toPath());
-+				// TODO: Create based on prioritiy
 +				final ModJson modJson = ModJsonFactory.createFromZipNullable(artifact.toPath());
  
 -				if (fabricModJson != null) {
@@ -654,7 +653,7 @@ index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..a2cde017177f059ba484f339efdb5c8a
  				}
  			}
  		}
-@@ -80,7 +81,7 @@ public record SpecContextImpl(List<FabricModJson> modDependencies, List<FabricMo
+@@ -80,7 +80,7 @@ public record SpecContextImpl(List<FabricModJson> modDependencies, List<FabricMo
  		if (!GradleUtils.getBooleanProperty(project, Constants.Properties.DISABLE_PROJECT_DEPENDENT_MODS)) {
  			// Add all the dependent projects
  			for (Project dependentProject : getDependentProjects(project).toList()) {
@@ -663,7 +662,7 @@ index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..a2cde017177f059ba484f339efdb5c8a
  			}
  		}
  
-@@ -96,18 +97,18 @@ public record SpecContextImpl(List<FabricModJson> modDependencies, List<FabricMo
+@@ -96,18 +96,18 @@ public record SpecContextImpl(List<FabricModJson> modDependencies, List<FabricMo
  	}
  
  	// Returns a list of mods that are on both to compile and runtime classpath
@@ -685,7 +684,7 @@ index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..a2cde017177f059ba484f339efdb5c8a
  		final LoomGradleExtension extension = LoomGradleExtension.get(project);
  		final List<Path> runtimeEntries = extension.getRuntimeRemapConfigurations().stream()
  				.filter(settings -> settings.getApplyDependencyTransforms().get())
-@@ -118,10 +119,10 @@ public record SpecContextImpl(List<FabricModJson> modDependencies, List<FabricMo
+@@ -118,10 +118,10 @@ public record SpecContextImpl(List<FabricModJson> modDependencies, List<FabricMo
  				.filter(settings -> settings.getApplyDependencyTransforms().get())
  				.flatMap(resolveArtifacts(project, false))
  				.filter(runtimeEntries::contains) // Use the intersection of the two configurations.
@@ -699,7 +698,7 @@ index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..a2cde017177f059ba484f339efdb5c8a
  	}
  
  	private static Function<RemapConfigurationSettings, Stream<Path>> resolveArtifacts(Project project, boolean runtime) {
-@@ -153,12 +154,12 @@ public record SpecContextImpl(List<FabricModJson> modDependencies, List<FabricMo
+@@ -153,12 +153,12 @@ public record SpecContextImpl(List<FabricModJson> modDependencies, List<FabricMo
  	}
  
  	// Sort to ensure stable caching
