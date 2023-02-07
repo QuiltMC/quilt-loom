@@ -509,10 +509,10 @@ index 915404c15eaefb1a33582ca41c1c5c31ff12d07a..a97a8c68182566f582925c5e0dd78120
  
  		return new AccessWidenerData(accessWidenerPath, header, accessWidener);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-index 7274912e12820e697991389626d5bda87ddd1162..9833d027824902ff2a9970ea9aaead8e5050f6af 100644
+index 7274912e12820e697991389626d5bda87ddd1162..fc3d6484b1801197c93c8f4c77efea10016eb249 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-@@ -38,8 +38,8 @@ import org.jetbrains.annotations.Nullable;
+@@ -38,11 +38,12 @@ import org.jetbrains.annotations.Nullable;
  
  import net.fabricmc.loom.LoomGradlePlugin;
  import net.fabricmc.loom.configuration.InstallerData;
@@ -521,8 +521,13 @@ index 7274912e12820e697991389626d5bda87ddd1162..9833d027824902ff2a9970ea9aaead8e
 -import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
  
  public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData) {
- 	private static final String INSTALLER_PATH = "quilt_installer.json";
-@@ -52,7 +52,7 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
+-	private static final String INSTALLER_PATH = "quilt_installer.json";
++	private static final String QUILT_INSTALLER_PATH = "quilt_installer.json";
++	private static final String FABRIC_INSTALLER_PATH = "fabric-installer.json";
+ 	private static final String MANIFEST_PATH = "META-INF/MANIFEST.MF";
+ 	private static final String MANIFEST_REMAP_KEY = "Fabric-Loom-Remap";
+ 
+@@ -52,7 +53,7 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
  		InstallerData installerData = null;
  
  		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(artifact.path())) {
@@ -531,6 +536,19 @@ index 7274912e12820e697991389626d5bda87ddd1162..9833d027824902ff2a9970ea9aaead8e
  			final Path manifestPath = fs.getPath(MANIFEST_PATH);
  
  			if (Files.exists(manifestPath)) {
+@@ -66,7 +67,11 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
+ 				}
+ 			}
+ 
+-			final Path installerPath = fs.getPath(INSTALLER_PATH);
++			Path installerPath = fs.getPath(QUILT_INSTALLER_PATH);
++
++			if (!Files.exists(installerPath)) {
++				installerPath = fs.getPath(FABRIC_INSTALLER_PATH);;
++			}
+ 
+ 			if (isFabricMod && Files.exists(installerPath)) {
+ 				final JsonObject jsonObject = LoomGradlePlugin.GSON.fromJson(Files.readString(installerPath, StandardCharsets.UTF_8), JsonObject.class);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 index 2ee3ffd9f6765bbc1857607e77e23afe50468820..8ad29b058999f924e4f07ff11b82150286836d2d 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
