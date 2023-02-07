@@ -5,7 +5,7 @@ Subject: [PATCH] Support multiple metadata formats including QMJ
 
 
 diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-index 731b9196f732623bbdaf22005fe7688611c9c47e..cf10b838c673c36848d337199407c95a83881509 100644
+index 45587d96394ba1e4d9dffb790d80a76b4b3f39f8..74e2503874e0db6773a55309b56176f947258d90 100644
 --- a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 +++ b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 @@ -141,10 +141,10 @@ public interface LoomGradleExtensionAPI {
