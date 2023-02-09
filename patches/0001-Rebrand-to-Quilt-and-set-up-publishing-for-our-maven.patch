@@ -22,7 +22,7 @@ index 561915428a80131439ea9e1d9f12804c491d399a..db648181f772520d1607ce2510a66be1
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index 10a6e0c0dc68d863684b37e904396fb7b1cab39f..1c80c3c8b75a347daab1b6f6f5e81de778c47e8f 100644
+index 10a6e0c0dc68d863684b37e904396fb7b1cab39f..814eb11a2da4b244551b3263f9f22043c8286195 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -23,7 +23,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -95,7 +95,7 @@ index 10a6e0c0dc68d863684b37e904396fb7b1cab39f..1c80c3c8b75a347daab1b6f6f5e81de7
 +
 +tasks.withType(PublishToMavenRepository) {
 +	onlyIf {
-+		(repository == publishing.repositories.release && publication == publishing.publications.plugin)
++		(repository == publishing.repositories.release && publication == publishing.publications.pluginMaven)
 +				||
 +				(repository == publishing.repositories.snapshot
 +						&& (publication == publishing.publications.snapshot
