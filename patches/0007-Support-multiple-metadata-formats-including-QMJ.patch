@@ -24,10 +24,10 @@ index 45587d96394ba1e4d9dffb790d80a76b4b3f39f8..74e2503874e0db6773a55309b56176f9
  
 diff --git a/src/main/java/net/fabricmc/loom/api/metadata/ModJson.java b/src/main/java/net/fabricmc/loom/api/metadata/ModJson.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..8e5fc8723e1baf6af75d8d304b83e46e5c5385fb
+index 0000000000000000000000000000000000000000..84f104c2df13373aa2246029619de68a1bca9283
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/api/metadata/ModJson.java
-@@ -0,0 +1,52 @@
+@@ -0,0 +1,56 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -79,6 +79,10 @@ index 0000000000000000000000000000000000000000..8e5fc8723e1baf6af75d8d304b83e46e
 +	JsonElement getInjectedInterfaces();
 +
 +	ModJsonSource getSource();
++
++	@Deprecated(forRemoval = true)
++	// Hack until bug in AccessWidenerFile is fixed in Loom properly
++	String getAccessWidenerPath();
 +}
 diff --git a/src/main/java/net/fabricmc/loom/api/processor/SpecContext.java b/src/main/java/net/fabricmc/loom/api/processor/SpecContext.java
 index e0480168c7231e6a3ab09dd1d1e0beccc679c9a3..af78c5ee1cb008ad7a08a66291555413c2027779 100644
@@ -225,27 +229,58 @@ index 802b7c85bf1a58fbf1d2cf3575ee55d388323999..b32424ddcfe807de8e47ddb908e71dc0
  
  public interface AccessWidenerEntry {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java b/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
-index 72c39b417441a0fbb590cb19c30c0911a2737333..49bace4f3237dbfd2cdae2e04f865a43555cefb4 100644
+index 72c39b417441a0fbb590cb19c30c0911a2737333..ae4ea6017e14b38fd2675218bfddad4570cf4003 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
-@@ -34,6 +34,7 @@ import java.util.Objects;
- import com.google.gson.Gson;
- import com.google.gson.JsonObject;
+@@ -26,15 +26,13 @@ package net.fabricmc.loom.configuration.accesswidener;
  
-+import net.fabricmc.loom.configuration.metadata.ModMetadataHelper;
+ import java.io.IOException;
+ import java.io.UncheckedIOException;
+-import java.nio.charset.StandardCharsets;
+ import java.nio.file.Path;
+ import java.util.Arrays;
+ import java.util.Objects;
+ 
+-import com.google.gson.Gson;
+-import com.google.gson.JsonObject;
+-
++import net.fabricmc.loom.api.metadata.ModJson;
  import net.fabricmc.loom.util.ZipUtils;
++import net.fabricmc.loom.util.metadata.ModJsonFactory;
  
  public record AccessWidenerFile(
-@@ -48,7 +49,7 @@ public record AccessWidenerFile(
- 		byte[] modJsonBytes;
- 
- 		try {
+ 		String path,
+@@ -45,33 +43,22 @@ public record AccessWidenerFile(
+ 	 * Reads the access-widener contained in a mod jar, or returns null if there is none.
+ 	 */
+ 	public static AccessWidenerFile fromModJar(Path modJarPath) {
+-		byte[] modJsonBytes;
+-
+-		try {
 -			modJsonBytes = ZipUtils.unpackNullable(modJarPath, "fabric.mod.json");
-+			modJsonBytes = ModMetadataHelper.getMetadataBytes(modJarPath);
- 		} catch (IOException e) {
- 			throw new UncheckedIOException("Failed to read access-widener file from: " + modJarPath.toAbsolutePath(), e);
+-		} catch (IOException e) {
+-			throw new UncheckedIOException("Failed to read access-widener file from: " + modJarPath.toAbsolutePath(), e);
+-		}
+-
+-		if (modJsonBytes == null) {
+-			return null;
+-		}
++		ModJson json = ModJsonFactory.createFromZip(modJarPath);
+ 
+-		JsonObject jsonObject = new Gson().fromJson(new String(modJsonBytes, StandardCharsets.UTF_8), JsonObject.class);
++		String awPath = json.getAccessWidenerPath();
+ 
+-		if (!jsonObject.has("accessWidener")) {
++		if (awPath != null) {
+ 			return null;
  		}
-@@ -71,7 +72,7 @@ public record AccessWidenerFile(
+ 
+-		String awPath = jsonObject.get("accessWidener").getAsString();
+-		String modId = jsonObject.get("id").getAsString();
++		String modId = json.getId();
+ 
+ 		byte[] content;
+ 
  		try {
  			content = ZipUtils.unpack(modJarPath, awPath);
  		} catch (IOException e) {
@@ -805,10 +840,10 @@ index 872ce42edab7e1c73a0677d9904507c70041f907..2ccf5e6bc3f02196a6a9c17885809815
  		for (SourceSet sourceSet : mixinExtension.getMixinSourceSets()) {
  			MixinExtension.MixinInformationContainer container = Objects.requireNonNull(
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java
-index 8356bfa7e79c4523d98533be51a3cc13fcc50bb6..d498d8e2a616348bec4be90ace8e579e9002e635 100644
+index 8356bfa7e79c4523d98533be51a3cc13fcc50bb6..6f155a4cfc579e0d84ea8644e10c721a596a65f4 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java
 +++ b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java
-@@ -24,40 +24,31 @@
+@@ -24,40 +24,32 @@
  
  package net.fabricmc.loom.util.fmj;
  
@@ -818,7 +853,7 @@ index 8356bfa7e79c4523d98533be51a3cc13fcc50bb6..d498d8e2a616348bec4be90ace8e579e
 -import java.util.Map;
  import java.util.Objects;
  
--import com.google.gson.JsonElement;
+ import com.google.gson.JsonElement;
  import com.google.gson.JsonObject;
 -import org.jetbrains.annotations.Nullable;
  import org.jetbrains.annotations.VisibleForTesting;
@@ -860,6 +895,18 @@ index 8356bfa7e79c4523d98533be51a3cc13fcc50bb6..d498d8e2a616348bec4be90ace8e579e
  		return source;
  	}
  
+@@ -78,4 +70,11 @@ public abstract sealed class FabricModJson permits FabricModJsonV0, FabricModJso
+ 			throw new AssertionError();
+ 		}
+ 	}
++
++	@Override
++	public String getAccessWidenerPath() {
++		JsonElement val = jsonObject.get("accessWidener");
++
++		return val == null ? null : val.getAsString();
++	}
+ }
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
 index bbd229164587a7a291b480cd75226e4e23bdda6f..c2d039dbb1312f05f60fd0a9c2f8215d11a8e8a0 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
@@ -1472,10 +1519,10 @@ index 0000000000000000000000000000000000000000..e179a45578d1ef12c15e06e387886ba3
 +}
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..630f478562844b6f2ea13f2f9e1c38608696769b
+index 0000000000000000000000000000000000000000..4dfaeecda8be95df95fd32b805d7b718e1966f55
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java
-@@ -0,0 +1,104 @@
+@@ -0,0 +1,117 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -1566,6 +1613,19 @@ index 0000000000000000000000000000000000000000..630f478562844b6f2ea13f2f9e1c3860
 +			return Map.of(classTweakers.getAsString(), ModEnvironment.UNIVERSAL);
 +		} else {
 +			throw new RuntimeException("Incorrect QMJ format; expected 'access_widener' to be a string or array");
++		}
++	}
++
++	@Override
++	public String getAccessWidenerPath() {
++		final JsonElement aws = jsonObject.get("access_widener");
++
++		if (aws == null) {
++			return null;
++		} else if (aws.isJsonArray()) {
++			throw new UnsupportedOperationException("Loom does not support more than one access widener. Sorry!");
++		} else {
++			return aws.getAsString();
 +		}
 +	}
 +
