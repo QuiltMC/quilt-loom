@@ -716,7 +716,7 @@ index 2ee3ffd9f6765bbc1857607e77e23afe50468820..8ad29b058999f924e4f07ff11b821502
  				return json;
  			}));
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java b/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
-index 7a773e781f1698a0ffaa48f65472911b03a2a9b3..570a40f09f55f450c01e83280b56aa064eb6baf0 100644
+index 7a773e781f1698a0ffaa48f65472911b03a2a9b3..6107b609b2fad5f997b19bbf73dafafe1c82e012 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
 @@ -36,17 +36,15 @@ import java.util.List;
@@ -749,22 +749,23 @@ index 7a773e781f1698a0ffaa48f65472911b03a2a9b3..570a40f09f55f450c01e83280b56aa06
  
  			if (javadoc != null) {
  				javadocs.add(javadoc);
-@@ -106,19 +104,13 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
+@@ -106,19 +104,18 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
  
  	public record ModJavadoc(String modId, MemoryMappingTree mappingTree) {
  		@Nullable
 -		public static ModJavadoc create(FabricModJson fabricModJson) {
 -			final String modId = fabricModJson.getId();
 -			final JsonElement customElement = fabricModJson.getCustom(Constants.CustomModJsonKeys.PROVIDED_JAVADOC);
--
--			if (customElement == null) {
--				return null;
--			}
--
--			final String javaDocPath = customElement.getAsString();
 +		public static ModJavadoc create(ModJson modJson) {
 +			final String modId = modJson.getId();
 +			final String javaDocPath = modJson.getProvidedJavadocPath();
+ 
+-			if (customElement == null) {
++			if (javaDocPath == null) {
+ 				return null;
+ 			}
+ 
+-			final String javaDocPath = customElement.getAsString();
  			final MemoryMappingTree mappings = new MemoryMappingTree();
  
  			try {
@@ -1440,10 +1441,10 @@ index 0000000000000000000000000000000000000000..1af5a154c301b8b18ddef1148b6d05fa
 +	}
 +}
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonSource.java
-similarity index 88%
+similarity index 87%
 rename from src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java
 rename to src/main/java/net/fabricmc/loom/util/metadata/ModJsonSource.java
-index 9ff5a7d6a485619b887d5e39079327cc66a4d603..de3870b506056f01af96e94da45539e867244b8e 100644
+index 9ff5a7d6a485619b887d5e39079327cc66a4d603..9c21deaa0f97fa543dd0a202d59b28aa7f1c7db9 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java
 +++ b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonSource.java
 @@ -22,7 +22,7 @@
@@ -1455,7 +1456,13 @@ index 9ff5a7d6a485619b887d5e39079327cc66a4d603..de3870b506056f01af96e94da45539e8
  
  import java.io.File;
  import java.io.FileNotFoundException;
-@@ -39,24 +39,24 @@ import net.fabricmc.loom.util.gradle.SourceSetHelper;
+@@ -35,28 +35,30 @@ import org.gradle.api.tasks.SourceSet;
+ import net.fabricmc.loom.util.ZipUtils;
+ import net.fabricmc.loom.util.gradle.SourceSetHelper;
+ 
++import org.jetbrains.annotations.NotNull;
++
+ /**
   * A mod may be a zip, directory or Gradle {@link SourceSet}
   * This abstraction allows easily reading a contained file from the mod.
   */
