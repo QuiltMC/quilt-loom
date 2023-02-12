@@ -322,7 +322,7 @@ index 802b7c85bf1a58fbf1d2cf3575ee55d388323999..b32424ddcfe807de8e47ddb908e71dc0
  
  public interface AccessWidenerEntry {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java b/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
-index 72c39b417441a0fbb590cb19c30c0911a2737333..f665677c6c5df482222d0c5419a54b0d6f700bd8 100644
+index 72c39b417441a0fbb590cb19c30c0911a2737333..9a946d072202b3ae20a12e64ad70ded4dad6e5d3 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
 @@ -26,15 +26,13 @@ package net.fabricmc.loom.configuration.accesswidener;
@@ -364,7 +364,7 @@ index 72c39b417441a0fbb590cb19c30c0911a2737333..f665677c6c5df482222d0c5419a54b0d
 +		String awPath = json.getAccessWidener();
  
 -		if (!jsonObject.has("accessWidener")) {
-+		if (awPath != null) {
++		if (awPath == null) {
  			return null;
  		}
  
