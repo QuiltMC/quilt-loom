@@ -608,18 +608,19 @@ index 923c7a30d4d9785dbf26ef3f59f044197a53abe1..490240ac688d7fddba464b70005d7c23
 +	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java b/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
-index 915404c15eaefb1a33582ca41c1c5c31ff12d07a..1049c302f966e30e497c9c57b1a2c5230035e073 100644
+index 915404c15eaefb1a33582ca41c1c5c31ff12d07a..b32a92d4b3225cdb9c6c88b213d1523b57d78a30 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
-@@ -26,7 +26,6 @@ package net.fabricmc.loom.configuration.mods;
+@@ -26,16 +26,16 @@ package net.fabricmc.loom.configuration.mods;
  
  import java.io.IOException;
  import java.nio.file.Path;
 -import java.util.List;
  
++import org.jetbrains.annotations.Nullable;
  import org.objectweb.asm.commons.Remapper;
  
-@@ -34,8 +33,8 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
+ import net.fabricmc.accesswidener.AccessWidenerReader;
  import net.fabricmc.accesswidener.AccessWidenerRemapper;
  import net.fabricmc.accesswidener.AccessWidenerWriter;
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
@@ -630,25 +631,28 @@ index 915404c15eaefb1a33582ca41c1c5c31ff12d07a..1049c302f966e30e497c9c57b1a2c523
  
  public class AccessWidenerUtils {
  	/**
-@@ -57,19 +56,9 @@ public class AccessWidenerUtils {
+@@ -56,20 +56,16 @@ public class AccessWidenerUtils {
+ 		return writer.write();
  	}
  
++	@Nullable
  	public static AccessWidenerData readAccessWidenerData(Path inputJar) throws IOException {
 -		final FabricModJson fabricModJson = FabricModJsonFactory.createFromZip(inputJar);
 -		final List<String> classTweakers = List.copyOf(fabricModJson.getClassTweakers().keySet());
--
++		final ModJson modJson = ModJsonFactory.createFromZip(inputJar);
++		final String accessWidenerPath = modJson.getAccessWidener();
+ 
 -		if (classTweakers.isEmpty()) {
--			return null;
--		}
--
++		if (accessWidenerPath == null) {
+ 			return null;
+ 		}
+ 
 -		if (classTweakers.size() != 1) {
 -			throw new UnsupportedOperationException("TODO: support multiple class tweakers");
 -		}
 -
 -		final String accessWidenerPath = classTweakers.get(0);
 -		final byte[] accessWidener = fabricModJson.getSource().read(accessWidenerPath);
-+		final ModJson modJson = ModJsonFactory.createFromZip(inputJar);
-+		final String accessWidenerPath = modJson.getAccessWidener();
 +		final byte[] accessWidener = modJson.getSource().read(accessWidenerPath);
  		final AccessWidenerReader.Header header = AccessWidenerReader.readHeader(accessWidener);
  
@@ -1441,10 +1445,10 @@ index 0000000000000000000000000000000000000000..1af5a154c301b8b18ddef1148b6d05fa
 +	}
 +}
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonSource.java
-similarity index 87%
+similarity index 78%
 rename from src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java
 rename to src/main/java/net/fabricmc/loom/util/metadata/ModJsonSource.java
-index 9ff5a7d6a485619b887d5e39079327cc66a4d603..9c21deaa0f97fa543dd0a202d59b28aa7f1c7db9 100644
+index 9ff5a7d6a485619b887d5e39079327cc66a4d603..7953be6c2588fbab6169a05bed2cca56cd4a6dac 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java
 +++ b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonSource.java
 @@ -22,7 +22,7 @@
@@ -1456,24 +1460,28 @@ index 9ff5a7d6a485619b887d5e39079327cc66a4d603..9c21deaa0f97fa543dd0a202d59b28aa
  
  import java.io.File;
  import java.io.FileNotFoundException;
-@@ -35,28 +35,30 @@ import org.gradle.api.tasks.SourceSet;
+@@ -31,6 +31,7 @@ import java.nio.file.Files;
+ import java.nio.file.Path;
+ 
+ import org.gradle.api.tasks.SourceSet;
++import org.jetbrains.annotations.NotNull;
+ 
  import net.fabricmc.loom.util.ZipUtils;
  import net.fabricmc.loom.util.gradle.SourceSetHelper;
- 
-+import org.jetbrains.annotations.NotNull;
-+
- /**
+@@ -39,26 +40,26 @@ import net.fabricmc.loom.util.gradle.SourceSetHelper;
   * A mod may be a zip, directory or Gradle {@link SourceSet}
   * This abstraction allows easily reading a contained file from the mod.
   */
 -public interface FabricModJsonSource {
+-	byte[] read(String path) throws IOException;
 +public interface ModJsonSource {
- 	byte[] read(String path) throws IOException;
++	byte[] read(@NotNull String path) throws IOException;
  
 -	record ZipSource(Path zipPath) implements FabricModJsonSource {
 +	record ZipSource(Path zipPath) implements ModJsonSource {
  		@Override
- 		public byte[] read(String path) throws IOException {
+-		public byte[] read(String path) throws IOException {
++		public byte[] read(@NotNull String path) throws IOException {
  			return ZipUtils.unpack(zipPath, path);
  		}
  	}
@@ -1481,7 +1489,8 @@ index 9ff5a7d6a485619b887d5e39079327cc66a4d603..9c21deaa0f97fa543dd0a202d59b28aa
 -	record DirectorySource(Path directoryPath) implements FabricModJsonSource {
 +	record DirectorySource(Path directoryPath) implements ModJsonSource {
  		@Override
- 		public byte[] read(String path) throws IOException {
+-		public byte[] read(String path) throws IOException {
++		public byte[] read(@NotNull String path) throws IOException {
  			return Files.readAllBytes(directoryPath.resolve(path));
  		}
  	}
@@ -1489,8 +1498,11 @@ index 9ff5a7d6a485619b887d5e39079327cc66a4d603..9c21deaa0f97fa543dd0a202d59b28aa
 -	record SourceSetSource(SourceSet... sourceSets) implements FabricModJsonSource {
 +	record SourceSetSource(SourceSet... sourceSets) implements ModJsonSource {
  		@Override
- 		public byte[] read(String path) throws IOException {
+-		public byte[] read(String path) throws IOException {
++		public byte[] read(@NotNull String path) throws IOException {
  			return Files.readAllBytes(findFile(path).toPath());
+ 		}
+ 
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonUtils.java b/src/main/java/net/fabricmc/loom/util/metadata/ModMetadataUtils.java
 similarity index 83%
 rename from src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonUtils.java
