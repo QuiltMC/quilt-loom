@@ -700,7 +700,7 @@ index 7274912e12820e697991389626d5bda87ddd1162..fc3d6484b1801197c93c8f4c77efea10
  			if (isFabricMod && Files.exists(installerPath)) {
  				final JsonObject jsonObject = LoomGradlePlugin.GSON.fromJson(Files.readString(installerPath, StandardCharsets.UTF_8), JsonObject.class);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
-index 2ee3ffd9f6765bbc1857607e77e23afe50468820..8ad29b058999f924e4f07ff11b82150286836d2d 100644
+index 2ee3ffd9f6765bbc1857607e77e23afe50468820..d135fee520b2f519057ff2de6b1463ea8fc3b55f 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 @@ -47,6 +47,7 @@ import org.gradle.api.attributes.Usage;
@@ -711,15 +711,26 @@ index 2ee3ffd9f6765bbc1857607e77e23afe50468820..8ad29b058999f924e4f07ff11b821502
  import net.fabricmc.loom.configuration.mods.dependency.ModDependency;
  import net.fabricmc.loom.configuration.providers.mappings.MappingConfiguration;
  import net.fabricmc.loom.task.RemapJarTask;
-@@ -117,7 +118,7 @@ public class ModProcessor {
+@@ -56,6 +57,7 @@ import net.fabricmc.loom.util.TinyRemapperHelper;
+ import net.fabricmc.loom.util.ZipUtils;
+ import net.fabricmc.loom.util.kotlin.KotlinClasspathService;
+ import net.fabricmc.loom.util.kotlin.KotlinRemapperClassloader;
++import net.fabricmc.loom.util.metadata.ModJsonFactory;
+ import net.fabricmc.loom.util.service.SharedServiceManager;
+ import net.fabricmc.tinyremapper.InputTag;
+ import net.fabricmc.tinyremapper.NonClassCopyMode;
+@@ -117,10 +119,7 @@ public class ModProcessor {
  	private void stripNestedJars(Path path) {
  		// Strip out all contained jar info as we dont want loader to try and load the jars contained in dev.
  		try {
 -			ZipUtils.transformJson(JsonObject.class, path, Map.of("fabric.mod.json", json -> {
-+			ZipUtils.transformJson(JsonObject.class, path, Map.of(ModMetadataHelper.getMetadataPath(path), json -> {
- 				json.remove("jars");
- 				return json;
- 			}));
+-				json.remove("jars");
+-				return json;
+-			}));
++			ZipUtils.transformJson(JsonObject.class, path, Map.of(ModMetadataHelper.getMetadataPath(path), json -> ModJsonFactory.createFromZip(path).stripNestedJars(json)));
+ 		} catch (IOException e) {
+ 			throw new UncheckedIOException("Failed to strip nested jars from %s".formatted(path), e);
+ 		}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java b/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
 index 7a773e781f1698a0ffaa48f65472911b03a2a9b3..6107b609b2fad5f997b19bbf73dafafe1c82e012 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
