@@ -322,7 +322,7 @@ index 802b7c85bf1a58fbf1d2cf3575ee55d388323999..b32424ddcfe807de8e47ddb908e71dc0
  
  public interface AccessWidenerEntry {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java b/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
-index 72c39b417441a0fbb590cb19c30c0911a2737333..9a946d072202b3ae20a12e64ad70ded4dad6e5d3 100644
+index 72c39b417441a0fbb590cb19c30c0911a2737333..6cb3a493b4c4cd745a40648e2ba4b19795c43ec3 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerFile.java
 @@ -26,15 +26,13 @@ package net.fabricmc.loom.configuration.accesswidener;
@@ -343,7 +343,7 @@ index 72c39b417441a0fbb590cb19c30c0911a2737333..9a946d072202b3ae20a12e64ad70ded4
  
  public record AccessWidenerFile(
  		String path,
-@@ -45,33 +43,22 @@ public record AccessWidenerFile(
+@@ -45,33 +43,26 @@ public record AccessWidenerFile(
  	 * Reads the access-widener contained in a mod jar, or returns null if there is none.
  	 */
  	public static AccessWidenerFile fromModJar(Path modJarPath) {
@@ -354,11 +354,12 @@ index 72c39b417441a0fbb590cb19c30c0911a2737333..9a946d072202b3ae20a12e64ad70ded4
 -		} catch (IOException e) {
 -			throw new UncheckedIOException("Failed to read access-widener file from: " + modJarPath.toAbsolutePath(), e);
 -		}
--
++		ModJson json = ModJsonFactory.createFromZipNullable(modJarPath);
+ 
 -		if (modJsonBytes == null) {
--			return null;
--		}
-+		ModJson json = ModJsonFactory.createFromZip(modJarPath);
++		if (json == null) {
+ 			return null;
+ 		}
  
 -		JsonObject jsonObject = new Gson().fromJson(new String(modJsonBytes, StandardCharsets.UTF_8), JsonObject.class);
 +		String awPath = json.getAccessWidener();
