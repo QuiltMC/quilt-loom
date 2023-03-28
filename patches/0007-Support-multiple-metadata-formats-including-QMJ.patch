@@ -909,7 +909,7 @@ index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..f8b77264f1d57f14f958de7592df9842
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java b/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java
-index 0ded46291e053224f91e053ecd5a70c25e2720a2..dbfd66104fc96e44e9294dcf74ba25db994ae091 100644
+index 0ded46291e053224f91e053ecd5a70c25e2720a2..a307a3fab3e6d0b097b84d06ea0527a2865df424 100644
 --- a/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java
 +++ b/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java
 @@ -54,11 +54,11 @@ public class ModVersionParser {
@@ -926,7 +926,7 @@ index 0ded46291e053224f91e053ecd5a70c25e2720a2..dbfd66104fc96e44e9294dcf74ba25db
  		}
  
  		version = jsonObject.get("version").getAsString();
-@@ -67,10 +67,8 @@ public class ModVersionParser {
+@@ -67,10 +67,12 @@ public class ModVersionParser {
  	}
  
  	private File locateModJsonFile() {
@@ -936,8 +936,12 @@ index 0ded46291e053224f91e053ecd5a70c25e2720a2..dbfd66104fc96e44e9294dcf74ba25db
 -				.matching(patternFilterable -> patternFilterable.include("fabric.mod.json"))
 -				.getSingleFile();
 +		var resources = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName("main").getResources();
-+		System.out.println(resources.getAsPath());
-+		return resources.matching(patternFilterable -> patternFilterable.include("fabric.mod.json")).getSingleFile();
++		var qmj = resources.matching(patternFilterable -> patternFilterable.include("quilt.mod.json"));
++		if (!qmj.isEmpty()) {
++			return qmj.getSingleFile();
++		} else {
++			return resources.matching(patternFilterable -> patternFilterable.include("fabric.mod.json")).getSingleFile();
++		}
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
