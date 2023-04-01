@@ -30,42 +30,42 @@ index 0a4c7c9036810f6ef8ac2903d49638975231bee0..210a7ea71b754a52b47eb66591acae9c
  	}
  }
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
-index cda61b1b4a32bb74148e4fea20ea1ca7041424df..bb15f0ae2adc788383a306652f8546223d75de7c 100644
+index 1a546c22e8ee8d4c56f9dd346a89b319402bbb2c..b56f85b7a4674b652b5bfc2c9ddf8d2daeec3a1d 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
-@@ -45,6 +45,7 @@ class MavenProjectTest extends Specification implements MockMavenServerTrait, Gr
+@@ -46,6 +46,7 @@ class MavenProjectTest extends Specification implements MockMavenServerTrait, Gr
  	def "publish lib #version #gradleVersion"() {
  		setup:
- 			setProperty('loom.test.version', version)
-+			setProperty('loom.excludeFabricReplacedDependencies', 'false')
- 			def gradle = gradleProject(project: "mavenLibrary", version: gradleVersion, sharedFiles: true)
+ 		setProperty('loom.test.version', version)
++		setProperty('loom.excludeFabricReplacedDependencies', 'false')
+ 		def gradle = gradleProject(project: "mavenLibrary", version: gradleVersion, sharedFiles: true)
  
  		when:
-@@ -72,6 +73,7 @@ class MavenProjectTest extends Specification implements MockMavenServerTrait, Gr
+@@ -73,6 +74,7 @@ class MavenProjectTest extends Specification implements MockMavenServerTrait, Gr
  	def "resolve #version #gradleVersion"() {
  		given:
- 			setProperty('loom.test.resolve', "com.example:fabric-example-lib:${version}")
-+			setProperty('loom.excludeFabricReplacedDependencies', 'false')
- 			def gradle = gradleProject(project: "maven", version: gradleVersion, sharedFiles: true)
+ 		setProperty('loom.test.resolve', "com.example:fabric-example-lib:${version}")
++		setProperty('loom.excludeFabricReplacedDependencies', 'false')
+ 		def gradle = gradleProject(project: "maven", version: gradleVersion, sharedFiles: true)
  
  		when:
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy
-index 3984e0042fa3ade628992920270714e46b2db28f..0762ef5c0b7c1f00814ca5f9b7a44c1b6c793dfa 100644
+index da86621384189424e7a03ba0a9d6e3dcddc64e51..1f102b9348d343e6333d15dbfe4ba89c12042887 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy
-@@ -28,6 +28,7 @@ import net.fabricmc.loom.test.util.GradleProjectTestTrait
- import spock.lang.Specification
- import spock.lang.Unroll
+@@ -29,6 +29,7 @@ import spock.lang.Unroll
+ 
+ import net.fabricmc.loom.test.util.GradleProjectTestTrait
  
 +import static java.lang.System.setProperty
  import static net.fabricmc.loom.test.LoomTestConstants.STANDARD_TEST_VERSIONS
  import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
  
-@@ -35,6 +36,7 @@ class MultiProjectTest extends Specification implements GradleProjectTestTrait {
+@@ -36,6 +37,7 @@ class MultiProjectTest extends Specification implements GradleProjectTestTrait {
  	@Unroll
  	def "build (gradle #version)"() {
  		setup:
-+			setProperty('loom.excludeFabricReplacedDependencies', 'false')
- 			def gradle = gradleProject(project: "multiproject", version: version)
++		setProperty('loom.excludeFabricReplacedDependencies', 'false')
+ 		def gradle = gradleProject(project: "multiproject", version: version)
  
  		when:

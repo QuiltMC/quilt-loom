@@ -1935,233 +1935,240 @@ index 0000000000000000000000000000000000000000..c9b37fdbcc1591bde73e7f40b530d594
 +	}
 +}
 diff --git a/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV0Test.groovy b/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV0Test.groovy
-index 6e7ec14afc508c45b6811ea0abc45e53b1c4eaea..5d6e28861ccee1c01f47ee4b139ced1e908db290 100644
+index 3854bb383540450d4f220d1764159d98148365b0..8cbf0995486f700cd8e0da6a15cb216116fb8a64 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV0Test.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV0Test.groovy
-@@ -28,7 +28,7 @@ import com.google.gson.Gson
- import com.google.gson.JsonObject
+@@ -31,7 +31,7 @@ import spock.lang.Specification
+ 
  import net.fabricmc.loom.util.Constants
  import net.fabricmc.loom.util.fmj.FabricModJsonFactory
 -import net.fabricmc.loom.util.fmj.FabricModJsonSource
 +import net.fabricmc.loom.util.metadata.ModJsonSource
- import org.intellij.lang.annotations.Language
- import spock.lang.Specification
  
-@@ -56,7 +56,7 @@ class FabricModJsonV0Test extends Specification {
+ class FabricModJsonV0Test extends Specification {
+ 	// I think this is the old v0 format ¯\_(ツ)_/¯
+@@ -57,7 +57,7 @@ class FabricModJsonV0Test extends Specification {
  
  	def "version"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -65,7 +65,7 @@ class FabricModJsonV0Test extends Specification {
+@@ -66,7 +66,7 @@ class FabricModJsonV0Test extends Specification {
  
  	def "id"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -74,7 +74,7 @@ class FabricModJsonV0Test extends Specification {
+@@ -75,7 +75,7 @@ class FabricModJsonV0Test extends Specification {
  
  	def "mixins"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -84,7 +84,7 @@ class FabricModJsonV0Test extends Specification {
+@@ -88,7 +88,7 @@ class FabricModJsonV0Test extends Specification {
  	// Not supported in this version
  	def "injected interfaces"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
- 			def jsonObject = fmj.getCustom(Constants.CustomModJsonKeys.INJECTED_INTERFACE)
-@@ -95,7 +95,7 @@ class FabricModJsonV0Test extends Specification {
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def jsonObject = fmj.getCustom(Constants.CustomModJsonKeys.INJECTED_INTERFACE)
+@@ -99,7 +99,7 @@ class FabricModJsonV0Test extends Specification {
  	// Not supported in this version
  	def "class tweaker"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -104,7 +104,7 @@ class FabricModJsonV0Test extends Specification {
+@@ -108,7 +108,7 @@ class FabricModJsonV0Test extends Specification {
  
  	def "hash code"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
 diff --git a/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1Test.groovy b/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1Test.groovy
-index 500405b9f6d4b279f60b9320e0fc138b8c9b82ff..d77c84342f7970405d34684ee6e671389571ddb7 100644
+index 3a79e965feb458ab8bc3a33f8555705ba6e4f219..7050c44f067b06a4354faecbf20e8fba7efc72b5 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1Test.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1Test.groovy
-@@ -28,8 +28,8 @@ import com.google.gson.Gson
- import com.google.gson.JsonObject
+@@ -29,10 +29,10 @@ import com.google.gson.JsonObject
+ import org.intellij.lang.annotations.Language
+ import spock.lang.Specification
+ 
++import net.fabricmc.loom.configuration.metadata.ModEnvironment
  import net.fabricmc.loom.util.Constants
  import net.fabricmc.loom.util.fmj.FabricModJsonFactory
 -import net.fabricmc.loom.util.fmj.FabricModJsonSource
 -import net.fabricmc.loom.util.fmj.ModEnvironment
 +import net.fabricmc.loom.util.metadata.ModJsonSource
-+import net.fabricmc.loom.configuration.metadata.ModEnvironment
- import org.intellij.lang.annotations.Language
- import spock.lang.Specification
  
-@@ -63,7 +63,7 @@ class FabricModJsonV1Test extends Specification {
+ class FabricModJsonV1Test extends Specification {
+ 	@Language("json")
+@@ -64,7 +64,7 @@ class FabricModJsonV1Test extends Specification {
  
  	def "version"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -72,7 +72,7 @@ class FabricModJsonV1Test extends Specification {
+@@ -73,7 +73,7 @@ class FabricModJsonV1Test extends Specification {
  
  	def "id"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -81,7 +81,7 @@ class FabricModJsonV1Test extends Specification {
+@@ -82,7 +82,7 @@ class FabricModJsonV1Test extends Specification {
  
  	def "mixins"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -90,7 +90,7 @@ class FabricModJsonV1Test extends Specification {
+@@ -94,7 +94,7 @@ class FabricModJsonV1Test extends Specification {
  
  	def "injected interfaces"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
- 			def jsonObject = fmj.getCustom(Constants.CustomModJsonKeys.INJECTED_INTERFACE)
-@@ -101,7 +101,7 @@ class FabricModJsonV1Test extends Specification {
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def jsonObject = fmj.getCustom(Constants.CustomModJsonKeys.INJECTED_INTERFACE)
+@@ -105,7 +105,7 @@ class FabricModJsonV1Test extends Specification {
  
  	def "access widener"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -110,7 +110,7 @@ class FabricModJsonV1Test extends Specification {
+@@ -114,7 +114,7 @@ class FabricModJsonV1Test extends Specification {
  
  	def "hash code"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
 diff --git a/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV2Test.groovy b/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV2Test.groovy
-index 0e530dc9aa23a746fc29f30e15b05103ba28f407..a3d0e560da36e64284de18bb9bc9df4eb576e4d0 100644
+index 1cea56c90689de25586f1a0dbbfeb4ad246ad8d4..1cf7e794abcb35bc303a505b02713a6430af8d29 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV2Test.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV2Test.groovy
-@@ -28,8 +28,8 @@ import com.google.gson.Gson
- import com.google.gson.JsonObject
+@@ -29,10 +29,10 @@ import com.google.gson.JsonObject
+ import org.intellij.lang.annotations.Language
+ import spock.lang.Specification
+ 
++import net.fabricmc.loom.configuration.metadata.ModEnvironment
  import net.fabricmc.loom.util.Constants
  import net.fabricmc.loom.util.fmj.FabricModJsonFactory
 -import net.fabricmc.loom.util.fmj.FabricModJsonSource
 -import net.fabricmc.loom.util.fmj.ModEnvironment
 +import net.fabricmc.loom.util.metadata.ModJsonSource
-+import net.fabricmc.loom.configuration.metadata.ModEnvironment
- import org.intellij.lang.annotations.Language
- import spock.lang.Specification
  
-@@ -77,7 +77,7 @@ class FabricModJsonV2Test extends Specification {
+ class FabricModJsonV2Test extends Specification {
+ 	@Language("json")
+@@ -78,7 +78,7 @@ class FabricModJsonV2Test extends Specification {
  
  	def "version"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -86,7 +86,7 @@ class FabricModJsonV2Test extends Specification {
+@@ -87,7 +87,7 @@ class FabricModJsonV2Test extends Specification {
  
  	def "id"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -95,7 +95,7 @@ class FabricModJsonV2Test extends Specification {
+@@ -96,7 +96,7 @@ class FabricModJsonV2Test extends Specification {
  
  	def "mixins"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -104,7 +104,7 @@ class FabricModJsonV2Test extends Specification {
+@@ -109,7 +109,7 @@ class FabricModJsonV2Test extends Specification {
  
  	def "injected interfaces"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
- 			def jsonObject = fmj.getCustom(Constants.CustomModJsonKeys.INJECTED_INTERFACE)
-@@ -115,7 +115,7 @@ class FabricModJsonV2Test extends Specification {
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def jsonObject = fmj.getCustom(Constants.CustomModJsonKeys.INJECTED_INTERFACE)
+@@ -120,7 +120,7 @@ class FabricModJsonV2Test extends Specification {
  
  	def "class tweakers"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
-@@ -128,7 +128,7 @@ class FabricModJsonV2Test extends Specification {
+@@ -133,7 +133,7 @@ class FabricModJsonV2Test extends Specification {
  
  	def "hash code"() {
  		given:
--			def mockSource = Mock(FabricModJsonSource)
-+			def mockSource = Mock(ModJsonSource)
+-		def mockSource = Mock(FabricModJsonSource)
++		def mockSource = Mock(ModJsonSource)
  		when:
- 			def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
+ 		def fmj = FabricModJsonFactory.create(JSON_OBJECT, mockSource)
  		then:
 diff --git a/src/test/groovy/net/fabricmc/loom/test/unit/processor/AccessWidenerJarProcessorTest.groovy b/src/test/groovy/net/fabricmc/loom/test/unit/processor/AccessWidenerJarProcessorTest.groovy
-index 1a2e69dbff428470804abe37ed194dbb2b7a8d07..67190c7b5245509da71cb1f26438855e787644a7 100644
+index 19a55536ed767787d0c7ecf218fc8469aa7412b0..4d12ba111d91c301f0da84cc07213be372db05a2 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/unit/processor/AccessWidenerJarProcessorTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/unit/processor/AccessWidenerJarProcessorTest.groovy
-@@ -28,7 +28,7 @@ import net.fabricmc.loom.api.processor.SpecContext
+@@ -28,9 +28,9 @@ import spock.lang.Specification
+ 
+ import net.fabricmc.loom.api.processor.SpecContext
  import net.fabricmc.loom.configuration.accesswidener.AccessWidenerJarProcessor
++import net.fabricmc.loom.configuration.metadata.ModEnvironment
  import net.fabricmc.loom.test.util.GradleTestUtil
  import net.fabricmc.loom.util.fmj.FabricModJson
 -import net.fabricmc.loom.util.fmj.ModEnvironment
-+import net.fabricmc.loom.configuration.metadata.ModEnvironment
- import spock.lang.Specification
  
  class AccessWidenerJarProcessorTest extends Specification {
+ 	def "Local AW"() {
 diff --git a/src/test/groovy/net/fabricmc/loom/test/unit/processor/ModAccessWidenerEntryTest.groovy b/src/test/groovy/net/fabricmc/loom/test/unit/processor/ModAccessWidenerEntryTest.groovy
-index e36785bfe1d098c7ba9acabbd4e8dffc75f4c09a..7afdde8601539290950e8fa0e01fe3fc36ced518 100644
+index 5b23d99780c9be5300cf6c6c2ccb32a0724a0ce9..da27fecae2d10027501a467c82cc3bb70133ecc4 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/unit/processor/ModAccessWidenerEntryTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/unit/processor/ModAccessWidenerEntryTest.groovy
-@@ -26,7 +26,7 @@ package net.fabricmc.loom.test.unit.processor
- 
- import net.fabricmc.loom.configuration.accesswidener.ModAccessWidenerEntry
- import net.fabricmc.loom.util.fmj.FabricModJson
--import net.fabricmc.loom.util.fmj.ModEnvironment
-+import net.fabricmc.loom.configuration.metadata.ModEnvironment
+@@ -27,8 +27,8 @@ package net.fabricmc.loom.test.unit.processor
  import spock.lang.Specification
  
+ import net.fabricmc.loom.configuration.accesswidener.ModAccessWidenerEntry
++import net.fabricmc.loom.configuration.metadata.ModEnvironment
+ import net.fabricmc.loom.util.fmj.FabricModJson
+-import net.fabricmc.loom.util.fmj.ModEnvironment
+ 
  class ModAccessWidenerEntryTest extends Specification {
+ 	def "read local mod"() {

@@ -6,7 +6,7 @@ Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
 Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
 
 diff --git a/build.gradle b/build.gradle
-index 814eb11a2da4b244551b3263f9f22043c8286195..291ca296c942c99381b531106e9626ce1dfe6b36 100644
+index 1f2529cb48fa9da18cac464de0376ecb22e776e2..6154db094151ae417f8369e40253a3dd114e9190 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -39,6 +39,11 @@ repositories {
@@ -113,14 +113,14 @@ index 3350a985f73e403f086a2a988283cbe4644d0cc2..eef1cd42b1e53497012165e1580c6199
 +	}
  }
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
-index 9e93097acaffa47a609eefe8d12a6641ab5c32af..b5356cb8231fea27cfdfc81dfaa36c0578c6659a 100644
+index 5b2f0e105991b8493ca4473a0570cd7457156c07..ac4f40854f8e8cba0ff431292f32f063aa625527 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
-@@ -45,6 +45,7 @@ class DecompileTest extends Specification implements GradleProjectTestTrait {
+@@ -46,6 +46,7 @@ class DecompileTest extends Specification implements GradleProjectTestTrait {
  
  		where:
- 			decompiler 		| task								| version
-+			'quiltflower'	| "genSourcesWithQuiltflower"		| PRE_RELEASE_GRADLE
- 			'fernflower'	| "genSourcesWithFernFlower"		| PRE_RELEASE_GRADLE
- 			'cfr' 			| "genSourcesWithCfr"				| PRE_RELEASE_GRADLE
+ 		decompiler 		| task								| version
++		'quiltflower'	| "genSourcesWithQuiltflower"		| PRE_RELEASE_GRADLE
+ 		'fernflower'	| "genSourcesWithFernFlower"		| PRE_RELEASE_GRADLE
+ 		'cfr' 			| "genSourcesWithCfr"				| PRE_RELEASE_GRADLE
  	}

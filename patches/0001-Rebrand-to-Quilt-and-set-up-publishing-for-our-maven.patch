@@ -22,7 +22,7 @@ index 561915428a80131439ea9e1d9f12804c491d399a..db648181f772520d1607ce2510a66be1
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index 10a6e0c0dc68d863684b37e904396fb7b1cab39f..814eb11a2da4b244551b3263f9f22043c8286195 100644
+index 7546bbee8733abbaf8771375d49675c2f5f6a08d..1f2529cb48fa9da18cac464de0376ecb22e776e2 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -23,7 +23,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -34,7 +34,7 @@ index 10a6e0c0dc68d863684b37e904396fb7b1cab39f..814eb11a2da4b244551b3263f9f22043
  archivesBaseName = project.name
  def baseVersion = '1.1'
  
-@@ -170,8 +170,8 @@ codenarc {
+@@ -177,8 +177,8 @@ codenarc {
  
  gradlePlugin {
  	plugins {
@@ -45,7 +45,7 @@ index 10a6e0c0dc68d863684b37e904396fb7b1cab39f..814eb11a2da4b244551b3263f9f22043
  			implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
  		}
  	}
-@@ -227,8 +227,8 @@ publishing {
+@@ -234,8 +234,8 @@ publishing {
  
  		// Manually crate the plugin marker for snapshot versions
  		snapshotPlugin(MavenPublication) { publication ->
@@ -56,7 +56,7 @@ index 10a6e0c0dc68d863684b37e904396fb7b1cab39f..814eb11a2da4b244551b3263f9f22043
  			version baseVersion + '-SNAPSHOT'
  
  			pom.withXml({
-@@ -238,9 +238,9 @@ publishing {
+@@ -245,9 +245,9 @@ publishing {
  				Node dependencies = root.appendChild(document.createElement('dependencies'))
  				Node dependency = dependencies.appendChild(document.createElement('dependency'))
  				Node groupId = dependency.appendChild(document.createElement('groupId'))
@@ -68,7 +68,7 @@ index 10a6e0c0dc68d863684b37e904396fb7b1cab39f..814eb11a2da4b244551b3263f9f22043
  				Node version = dependency.appendChild(document.createElement('version'))
  				version.setTextContent(baseVersion + '-SNAPSHOT')
  			})
-@@ -248,6 +248,7 @@ publishing {
+@@ -255,6 +255,7 @@ publishing {
  	}
  	repositories {
  		maven {
@@ -76,7 +76,7 @@ index 10a6e0c0dc68d863684b37e904396fb7b1cab39f..814eb11a2da4b244551b3263f9f22043
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -256,6 +257,27 @@ publishing {
+@@ -263,6 +264,27 @@ publishing {
  				}
  			}
  		}
@@ -306,10 +306,10 @@ index 7fd5d15941dddd97c2631c26b243b7f320d9337f..7d7122b5403049714202a7ead9be65ce
  
  	public static Provider<Boolean> getBooleanPropertyProvider(Project project, String key) {
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy
-index eb732700eb1ab74706e476aca2e79a535194edb1..814a0e19d0b95b7e292444f8d2babc7d40bc71bf 100644
+index 8b4de3243a929eb4073318b68c94ea6adb300438..0051c810071cc95fe89072e2bb8e5ade00c0c27c 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy
-@@ -44,7 +44,7 @@ class CustomManifestTest extends Specification implements GradleProjectTestTrait
+@@ -45,7 +45,7 @@ class CustomManifestTest extends Specification implements GradleProjectTestTrait
                  dependencies {
                      minecraft "com.mojang:minecraft:1.18_experimental-snapshot-1"
                      mappings "net.fabricmc:yarn:1.18_experimental-snapshot-1+build.2:v2"
@@ -317,12 +317,12 @@ index eb732700eb1ab74706e476aca2e79a535194edb1..814a0e19d0b95b7e292444f8d2babc7d
 +                    modImplementation "org.quiltmc:quilt-loader:0.16.0-beta.5"
                  }
              '''
-         when:
+ 		when:
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/ExperimentalVersionsTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/ExperimentalVersionsTest.groovy
-index a95073e5e6294f0197f21ffb2c6b1047b4051ef2..ade0cc3282b965fb740aaade1ccc45815efc1f64 100644
+index 7aa4d6dc560ebd986e1bc4ba7c01cc9f4e814dcd..58a0b22a2c68eda2e343b9b90a463551ecf53b03 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/ExperimentalVersionsTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/ExperimentalVersionsTest.groovy
-@@ -41,7 +41,7 @@ class ExperimentalVersionsTest extends Specification implements GradleProjectTes
+@@ -42,7 +42,7 @@ class ExperimentalVersionsTest extends Specification implements GradleProjectTes
                  dependencies {
                      minecraft "com.mojang:minecraft:1.18_experimental-snapshot-1"
                      mappings "net.fabricmc:yarn:1.18_experimental-snapshot-1+build.2:v2"
@@ -332,10 +332,10 @@ index a95073e5e6294f0197f21ffb2c6b1047b4051ef2..ade0cc3282b965fb740aaade1ccc4581
              '''
  
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/LegacyProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/LegacyProjectTest.groovy
-index 7461566c29a5e7d63ff2f48b7c45c0ea9db0a665..9d12f23af7c78b5dcf7b9956b5bec6f74e9284a7 100644
+index 907de8f11f8e126ec3bba2664a01cfc29c6a5e74..b7a91e206add4ac4729286560872eab294162b14 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/LegacyProjectTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/LegacyProjectTest.groovy
-@@ -63,7 +63,7 @@ class LegacyProjectTest extends Specification implements GradleProjectTestTrait
+@@ -64,7 +64,7 @@ class LegacyProjectTest extends Specification implements GradleProjectTestTrait
  						// No names
  					}
  
@@ -344,7 +344,7 @@ index 7461566c29a5e7d63ff2f48b7c45c0ea9db0a665..9d12f23af7c78b5dcf7b9956b5bec6f7
                  }
  			"""
  
-@@ -101,7 +101,7 @@ class LegacyProjectTest extends Specification implements GradleProjectTestTrait
+@@ -102,7 +102,7 @@ class LegacyProjectTest extends Specification implements GradleProjectTestTrait
  						// No names
  					}
  
@@ -354,23 +354,23 @@ index 7461566c29a5e7d63ff2f48b7c45c0ea9db0a665..9d12f23af7c78b5dcf7b9956b5bec6f7
  			"""
  
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy
-index 1835ef273aaf0798afb6f19d5dba980e4093ac92..bba64335088196fa09080d9df3c28cc4d25cb77f 100644
+index b357e20dfcb28deb80d5ecaa72f902af4ef10635..b396c25657072fd20e2bde957ca207cb3fed3f1c 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy
-@@ -44,7 +44,7 @@ class LocalRuntimeTest extends Specification implements GradleProjectTestTrait {
- 			result.task(":build").outcome == SUCCESS
- 			def pomFile = new File(gradle.getProjectDir(), "build/publications/mavenJava/pom-default.xml")
- 			def pom = pomFile.text
--			!pom.contains("fabric-api")
-+			// !pom.contains("fabric-api") Quilt: this doesn't work because Quilt Loader specifies a `fabric-api` exclusion
- 			!pom.contains("enigma")
+@@ -48,7 +48,7 @@ class LocalRuntimeTest extends Specification implements GradleProjectTestTrait {
+ 		result.task(":build").outcome == SUCCESS
+ 		def pomFile = new File(gradle.getProjectDir(), "build/publications/mavenJava/pom-default.xml")
+ 		def pom = pomFile.text
+-		!pom.contains("fabric-api")
++//		!pom.contains("fabric-api") Quilt: this doesn't work because Quilt Loader specifies a `fabric-api` exclusion
+ 		!pom.contains("enigma")
  
  		where:
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy
-index 66deb25fc0fcdd0ae5e7e2a6f405ebd0fbe957e7..1a3bc61de50aa5782fbdbbee8cea308eecfe568a 100644
+index a7265d4e57518fac94846b67f84688a73e483a14..31a052b1bce8a21003827e98be59f9d416ccbf93 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/MCJarConfigTest.groovy
-@@ -45,7 +45,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
+@@ -46,7 +46,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
                  dependencies {
                      minecraft "com.mojang:minecraft:1.18.1"
                      mappings "net.fabricmc:yarn:1.18.1+build.18:v2"
@@ -379,7 +379,7 @@ index 66deb25fc0fcdd0ae5e7e2a6f405ebd0fbe957e7..1a3bc61de50aa5782fbdbbee8cea308e
                  }
              '''
  
-@@ -72,7 +72,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
+@@ -73,7 +73,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
                  dependencies {
                      minecraft "com.mojang:minecraft:1.18.1"
                      mappings "net.fabricmc:yarn:1.18.1+build.18:v2"
@@ -388,7 +388,7 @@ index 66deb25fc0fcdd0ae5e7e2a6f405ebd0fbe957e7..1a3bc61de50aa5782fbdbbee8cea308e
                  }
              '''
  
-@@ -99,7 +99,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
+@@ -100,7 +100,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
                  dependencies {
                      minecraft "com.mojang:minecraft:1.18.1"
                      mappings "net.fabricmc:yarn:1.18.1+build.18:v2"
@@ -397,7 +397,7 @@ index 66deb25fc0fcdd0ae5e7e2a6f405ebd0fbe957e7..1a3bc61de50aa5782fbdbbee8cea308e
                  }
              '''
  
-@@ -126,7 +126,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
+@@ -127,7 +127,7 @@ class MCJarConfigTest extends Specification implements GradleProjectTestTrait {
                  dependencies {
                      minecraft "com.mojang:minecraft:1.18.1"
                      mappings "net.fabricmc:yarn:1.18.1+build.18:v2"
@@ -407,10 +407,10 @@ index 66deb25fc0fcdd0ae5e7e2a6f405ebd0fbe957e7..1a3bc61de50aa5782fbdbbee8cea308e
              '''
  
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/RunConfigTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/RunConfigTest.groovy
-index 18f8e684ec06195d143c290e07c3c0c8906e1e3f..152baa8b73b06dfac3fa18943004109321944e28 100644
+index 9a255b59dd8464a41a7ed0d2fe791f0371f5c366..7fd6f9ce866aa5be282e816935bd81dd540554ed 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/RunConfigTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/RunConfigTest.groovy
-@@ -68,7 +68,7 @@ class RunConfigTest extends Specification implements GradleProjectTestTrait {
+@@ -69,7 +69,7 @@ class RunConfigTest extends Specification implements GradleProjectTestTrait {
                  dependencies {
                      minecraft "com.mojang:minecraft:1.18.1"
                      mappings "net.fabricmc:yarn:1.18.1+build.18:v2"
@@ -420,38 +420,38 @@ index 18f8e684ec06195d143c290e07c3c0c8906e1e3f..152baa8b73b06dfac3fa189430041093
              '''
  
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy
-index ced58f6bbf2ec686dd59432b0972936d8e5e9e02..f0f35b03c13eb6ac7683e82d97f619f91f7791c5 100644
+index d434f05d759c48cd8e93dc5f7238a7e961f3ee53..3ee7751f63840fd2ff5847c03678d9584fa38bfb 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/SimpleProjectTest.groovy
-@@ -50,7 +50,7 @@ class SimpleProjectTest extends Specification implements GradleProjectTestTrait
- 			def serverResult = server.run()
+@@ -51,7 +51,7 @@ class SimpleProjectTest extends Specification implements GradleProjectTestTrait
+ 		def serverResult = server.run()
  		then:
- 			result.task(":build").outcome == SUCCESS
--			gradle.getOutputZipEntry("fabric-example-mod-1.0.0.jar", "META-INF/MANIFEST.MF").contains("Fabric-Loom-Version: 0.0.0+unknown")
-+			gradle.getOutputZipEntry("fabric-example-mod-1.0.0.jar", "META-INF/MANIFEST.MF").contains("Fabric-Loom-Version: 0.12.0+unknown")
- 			gradle.getOutputZipEntry("fabric-example-mod-1.0.0-sources.jar", "net/fabricmc/example/mixin/ExampleMixin.java").contains("class_442") // Very basic test to ensure sources got remapped
+ 		result.task(":build").outcome == SUCCESS
+-		gradle.getOutputZipEntry("fabric-example-mod-1.0.0.jar", "META-INF/MANIFEST.MF").contains("Fabric-Loom-Version: 0.0.0+unknown")
++		gradle.getOutputZipEntry("fabric-example-mod-1.0.0.jar", "META-INF/MANIFEST.MF").contains("Fabric-Loom-Version: 0.12.0+unknown")
+ 		gradle.getOutputZipEntry("fabric-example-mod-1.0.0-sources.jar", "net/fabricmc/example/mixin/ExampleMixin.java").contains("class_442") // Very basic test to ensure sources got remapped
  
- 			serverResult.successful()
+ 		serverResult.successful()
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-index ad590af4e02f480fa5b84d6cdd09ec4cbc454d5e..68e725b8b77eea59069b817a3815013b95e0d2c4 100644
+index 9a139d53f4d949315242946b4567088c42028ac4..fcf9acbd14f885595cab0232f81722539dac466b 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-@@ -236,11 +236,11 @@ trait GradleProjectTestTrait {
-         }
+@@ -237,11 +237,11 @@ trait GradleProjectTestTrait {
+ 		}
  
-         File getGeneratedSources(String mappings) {
--            return new File(getGradleHomeDir(), "caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/${mappings}/minecraft-merged-${mappings}-sources.jar")
-+            return new File(getGradleHomeDir(), "caches/quilt-loom/minecraftMaven/net/minecraft/minecraft-merged/${mappings}/minecraft-merged-${mappings}-sources.jar")
-         }
+ 		File getGeneratedSources(String mappings) {
+-			return new File(getGradleHomeDir(), "caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/${mappings}/minecraft-merged-${mappings}-sources.jar")
++			return new File(getGradleHomeDir(), "caches/quilt-loom/minecraftMaven/net/minecraft/minecraft-merged/${mappings}/minecraft-merged-${mappings}-sources.jar")
+ 		}
  
-         File getGeneratedLocalSources(String mappings) {
--            return new File(getProjectDir(), ".gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-project-root/${mappings}/minecraft-merged-project-root-${mappings}-sources.jar")
-+            return new File(getProjectDir(), ".gradle/quilt-loom-cache/minecraftMaven/net/minecraft/minecraft-merged-project-root/${mappings}/minecraft-merged-project-root-${mappings}-sources.jar")
-         }
+ 		File getGeneratedLocalSources(String mappings) {
+-			return new File(getProjectDir(), ".gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-project-root/${mappings}/minecraft-merged-project-root-${mappings}-sources.jar")
++			return new File(getProjectDir(), ".gradle/quilt-loom-cache/minecraftMaven/net/minecraft/minecraft-merged-project-root/${mappings}/minecraft-merged-project-root-${mappings}-sources.jar")
+ 		}
  
-         void buildSrc(String name) {
+ 		void buildSrc(String name) {
 diff --git a/src/test/resources/projects/accesswidener/build.gradle b/src/test/resources/projects/accesswidener/build.gradle
-index 9fa3cc36ef23ee7f9a03120624596c6fe1788de4..c3950e8fbcc865a12a2a5a5ededf0fbddf3e6698 100644
+index 2d3a533f8fb9117827808f8a31faeaafd0b9464e..d02a6aa0ec9731b0ce1d9dd9b221d7d1fc1e1dfe 100644
 --- a/src/test/resources/projects/accesswidener/build.gradle
 +++ b/src/test/resources/projects/accesswidener/build.gradle
 @@ -1,5 +1,5 @@
@@ -502,7 +502,7 @@ index 993ac667071e4e3e2b1a8301121e817950663d61..17961497657cb80f2ce1cb2463f1a28c
  
  loom {
 diff --git a/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle b/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
-index c7b6ef6c0a20c1d4b2936dcbdf222f201be41ccc..d0df797cc20ddee83098186a731366663fc2d191 100644
+index 4dd1303845cc572acd980158cace8d94143c4544..f5f510602c54accea6d83826642ea697c00100db 100644
 --- a/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
 +++ b/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
 @@ -1,5 +1,5 @@
@@ -535,7 +535,7 @@ index 40e9e5717128a126a91dcfcc0b6fd62fb9100792..523f9a2e212924f27dd2c6f66305b761
  # Mod Properties
  	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle b/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
-index 6472ec7e63ab88f17b626c68393faca58042a8d2..6c8ee6bd10d606f86e075e2b094d5414c0075577 100644
+index 5083bcf6113ea4398d86e84693b27655ffddba42..97b39fbe868998e23acafe6d014fbb5c61d063d3 100644
 --- a/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
 +++ b/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
 @@ -1,5 +1,5 @@
@@ -568,20 +568,20 @@ index 40e9e5717128a126a91dcfcc0b6fd62fb9100792..523f9a2e212924f27dd2c6f66305b761
  # Mod Properties
  	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/dependencyResolutionManagement/settings.gradle b/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
-index c05e369995a4d8c5479de657d6c8ab52a6cba940..6b77297f004043508453a0907ea19bca3a372c5e 100644
+index 2c075f03ad35f9065fc5d9e501a236ede735a016..365f417912dd238bf5dbf4ace67ec36ef5038bf9 100644
 --- a/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
 +++ b/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
 @@ -1,11 +1,11 @@
  pluginManagement {
-     plugins {
--        id 'fabric-loom'
-+        id 'org.quiltmc.loom'
-     }
+ 	plugins {
+-		id 'fabric-loom'
++		id 'org.quiltmc.loom'
+ 	}
  }
  
  plugins {
--    id 'fabric-loom'
-+    id 'org.quiltmc.loom'
+-	id 'fabric-loom'
++	id 'org.quiltmc.loom'
  }
  
  dependencyResolutionManagement {
@@ -696,7 +696,7 @@ index 440dabe5b015628affe10c53ea2a8fcb977e9409..aba0090df90da5eae231db6dc1c61040
  # Mod Properties
  	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/localFileDependency/build.gradle b/src/test/resources/projects/localFileDependency/build.gradle
-index 811d945a9a903d2e43e949de2e2fea4f99882edd..36a99bc5fa0dc9854fe8bf740bf989550a8f7510 100644
+index bc6eb7cff351aaaa4991fd111471ea6d9b841972..d9ef394dd13f5d028ce2057c4aa0e07c495e9d9a 100644
 --- a/src/test/resources/projects/localFileDependency/build.gradle
 +++ b/src/test/resources/projects/localFileDependency/build.gradle
 @@ -1,5 +1,5 @@
@@ -729,7 +729,7 @@ index 2e85dfd8d7d617d3e8d5c71e0eeab4c93891edbf..970667432831ef16d900cbb1822786e6
  # Mod Properties
  	mod_version = 1.0.0
 diff --git a/src/test/resources/projects/localRuntime/build.gradle b/src/test/resources/projects/localRuntime/build.gradle
-index 18f4f0db4b857098a782cfa548a2954c44f363dc..c119c0085e59b282c1fc10335aa1dbb0d7cfb2e3 100644
+index bcd01a811afc4721e56d222cd52584e10d11e495..0adf25b24b35ac5ef76be343f935968ef5d7372a 100644
 --- a/src/test/resources/projects/localRuntime/build.gradle
 +++ b/src/test/resources/projects/localRuntime/build.gradle
 @@ -1,5 +1,5 @@
@@ -782,7 +782,7 @@ index 2c3e3786ffb233a2d4e355d21918552a067bf2da..9b9b0d46cfe04f46987ad135ba95b5de
  	testConfig System.getProperty("loom.test.resolve")
  }
 diff --git a/src/test/resources/projects/mavenLibrary/build.gradle b/src/test/resources/projects/mavenLibrary/build.gradle
-index 0001e2b7dd835ce6e1ef90415bb373563ec8e823..eb3d45b9780c05557162ffefe0cd8c8ec23a37c4 100644
+index 83d608af1ca7173e3fbf2f2c27da38805a142d01..c13d57caf918b716a5af255231aa46d432f553a2 100644
 --- a/src/test/resources/projects/mavenLibrary/build.gradle
 +++ b/src/test/resources/projects/mavenLibrary/build.gradle
 @@ -1,5 +1,5 @@
@@ -904,7 +904,7 @@ index 52f1fc39f472e431795ddfe94cd85c6a01eade48..94d0f2d4fa03f8b50dbff269631b3cb6
  }
 \ No newline at end of file
 diff --git a/src/test/resources/projects/mojangMappings/build.gradle b/src/test/resources/projects/mojangMappings/build.gradle
-index 895bdb752a2aec465a2d430814229a1b2d35b0ee..803040561028fa1860f10de0c1e24011a54a2d69 100644
+index 31cd9f7860b3ec32bd544c7901aee10024246d22..084e2b7cb15dff56ad071468967812e3d720551e 100644
 --- a/src/test/resources/projects/mojangMappings/build.gradle
 +++ b/src/test/resources/projects/mojangMappings/build.gradle
 @@ -1,5 +1,5 @@
@@ -1034,7 +1034,7 @@ index 40c22f786bae76ab2365e2a337d8a25486a5b9e3..cd3bac3e45d8aceb1acba8ace079bfce
  parchment = { module = "org.parchmentmc.data:parchment-1.16.5", version.ref = "parchment" }
 \ No newline at end of file
 diff --git a/src/test/resources/projects/reproducible/build.gradle b/src/test/resources/projects/reproducible/build.gradle
-index 4bc4926136fa448fd4268d7392217bf7f160fb9a..038f6fd61e6952a6a124d61c6ccb410da4dd9079 100644
+index 272b54300fb625b10914091c5b8d1dabf1bcdd5c..9db672b5a5fd91f48146284af4559903162ec0f4 100644
 --- a/src/test/resources/projects/reproducible/build.gradle
 +++ b/src/test/resources/projects/reproducible/build.gradle
 @@ -1,5 +1,5 @@
@@ -1086,7 +1086,7 @@ index a8e1f6bb073f57d6196eebe782836ed3f436b19b..23048574367f5a5bff9cb04b16862ba4
  }
 \ No newline at end of file
 diff --git a/src/test/resources/projects/signed/build.gradle b/src/test/resources/projects/signed/build.gradle
-index 45a2a278a761e5f9cc0f56bb7972719196660cfe..f9063a5286bb91e0faa8ff5df85453cc764b6f95 100644
+index 195cc1dd05b9795ed70da07ca6d3986ee3d3e6d2..747028a70be051a2ea2e5d94c7f4477bf2e7e9f1 100644
 --- a/src/test/resources/projects/signed/build.gradle
 +++ b/src/test/resources/projects/signed/build.gradle
 @@ -1,5 +1,5 @@
@@ -1106,7 +1106,7 @@ index 45a2a278a761e5f9cc0f56bb7972719196660cfe..f9063a5286bb91e0faa8ff5df85453cc
  
  processResources {
 diff --git a/src/test/resources/projects/simple/build.gradle b/src/test/resources/projects/simple/build.gradle
-index 5ce232ea8a8d7975252e63da3bb7a471e22c39b3..6e25e95631e5961cd65217cc54171c015676dd3c 100644
+index 5fc4de1f914f4db97e72d8e6b9f081ce82d34b18..0d9b037f19e8d57c74394377a72279ac48a89c8d 100644
 --- a/src/test/resources/projects/simple/build.gradle
 +++ b/src/test/resources/projects/simple/build.gradle
 @@ -1,5 +1,5 @@
