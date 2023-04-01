@@ -6,7 +6,7 @@ Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
 Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
 
 diff --git a/build.gradle b/build.gradle
-index 1f2529cb48fa9da18cac464de0376ecb22e776e2..6154db094151ae417f8369e40253a3dd114e9190 100644
+index ad8a09d818f22b3f9742ac89a56465a312074637..111289c4e42a4e6fba6a0bc09c129b23a114a00e 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -39,6 +39,11 @@ repositories {

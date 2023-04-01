@@ -22,7 +22,7 @@ index 561915428a80131439ea9e1d9f12804c491d399a..db648181f772520d1607ce2510a66be1
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index 7546bbee8733abbaf8771375d49675c2f5f6a08d..1f2529cb48fa9da18cac464de0376ecb22e776e2 100644
+index 7546bbee8733abbaf8771375d49675c2f5f6a08d..ad8a09d818f22b3f9742ac89a56465a312074637 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -23,7 +23,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -76,7 +76,7 @@ index 7546bbee8733abbaf8771375d49675c2f5f6a08d..1f2529cb48fa9da18cac464de0376ecb
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -263,6 +264,27 @@ publishing {
+@@ -263,6 +264,26 @@ publishing {
  				}
  			}
  		}
@@ -95,12 +95,11 @@ index 7546bbee8733abbaf8771375d49675c2f5f6a08d..1f2529cb48fa9da18cac464de0376ecb
 +
 +tasks.withType(PublishToMavenRepository) {
 +	onlyIf {
-+		(repository == publishing.repositories.release && publication == publishing.publications.pluginMaven)
-+				||
++		(repository == publishing.repositories.release && publication == publishing.publications.pluginMaven) ||
 +				(repository == publishing.repositories.snapshot
-+						&& (publication == publishing.publications.snapshot
-+						|| publication == publishing.publications.snapshotPlugin))
-+				|| (repository == publishing.repositories.release && publication.name == "quiltLoomPluginMarkerMaven")
++				&& (publication == publishing.publications.snapshot
++				|| publication == publishing.publications.snapshotPlugin)) ||
++				(repository == publishing.repositories.release && publication.name == "quiltLoomPluginMarkerMaven")
  	}
  }
  
@@ -354,7 +353,7 @@ index 907de8f11f8e126ec3bba2664a01cfc29c6a5e74..b7a91e206add4ac4729286560872eab2
  			"""
  
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy
-index b357e20dfcb28deb80d5ecaa72f902af4ef10635..b396c25657072fd20e2bde957ca207cb3fed3f1c 100644
+index b357e20dfcb28deb80d5ecaa72f902af4ef10635..59635f441031c1d22ba0eb4f73bb683aef06b3a1 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/LocalRuntimeTest.groovy
 @@ -48,7 +48,7 @@ class LocalRuntimeTest extends Specification implements GradleProjectTestTrait {
@@ -362,7 +361,7 @@ index b357e20dfcb28deb80d5ecaa72f902af4ef10635..b396c25657072fd20e2bde957ca207cb
  		def pomFile = new File(gradle.getProjectDir(), "build/publications/mavenJava/pom-default.xml")
  		def pom = pomFile.text
 -		!pom.contains("fabric-api")
-+//		!pom.contains("fabric-api") Quilt: this doesn't work because Quilt Loader specifies a `fabric-api` exclusion
++		// !pom.contains("fabric-api") Quilt: this doesn't work because Quilt Loader specifies a `fabric-api` exclusion
  		!pom.contains("enigma")
  
  		where:
