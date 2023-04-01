@@ -986,7 +986,7 @@ index 872ce42edab7e1c73a0677d9904507c70041f907..2ccf5e6bc3f02196a6a9c17885809815
  		for (SourceSet sourceSet : mixinExtension.getMixinSourceSets()) {
  			MixinExtension.MixinInformationContainer container = Objects.requireNonNull(
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java
-index 8356bfa7e79c4523d98533be51a3cc13fcc50bb6..601f621100f0ef22ff9c9fe1ed30a8052ca22cbe 100644
+index 8356bfa7e79c4523d98533be51a3cc13fcc50bb6..7eb2e2bfb9e0d29d6c6244f872dc5cd432c016ac 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java
 +++ b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java
 @@ -24,46 +24,68 @@
@@ -1071,7 +1071,7 @@ index 8356bfa7e79c4523d98533be51a3cc13fcc50bb6..601f621100f0ef22ff9c9fe1ed30a805
  	}
  
  	@Override
-@@ -78,4 +100,31 @@ public abstract sealed class FabricModJson permits FabricModJsonV0, FabricModJso
+@@ -78,4 +100,33 @@ public abstract sealed class FabricModJson permits FabricModJsonV0, FabricModJso
  			throw new AssertionError();
  		}
  	}
@@ -1087,15 +1087,17 @@ index 8356bfa7e79c4523d98533be51a3cc13fcc50bb6..601f621100f0ef22ff9c9fe1ed30a805
 +		JsonArray nestedJars = json.has("jars") ? json.getAsJsonArray("jars") : new JsonArray();
 +
 +		for (String nestedJarPath: files) {
-+			JsonObject jarObject = nestedJars.getAsJsonObject();
++			for (JsonElement nestedJar : nestedJars) {
++				JsonObject jarObject = nestedJar.getAsJsonObject();
 +
-+			if (jarObject.has("file") && jsonObject.get("file").getAsString().equals(nestedJarPath)) {
-+				throw new IllegalStateException("Cannot nest 2 jars at the same path: " + nestedJarPath);
++				if (jarObject.has("file") && jarObject.get("file").getAsString().equals(nestedJarPath)) {
++					throw new IllegalStateException("Cannot nest 2 jars at the same path: " + nestedJarPath);
++				}
 +			}
 +
 +			JsonObject entry = new JsonObject();
 +			entry.addProperty("file", nestedJarPath);
-+			nestedJars.add(jsonObject);
++			nestedJars.add(entry);
 +		}
 +
 +		json.add("jars", nestedJars);
