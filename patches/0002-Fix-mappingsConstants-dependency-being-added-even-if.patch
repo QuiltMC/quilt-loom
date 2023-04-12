@@ -7,7 +7,7 @@ Subject: [PATCH] Fix mappingsConstants dependency being added even if already
 Implements https://github.com/FabricMC/fabric-loom/pull/605
 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingConfiguration.java
-index 5cf477755e4666e91c86a27f361f22653ab405a1..c775059042d32d5347d6a794a97b90508924c22e 100644
+index 8321d3dec5880e13a3684939af689c55ee4220b0..a568376ef7de2356ec8bf5535e3e29f2f71b73d6 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingConfiguration.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/MappingConfiguration.java
 @@ -141,13 +141,19 @@ public class MappingConfiguration {
