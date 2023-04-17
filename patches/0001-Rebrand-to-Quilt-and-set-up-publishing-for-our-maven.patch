@@ -292,10 +292,10 @@ index e3348689d7eb112338862c164be8bbbfa8e22d03..2a206d5396b8e304ad8d0d65b2b73700
  		}
  
 diff --git a/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java b/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java
-index 7fd5d15941dddd97c2631c26b243b7f320d9337f..7d7122b5403049714202a7ead9be65cea04585ce 100644
+index c529607c49c729f1f2d7a2c51dcd7ed6c4d82690..150a7355b40783e10939cd718f03094a0ad6ba08 100644
 --- a/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java
 +++ b/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java
-@@ -55,7 +55,7 @@ public final class GradleUtils {
+@@ -66,7 +66,7 @@ public final class GradleUtils {
  	}
  
  	public static boolean isLoomProject(Project project) {
