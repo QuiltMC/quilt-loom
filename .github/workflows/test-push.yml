@@ -48,7 +48,7 @@ jobs:
       - run: gradle writeActionsTestMatrix --stacktrace --warning-mode fail
         working-directory: quilt-loom
       - id: set-matrix
-        run: echo "matrix=$(cat build/test_matrix.json)" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(cat quilt-loom/build/test_matrix.json)" >> $GITHUB_OUTPUT
 
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
