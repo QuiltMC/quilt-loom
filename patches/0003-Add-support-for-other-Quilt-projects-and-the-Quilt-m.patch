@@ -6,7 +6,7 @@ Subject: [PATCH] Add support for other Quilt projects and the Quilt maven
 Includes Quilt Mappings on Loom, Loom-Quiltflower, and the Quilt maven.
 
 diff --git a/build.gradle b/build.gradle
-index ad8a09d818f22b3f9742ac89a56465a312074637..111289c4e42a4e6fba6a0bc09c129b23a114a00e 100644
+index fb7cebe7f286b435032f30d907343b0f97cb32d4..5157354b6c69664988345c9af46cacaf1ad6fd3b 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -39,6 +39,11 @@ repositories {
@@ -23,7 +23,7 @@ index ad8a09d818f22b3f9742ac89a56465a312074637..111289c4e42a4e6fba6a0bc09c129b23
  
 @@ -102,6 +107,11 @@ dependencies {
  	// Kapt integration
- 	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10') // Must match the version included with gradle.
+ 	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0') // Must match the version included with gradle.
  
 +	// Plugins we apply
 +	implementation("io.github.juuxel:loom-quiltflower:1.8.0") {
@@ -34,28 +34,28 @@ index ad8a09d818f22b3f9742ac89a56465a312074637..111289c4e42a4e6fba6a0bc09c129b23
  	testImplementation(gradleTestKit())
  	testImplementation('org.spockframework:spock-core:2.3-groovy-3.0') {
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-index 49fc762edec712bec2f51cadd0dc95d0f7787c90..0a4c7c9036810f6ef8ac2903d49638975231bee0 100644
+index a672ff8c72cd71cf2d86b63d260ad1b6a11a823f..9be58def9beba193114122b11f3467ccbd004253 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-@@ -50,7 +50,7 @@ import net.fabricmc.loom.util.LibraryLocationLogger;
+@@ -53,7 +53,7 @@ import net.fabricmc.loom.util.LibraryLocationLogger;
  public class LoomGradlePlugin implements BootstrappedPlugin {
  	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
  	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 -	public static final String LOOM_VERSION = Objects.requireNonNullElse(LoomGradlePlugin.class.getPackage().getImplementationVersion(), "0.0.0+unknown");
 +	public static final String LOOM_VERSION = Objects.requireNonNullElse(LoomGradlePlugin.class.getPackage().getImplementationVersion(), "0.12.0+unknown");
  
- 	@Override
- 	public void apply(PluginAware target) {
-@@ -81,5 +81,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
- 		LoomTasks.registerTasks(project);
- 		DecompilerConfiguration.setup(project);
- 		IdeaConfiguration.setup(project);
+ 	/**
+ 	 * An ordered list of setup job classes.
+@@ -94,5 +94,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+ 		for (Class<? extends Runnable> jobClass : SETUP_JOBS) {
+ 			project.getObjects().newInstance(jobClass).run();
+ 		}
 +
 +		project.apply(ImmutableMap.of("plugin", "io.github.juuxel.loom-quiltflower"));
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
-index ca1311363a102aee2da03eafc48f0559775bde02..ce1b24c25722fde8905e35bf9d33f4b069185dba 100644
+index 29b4a526050a69cb5ccaa2d067fa5ecaa0347bf0..dc4895d24e908cf5d041ae71ef17dac40e6c86bf 100644
 --- a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
 @@ -67,7 +67,10 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
@@ -84,7 +84,7 @@ index 6fa25b5c570d6db178453bfa386fd863fdcfc490..19aff2ffffab39c5a870050bc9697f5f
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
-index 2c62174ecd61136dd3ec9fbb1e8d250f7301f703..dac67ef72306738af834423fcfe75006d3dec5ed 100644
+index eebfeee5b4b4245aa867ee4a3c8a1bf4ffae081a..d12a938af780a8adf995da406ce7a4c2274b7980 100644
 --- a/src/main/java/net/fabricmc/loom/util/Constants.java
 +++ b/src/main/java/net/fabricmc/loom/util/Constants.java
 @@ -32,6 +32,7 @@ public class Constants {

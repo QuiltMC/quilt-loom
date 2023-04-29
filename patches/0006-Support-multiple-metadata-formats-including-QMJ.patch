@@ -693,7 +693,7 @@ index 7274912e12820e697991389626d5bda87ddd1162..fc3d6484b1801197c93c8f4c77efea10
  			if (isFabricMod && Files.exists(installerPath)) {
  				final JsonObject jsonObject = LoomGradlePlugin.GSON.fromJson(Files.readString(installerPath, StandardCharsets.UTF_8), JsonObject.class);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
-index 2ee3ffd9f6765bbc1857607e77e23afe50468820..d135fee520b2f519057ff2de6b1463ea8fc3b55f 100644
+index a1a3d27888072033cd11391084ba8a39aa027518..116eccc6e0ef7e80ebffa0846f1c0d7b28497b35 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 @@ -47,6 +47,7 @@ import org.gradle.api.attributes.Usage;
