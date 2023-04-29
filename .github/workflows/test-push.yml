@@ -1,17 +1,22 @@
 name: Run Tests
 on: [push, pull_request]
+
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        version: [7.4.0-jdk17]
-    runs-on: ubuntu-20.04
+        version: [8.1.0-jdk17]
+    runs-on: ubuntu-22.04
     container:
       image: gradle:${{ matrix.version }}
       options: --user root
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - run: git config --global user.email "nobody@example.com"
@@ -26,13 +31,13 @@ jobs:
     # Wait to ensure it builds before going running tests
     needs: build
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container:
-      image: gradle:7.4.0-jdk17
+      image: gradle:8.1.0-jdk17
       options: --user root
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - run: git config --global user.email "nobody@example.com"
@@ -43,7 +48,7 @@ jobs:
       - run: gradle writeActionsTestMatrix --stacktrace --warning-mode fail
         working-directory: quilt-loom
       - id: set-matrix
-        run: echo "::set-output name=matrix::$(cat quilt-loom/build/test_matrix.json)"
+        run: echo "matrix=$(cat build/test_matrix.json)" >> $GITHUB_OUTPUT
 
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -54,16 +59,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [7.4.0-jdk17]
+        version: [8.1.0-jdk17]
         test: ${{ fromJson(needs.prepare_test_matrix.outputs.matrix) }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container:
       image: gradle:${{ matrix.version }}
       options: --user root
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - run: git config --global user.email "nobody@example.com"
@@ -71,16 +76,22 @@ jobs:
       - uses: gradle/wrapper-validation-action@v1
       - run: gradle applyPatches
 
-      - run: gradle test --tests ${{ matrix.test }} --stacktrace --warning-mode fail
+      - run: gradle printActionsTestName --name="${{ matrix.test }}" test --tests ${{ matrix.test }} --stacktrace --warning-mode fail
         working-directory: quilt-loom
         env:
           TEST_WARNING_MODE: fail
+        id: test
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
           name: ${{ matrix.test }} (${{ matrix.java }}) Results
           path: quilt-loom/build/reports/
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: ${{ steps.test.outputs.test }} Heap Dump
+          path: "*.hprof"
 
   run_tests_windows:
     needs: prepare_test_matrix
@@ -101,20 +112,27 @@ jobs:
       - run: git config --global user.name "Nobody"
       - uses: gradle/wrapper-validation-action@v1
       - name: setup jdk ${{ matrix.java }}
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java }}
+          distribution: 'temurin'
       - run: ./gradlew applyPatches
-      - run: ./gradlew test --tests ${{ matrix.test }} --stacktrace --warning-mode fail
+      - run: ./gradlew printActionsTestName --name="${{ matrix.test }}" test --tests ${{ matrix.test }} --stacktrace --warning-mode fail
         working-directory: quilt-loom
         env:
           TEST_WARNING_MODE: fail
+        id: test
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
-          name: ${{ matrix.test }} (${{ matrix.java }}) Results
+          name: ${{ matrix.test }} (${{ matrix.java }}) Results (Windows)
           path: quilt-loom/build/reports/
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: ${{ steps.test.outputs.test }} Heap Dump (Windows)
+          path: "*.hprof"
 
   # Special case this test to run across all os's
   reproducible_build_test:
@@ -123,24 +141,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java: [ 17 ]
-        os: [ windows-2022, ubuntu-20.04, macos-11 ]
+        java: [ 17, 20 ]
+        os: [ windows-2022, ubuntu-22.04, macos-12 ]
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - run: git config --global user.email "nobody@example.com"
       - run: git config --global user.name "Nobody"
       - uses: gradle/wrapper-validation-action@v1
-      - uses: actions/setup-java@v1
+      - uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java }}
+          distribution: 'temurin'
       - run: ./gradlew applyPatches
       - run: ./gradlew test --tests *ReproducibleBuildTest --stacktrace --warning-mode fail
         working-directory: quilt-loom
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
           name: Reproducible Build ${{ matrix.os }} (${{ matrix.java }}) Results
