@@ -83,6 +83,19 @@ index 6fa25b5c570d6db178453bfa386fd863fdcfc490..19aff2ffffab39c5a870050bc9697f5f
  		});
  	}
  }
+diff --git a/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java
+index 0dd69ff216dcd0159411f841947591cfbdb7b93f..93e8e80ea404a3a8d0958b417cb16278b01f35a6 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java
++++ b/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java
+@@ -123,7 +123,7 @@ public final class SplitDecompileConfiguration extends DecompileConfiguration<Ma
+ 			task.setDescription("Decompile minecraft (%s) using the default decompiler.".formatted(name));
+ 			task.setGroup(Constants.TaskGroup.FABRIC);
+ 
+-			task.dependsOn(project.getTasks().named("gen%sSourcesWithCfr".formatted(name)));
++			task.dependsOn(project.getTasks().named("gen%sSourcesWithQuiltflower".formatted(name)));
+ 		});
+ 	}
+ }
 diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
 index eebfeee5b4b4245aa867ee4a3c8a1bf4ffae081a..d12a938af780a8adf995da406ce7a4c2274b7980 100644
 --- a/src/main/java/net/fabricmc/loom/util/Constants.java
