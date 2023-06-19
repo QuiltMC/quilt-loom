@@ -9,6 +9,7 @@ This includes:
 - Using the Quilt Loader system properties
 - Use quilt loader in all tests
 - Using `quilt_installer.json`
+- Renaming the shared service manager
 
 diff --git a/bootstrap/test-project/build.gradle b/bootstrap/test-project/build.gradle
 index 561915428a80131439ea9e1d9f12804c491d399a..db648181f772520d1607ce2510a66be1d00167c2 100644
@@ -304,6 +305,19 @@ index 7fd5d15941dddd97c2631c26b243b7f320d9337f..7d7122b5403049714202a7ead9be65ce
  	}
  
  	public static Provider<Boolean> getBooleanPropertyProvider(Project project, String key) {
+diff --git a/src/main/java/net/fabricmc/loom/util/service/BuildSharedServiceManager.java b/src/main/java/net/fabricmc/loom/util/service/BuildSharedServiceManager.java
+index 6575611dea711ca1bb284a76132110404cdd95cb..b6f0ed542dc183f5782e300c57dce2c3ee3969b2 100644
+--- a/src/main/java/net/fabricmc/loom/util/service/BuildSharedServiceManager.java
++++ b/src/main/java/net/fabricmc/loom/util/service/BuildSharedServiceManager.java
+@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
+ 
+ public abstract class BuildSharedServiceManager implements BuildService<BuildServiceParameters.None> {
+ 	private static final Logger LOGGER = LoggerFactory.getLogger(BuildSharedServiceManager.class);
+-	private static final String NAME = "loom:sharedServiceManager";
++	private static final String NAME = "quilt-loom:sharedServiceManager";
+ 
+ 	private SharedServiceManager sharedServiceManager = new BuildSharedServiceManagerImpl();
+ 	private final AtomicInteger refCount = new AtomicInteger(0);
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy
 index 8b4de3243a929eb4073318b68c94ea6adb300438..0051c810071cc95fe89072e2bb8e5ade00c0c27c 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/CustomManifestTest.groovy

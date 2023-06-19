@@ -461,10 +461,10 @@ index 4731422ca79b2b0032090034d71305749a579675..b23f0e55b906b06d6df4561e4006565c
  
  		for (Map.Entry<String, ModEnvironment> entry : modJson.getClassTweakers().entrySet()) {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index 4a2cf669fea5fe1198660fa54b31e9056fe78b88..af80470079ae06ae09d04e797dd873bdd5099bb6 100644
+index ea0a7327246fe1da86ad80a4342e3f2299988541..363ea0c70a83b67e253abb6073b82613a1bd2ce0 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-@@ -50,13 +50,13 @@ import org.slf4j.Logger;
+@@ -48,13 +48,13 @@ import org.slf4j.Logger;
  import org.slf4j.LoggerFactory;
  
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
@@ -479,7 +479,7 @@ index 4a2cf669fea5fe1198660fa54b31e9056fe78b88..af80470079ae06ae09d04e797dd873bd
  import net.fabricmc.mappingio.tree.MappingTree;
  import net.fabricmc.mappingio.tree.MemoryMappingTree;
  
-@@ -196,9 +196,9 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
+@@ -189,9 +189,9 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  	}
  
  	private record InjectedInterface(String modId, String className, String ifaceName) {
@@ -492,7 +492,7 @@ index 4a2cf669fea5fe1198660fa54b31e9056fe78b88..af80470079ae06ae09d04e797dd873bd
  
  			if (jsonElement == null) {
  				return Collections.emptyList();
-@@ -219,8 +219,8 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
+@@ -212,8 +212,8 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  			return result;
  		}
  

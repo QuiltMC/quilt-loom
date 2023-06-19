@@ -5,7 +5,7 @@ Subject: [PATCH] Fix interface injection of inner class interfaces
 
 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index ea0a7327246fe1da86ad80a4342e3f2299988541..4a2cf669fea5fe1198660fa54b31e9056fe78b88 100644
+index 363ea0c70a83b67e253abb6073b82613a1bd2ce0..af80470079ae06ae09d04e797dd873bdd5099bb6 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 @@ -28,6 +28,7 @@ import java.io.IOException;
