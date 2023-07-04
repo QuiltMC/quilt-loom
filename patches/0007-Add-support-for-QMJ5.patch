@@ -91,18 +91,9 @@ index 6b2099e99f220c336a7c6fa0f229b8ecd474b1fb..b8aacec03c84745d285dda182b2978d1
  		} else {
  			return resources.matching(patternFilterable -> patternFilterable.include("fabric.mod.json")).getSingleFile();
 diff --git a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
-index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..b2875baf4d6b639e263ca9ef002f8e92f90a7411 100644
+index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..5c90400e90bf1a01b7cbf595af39c986b8e95c68 100644
 --- a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
-@@ -1,7 +1,7 @@
- /*
-  * This file is part of fabric-loom, licensed under the MIT License (MIT).
-  *
-- * Copyright (c) 2021 FabricMC
-+ * Copyright (c) 2023 FabricMC
-  *
-  * Permission is hereby granted, free of charge, to any person obtaining a copy
-  * of this software and associated documentation files (the "Software"), to deal
 @@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
  import java.io.ByteArrayOutputStream;
  import java.io.File;
@@ -184,7 +175,7 @@ index cca9638ed583a3e25e3142f02188293f2c23a6c5..7138ecdddcff8cd9959408c420555288
  				rewriteJar();
  			} catch (Exception e) {
 diff --git a/src/main/java/net/fabricmc/loom/util/ZipUtils.java b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
-index f6214aed8a99b99af52dcca76d78a36c2cf29213..14e770e5dc42faac1ee3bc91250d280afc89cc9e 100644
+index f6214aed8a99b99af52dcca76d78a36c2cf29213..c7fded73c2da28df3f02dfe54ce2c561b1da22bf 100644
 --- a/src/main/java/net/fabricmc/loom/util/ZipUtils.java
 +++ b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
 @@ -47,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
@@ -196,11 +187,10 @@ index f6214aed8a99b99af52dcca76d78a36c2cf29213..14e770e5dc42faac1ee3bc91250d280a
  
  import net.fabricmc.loom.LoomGradlePlugin;
  
-@@ -112,6 +114,13 @@ public class ZipUtils {
+@@ -112,6 +114,12 @@ public class ZipUtils {
  		return LoomGradlePlugin.GSON.fromJson(new String(bytes, StandardCharsets.UTF_8), clazz);
  	}
  
-+	@SuppressWarnings("unchecked")
 +	public static <T> T unpackGsonWithJson5(Path zip, String path, Class<T> clazz) throws IOException {
 +		final byte[] bytes = unpack(zip, path);
 +		final var reader = new GsonReader(JsonReader.json5(new String(bytes, StandardCharsets.UTF_8)));
@@ -210,12 +200,11 @@ index f6214aed8a99b99af52dcca76d78a36c2cf29213..14e770e5dc42faac1ee3bc91250d280a
  	@Nullable
  	public static <T> T unpackGsonNullable(Path zip, String path, Class<T> clazz) throws IOException {
  		try {
-@@ -121,6 +130,16 @@ public class ZipUtils {
+@@ -121,6 +129,15 @@ public class ZipUtils {
  		}
  	}
  
 +	@Nullable
-+	@SuppressWarnings("unchecked")
 +	public static <T> T unpackGsonWithJson5Nullable(Path zip, String path, Class<T> clazz) throws IOException {
 +		try {
 +			return unpackGsonWithJson5(zip, path, clazz);
@@ -227,7 +216,7 @@ index f6214aed8a99b99af52dcca76d78a36c2cf29213..14e770e5dc42faac1ee3bc91250d280a
  	public static <T> T unpackJackson(Path zip, String path, Class<T> clazz) throws IOException {
  		final byte[] bytes = unpack(zip, path);
  		return LoomGradlePlugin.OBJECT_MAPPER.readValue(new String(bytes, StandardCharsets.UTF_8), clazz);
-@@ -184,6 +203,20 @@ public class ZipUtils {
+@@ -184,6 +201,20 @@ public class ZipUtils {
  		}
  	}
  
