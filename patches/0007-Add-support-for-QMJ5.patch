@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Ennui Langeweile <85590273+EnnuiL@users.noreply.github.com>
-Date: Mon, 3 Jul 2023 21:27:31 -0300
+Date: Mon, 3 Jul 2023 22:01:25 -0300
 Subject: [PATCH] Add support for QMJ5
 
 
@@ -90,7 +90,7 @@ index 6b2099e99f220c336a7c6fa0f229b8ecd474b1fb..b8aacec03c84745d285dda182b2978d1
  		} else {
  			return resources.matching(patternFilterable -> patternFilterable.include("fabric.mod.json")).getSingleFile();
 diff --git a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
-index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..d518eb0c2f75c0abf5d1b59d76b18311a0d95507 100644
+index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..1519abc4dc5bfbd4a1490febce983b0ea2fdd1c3 100644
 --- a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 @@ -1,7 +1,7 @@
@@ -111,27 +111,24 @@ index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..d518eb0c2f75c0abf5d1b59d76b18311
  import java.nio.file.Path;
  import java.util.ArrayList;
  import java.util.List;
-@@ -40,6 +42,10 @@ import java.util.jar.Manifest;
- import javax.inject.Inject;
+@@ -60,13 +62,16 @@ import org.gradle.workers.WorkParameters;
+ import org.gradle.workers.WorkQueue;
+ import org.gradle.workers.WorkerExecutor;
+ import org.jetbrains.annotations.ApiStatus;
++import org.quiltmc.json5.JsonReader;
  
- import com.google.common.base.Preconditions;
-+
+ import net.fabricmc.loom.LoomGradleExtension;
 +import net.fabricmc.loom.LoomGradlePlugin;
-+import net.fabricmc.loom.util.qmj.Json5Helper;
-+
- import org.gradle.api.Action;
- import org.gradle.api.file.ConfigurableFileCollection;
- import org.gradle.api.file.RegularFileProperty;
-@@ -68,6 +74,8 @@ import net.fabricmc.loom.util.ZipReprocessorUtil;
+ import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+ import net.fabricmc.loom.task.service.JarManifestService;
+ import net.fabricmc.loom.util.ZipReprocessorUtil;
  import net.fabricmc.loom.util.ZipUtils;
  import net.fabricmc.loom.util.gradle.SourceSetHelper;
++import net.fabricmc.loom.util.qmj.Json5Helper;
  
-+import org.quiltmc.json5.JsonReader;
-+
  public abstract class AbstractRemapJarTask extends Jar {
  	public static final String MANIFEST_PATH = "META-INF/MANIFEST.MF";
- 	public static final String MANIFEST_NAMESPACE_KEY = "Fabric-Mapping-Namespace";
-@@ -75,6 +83,8 @@ public abstract class AbstractRemapJarTask extends Jar {
+@@ -75,6 +80,8 @@ public abstract class AbstractRemapJarTask extends Jar {
  	public static final String MANIFEST_CLIENT_ENTRIES_KEY = "Fabric-Loom-Client-Only-Entries";
  	public static final Attributes.Name MANIFEST_SPLIT_ENV_NAME = new Attributes.Name(MANIFEST_SPLIT_ENV_KEY);
  	public static final Attributes.Name MANIFEST_CLIENT_ENTRIES_NAME = new Attributes.Name(MANIFEST_CLIENT_ENTRIES_KEY);
@@ -140,7 +137,7 @@ index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..d518eb0c2f75c0abf5d1b59d76b18311
  
  	@InputFile
  	public abstract RegularFileProperty getInputFile();
-@@ -184,6 +194,18 @@ public abstract class AbstractRemapJarTask extends Jar {
+@@ -184,6 +191,18 @@ public abstract class AbstractRemapJarTask extends Jar {
  			outputFile = getParameters().getOutputFile().getAsFile().get().toPath();
  		}
  
@@ -184,28 +181,21 @@ index cca9638ed583a3e25e3142f02188293f2c23a6c5..7138ecdddcff8cd9959408c420555288
  				rewriteJar();
  			} catch (Exception e) {
 diff --git a/src/main/java/net/fabricmc/loom/util/ZipUtils.java b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
-index f6214aed8a99b99af52dcca76d78a36c2cf29213..e7af427658aa5564f4feea0ebe5b158e67d65d62 100644
+index f6214aed8a99b99af52dcca76d78a36c2cf29213..eaf9dbe7e2d84766697a23b30cfbc53c25dcfe30 100644
 --- a/src/main/java/net/fabricmc/loom/util/ZipUtils.java
 +++ b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
-@@ -43,6 +43,8 @@ import java.util.Map;
- import java.util.function.Function;
- import java.util.stream.Stream;
- 
-+import net.fabricmc.loom.util.qmj.Json5Helper;
-+
- import org.jetbrains.annotations.Nullable;
+@@ -47,8 +47,10 @@ import org.jetbrains.annotations.Nullable;
  import org.objectweb.asm.ClassReader;
  import org.objectweb.asm.ClassVisitor;
-@@ -50,6 +52,8 @@ import org.objectweb.asm.ClassWriter;
+ import org.objectweb.asm.ClassWriter;
++import org.quiltmc.json5.JsonReader;
  
  import net.fabricmc.loom.LoomGradlePlugin;
++import net.fabricmc.loom.util.qmj.Json5Helper;
  
-+import org.quiltmc.json5.JsonReader;
-+
  public class ZipUtils {
  	public static boolean isZip(Path zip) throws IOException {
- 		if (Files.notExists(zip)) {
-@@ -112,6 +116,12 @@ public class ZipUtils {
+@@ -112,6 +114,12 @@ public class ZipUtils {
  		return LoomGradlePlugin.GSON.fromJson(new String(bytes, StandardCharsets.UTF_8), clazz);
  	}
  
@@ -218,7 +208,7 @@ index f6214aed8a99b99af52dcca76d78a36c2cf29213..e7af427658aa5564f4feea0ebe5b158e
  	@Nullable
  	public static <T> T unpackGsonNullable(Path zip, String path, Class<T> clazz) throws IOException {
  		try {
-@@ -121,6 +131,16 @@ public class ZipUtils {
+@@ -121,6 +129,16 @@ public class ZipUtils {
  		}
  	}
  
@@ -235,7 +225,7 @@ index f6214aed8a99b99af52dcca76d78a36c2cf29213..e7af427658aa5564f4feea0ebe5b158e
  	public static <T> T unpackJackson(Path zip, String path, Class<T> clazz) throws IOException {
  		final byte[] bytes = unpack(zip, path);
  		return LoomGradlePlugin.OBJECT_MAPPER.readValue(new String(bytes, StandardCharsets.UTF_8), clazz);
-@@ -184,6 +204,20 @@ public class ZipUtils {
+@@ -184,6 +202,20 @@ public class ZipUtils {
  		}
  	}
  
@@ -322,10 +312,10 @@ index 1af5a154c301b8b18ddef1148b6d05fa1ceddb68..4b26643a6fc9d22071b4c7b34a23c2e0
  		}
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/Json5Helper.java b/src/main/java/net/fabricmc/loom/util/qmj/Json5Helper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..c34ad317bfb8865ea38b3e090e158be0f10fd40c
+index 0000000000000000000000000000000000000000..39a3d976c34751f0083378618c58d01471ae4b9f
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/qmj/Json5Helper.java
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,73 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -360,59 +350,66 @@ index 0000000000000000000000000000000000000000..c34ad317bfb8865ea38b3e090e158be0
 +import com.google.gson.JsonObject;
 +import com.google.gson.JsonPrimitive;
 +import com.google.gson.internal.LazilyParsedNumber;
-+
 +import org.quiltmc.json5.JsonReader;
 +
 +public class Json5Helper {
 +	public static final JsonElement parseJson5Reader(JsonReader reader) throws IOException {
 +		return switch (reader.peek()) {
-+			case STRING -> new JsonPrimitive(reader.nextString());
-+			case NUMBER -> new JsonPrimitive(new LazilyParsedNumber(reader.nextString()));
-+			case BOOLEAN -> new JsonPrimitive(reader.nextBoolean());
-+			case NULL -> {
-+				reader.nextNull();
-+				yield JsonNull.INSTANCE;
++		case STRING -> new JsonPrimitive(reader.nextString());
++		case NUMBER -> new JsonPrimitive(new LazilyParsedNumber(reader.nextString()));
++		case BOOLEAN -> new JsonPrimitive(reader.nextBoolean());
++		case NULL -> {
++			reader.nextNull();
++			yield JsonNull.INSTANCE;
++		}
++		case BEGIN_ARRAY -> {
++			JsonArray array = new JsonArray();
++			reader.beginArray();
++
++			while (reader.hasNext()) {
++				array.add(parseJson5Reader(reader));
 +			}
-+			case BEGIN_ARRAY -> {
-+				JsonArray array = new JsonArray();
-+				reader.beginArray();
-+				while (reader.hasNext()) {
-+					array.add(parseJson5Reader(reader));
-+				}
-+				reader.endArray();
-+				yield array;
++
++			reader.endArray();
++			yield array;
++		}
++		case BEGIN_OBJECT -> {
++			JsonObject object = new JsonObject();
++			reader.beginObject();
++
++			while (reader.hasNext()) {
++				object.add(reader.nextName(), parseJson5Reader(reader));
 +			}
-+			case BEGIN_OBJECT -> {
-+				JsonObject object = new JsonObject();
-+				reader.beginObject();
-+				while (reader.hasNext()) {
-+					object.add(reader.nextName(), parseJson5Reader(reader));
-+				}
-+				reader.endObject();
-+				yield object;
-+			}
-+			default -> throw new IllegalArgumentException();
++
++			reader.endObject();
++			yield object;
++		}
++		default -> throw new IllegalArgumentException();
 +		};
 +	};
 +}
 +
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
-index e179a45578d1ef12c15e06e387886ba32cac0f9f..fb6a9c7ed7e30b83967c1841a23d0ef20f90f46b 100644
+index e179a45578d1ef12c15e06e387886ba32cac0f9f..a5e391bcf4218cb8be61c5c64eae6c42e7b38ff4 100644
 --- a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
 +++ b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
-@@ -45,8 +45,11 @@ import net.fabricmc.loom.util.ZipUtils;
- import net.fabricmc.loom.util.gradle.SourceSetHelper;
- import net.fabricmc.loom.util.metadata.ModJsonSource;
- 
+@@ -39,6 +39,7 @@ import com.google.gson.JsonObject;
+ import org.gradle.api.tasks.SourceSet;
+ import org.jetbrains.annotations.Nullable;
+ import org.jetbrains.annotations.VisibleForTesting;
 +import org.quiltmc.json5.JsonReader;
-+
+ 
+ import net.fabricmc.loom.LoomGradlePlugin;
+ import net.fabricmc.loom.util.ZipUtils;
+@@ -47,6 +48,7 @@ import net.fabricmc.loom.util.metadata.ModJsonSource;
+ 
  public final class QuiltModJsonFactory {
  	private static final String QUILT_MOD_JSON = "quilt.mod.json";
 +	private static final String QUILT_MOD_JSON5 = "quilt.mod.json5";
  
  	private QuiltModJsonFactory() {
  	}
-@@ -66,20 +69,28 @@ public final class QuiltModJsonFactory {
+@@ -66,20 +68,28 @@ public final class QuiltModJsonFactory {
  		};
  	}
  
@@ -445,7 +442,7 @@ index e179a45578d1ef12c15e06e387886ba32cac0f9f..fb6a9c7ed7e30b83967c1841a23d0ef2
  		} catch (IOException e) {
  			throw new UncheckedIOException("Failed to read zip: " + zipPath, e);
  		}
-@@ -91,27 +102,35 @@ public final class QuiltModJsonFactory {
+@@ -91,27 +101,35 @@ public final class QuiltModJsonFactory {
  		return create(jsonObject, new ModJsonSource.ZipSource(zipPath));
  	}
  
