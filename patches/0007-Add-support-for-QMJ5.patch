@@ -1,0 +1,489 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ennui Langeweile <85590273+EnnuiL@users.noreply.github.com>
+Date: Mon, 3 Jul 2023 21:27:31 -0300
+Subject: [PATCH] Add support for QMJ5
+
+
+diff --git a/build.gradle b/build.gradle
+index d9e90d46948d9335225f959e865af681056a3d51..eb546b11c1c9e10e083ffc0e4358fb1f8a7b8d73 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -107,8 +107,11 @@ dependencies {
+ 	// Kapt integration
+ 	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0') // Must match the version included with gradle.
+ 
++	// Dependencies we import
++	implementation('org.quiltmc:quilt-json5:1.0.4+final')
++
+ 	// Plugins we apply
+-	implementation("io.github.juuxel:loom-quiltflower:1.10.0") {
++	implementation('io.github.juuxel:loom-quiltflower:1.10.0') {
+ 		exclude group: "net.fabricmc", module: "fabric-loom"
+ 	}
+ 
+diff --git a/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java b/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
+index 490240ac688d7fddba464b70005d7c236265c9b2..a2628646b174b630be103433dd1eb415449adced 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
++++ b/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
+@@ -46,6 +46,7 @@ import net.fabricmc.loom.util.metadata.ModJsonFactory;
+ public class ModMetadataHelper {
+ 	public static final String FABRIC_MOD_JSON = "fabric.mod.json";
+ 	public static final String QUILT_MOD_JSON = "quilt.mod.json";
++	public static final String QUILT_MOD_JSON5 = "quilt.mod.json5";
+ 
+ 	// Returns a list of Mods found in the provided project's main or client sourcesets
+ 	public static List<ModJson> getModsInProject(Project project) {
+@@ -75,18 +76,34 @@ public class ModMetadataHelper {
+ 	}
+ 
+ 	public static boolean isModJar(Path input) {
+-		return ZipUtils.contains(input, QUILT_MOD_JSON) || ZipUtils.contains(input, FABRIC_MOD_JSON);
++		return ZipUtils.contains(input, QUILT_MOD_JSON5)
++				|| ZipUtils.contains(input, QUILT_MOD_JSON)
++				|| ZipUtils.contains(input, FABRIC_MOD_JSON);
+ 	}
+ 
+ 	public static boolean containsMod(FileSystemUtil.Delegate fs) {
+-		return Files.exists(fs.getPath(QUILT_MOD_JSON)) || Files.exists(fs.getPath(FABRIC_MOD_JSON));
++		return Files.exists(fs.getPath(QUILT_MOD_JSON5))
++				|| Files.exists(fs.getPath(QUILT_MOD_JSON))
++				|| Files.exists(fs.getPath(FABRIC_MOD_JSON));
+ 	}
+ 
+ 	public static boolean isQuiltMod(Path jar) {
+ 		return ZipUtils.contains(jar, QUILT_MOD_JSON);
+ 	}
+ 
++	public static boolean isQuiltModWithQMJ5(Path jar) {
++		return ZipUtils.contains(jar, QUILT_MOD_JSON5);
++	}
++
+ 	public static String getMetadataPath(Path jar) {
+-		return isQuiltMod(jar) ? QUILT_MOD_JSON : FABRIC_MOD_JSON;
++		if (isQuiltModWithQMJ5(jar)) {
++			return QUILT_MOD_JSON5;
++		}
++
++		if (isQuiltMod(jar)) {
++			return QUILT_MOD_JSON5;
++		}
++
++		return FABRIC_MOD_JSON;
+ 	}
+ }
+diff --git a/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java b/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java
+index 6b2099e99f220c336a7c6fa0f229b8ecd474b1fb..b8aacec03c84745d285dda182b2978d1f1ef10dd 100644
+--- a/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java
++++ b/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java
+@@ -68,9 +68,12 @@ public class ModVersionParser {
+ 
+ 	private File locateModJsonFile() {
+ 		var resources = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName("main").getResources();
++		var qmj5 = resources.matching(patternFilterable -> patternFilterable.include("quilt.mod.json5"));
+ 		var qmj = resources.matching(patternFilterable -> patternFilterable.include("quilt.mod.json"));
+ 
+-		if (!qmj.isEmpty()) {
++		if (!qmj5.isEmpty()) {
++			return qmj5.getSingleFile();
++		} else if (!qmj.isEmpty()) {
+ 			return qmj.getSingleFile();
+ 		} else {
+ 			return resources.matching(patternFilterable -> patternFilterable.include("fabric.mod.json")).getSingleFile();
+diff --git a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
+index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..d518eb0c2f75c0abf5d1b59d76b18311a0d95507 100644
+--- a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
++++ b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
+@@ -1,7 +1,7 @@
+ /*
+  * This file is part of fabric-loom, licensed under the MIT License (MIT).
+  *
+- * Copyright (c) 2021 FabricMC
++ * Copyright (c) 2023 FabricMC
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining a copy
+  * of this software and associated documentation files (the "Software"), to deal
+@@ -28,6 +28,8 @@ import java.io.ByteArrayInputStream;
+ import java.io.ByteArrayOutputStream;
+ import java.io.File;
+ import java.io.IOException;
++import java.io.InputStreamReader;
++import java.nio.charset.StandardCharsets;
+ import java.nio.file.Path;
+ import java.util.ArrayList;
+ import java.util.List;
+@@ -40,6 +42,10 @@ import java.util.jar.Manifest;
+ import javax.inject.Inject;
+ 
+ import com.google.common.base.Preconditions;
++
++import net.fabricmc.loom.LoomGradlePlugin;
++import net.fabricmc.loom.util.qmj.Json5Helper;
++
+ import org.gradle.api.Action;
+ import org.gradle.api.file.ConfigurableFileCollection;
+ import org.gradle.api.file.RegularFileProperty;
+@@ -68,6 +74,8 @@ import net.fabricmc.loom.util.ZipReprocessorUtil;
+ import net.fabricmc.loom.util.ZipUtils;
+ import net.fabricmc.loom.util.gradle.SourceSetHelper;
+ 
++import org.quiltmc.json5.JsonReader;
++
+ public abstract class AbstractRemapJarTask extends Jar {
+ 	public static final String MANIFEST_PATH = "META-INF/MANIFEST.MF";
+ 	public static final String MANIFEST_NAMESPACE_KEY = "Fabric-Mapping-Namespace";
+@@ -75,6 +83,8 @@ public abstract class AbstractRemapJarTask extends Jar {
+ 	public static final String MANIFEST_CLIENT_ENTRIES_KEY = "Fabric-Loom-Client-Only-Entries";
+ 	public static final Attributes.Name MANIFEST_SPLIT_ENV_NAME = new Attributes.Name(MANIFEST_SPLIT_ENV_KEY);
+ 	public static final Attributes.Name MANIFEST_CLIENT_ENTRIES_NAME = new Attributes.Name(MANIFEST_CLIENT_ENTRIES_KEY);
++	public static final String QUILT_MOD_JSON5_PATH = "quilt.mod.json5";
++	public static final String QUILT_MOD_JSON_PATH = "quilt.mod.json";
+ 
+ 	@InputFile
+ 	public abstract RegularFileProperty getInputFile();
+@@ -184,6 +194,18 @@ public abstract class AbstractRemapJarTask extends Jar {
+ 			outputFile = getParameters().getOutputFile().getAsFile().get().toPath();
+ 		}
+ 
++		protected void convertQmj5ToQmj() throws IOException {
++			ZipUtils.transform(outputFile, Map.of(QUILT_MOD_JSON5_PATH, bytes -> {
++				var reader = new InputStreamReader(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8);
++				var element = Json5Helper.parseJson5Reader(JsonReader.json5(reader));
++				var convertedElement = LoomGradlePlugin.GSON.toJson(element);
++
++				return convertedElement.getBytes();
++			}));
++
++			ZipUtils.move(outputFile, QUILT_MOD_JSON5_PATH, QUILT_MOD_JSON_PATH);
++		}
++
+ 		protected void modifyJarManifest() throws IOException {
+ 			int count = ZipUtils.transform(outputFile, Map.of(MANIFEST_PATH, bytes -> {
+ 				var manifest = new Manifest(new ByteArrayInputStream(bytes));
+diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
+index 319fde2eda353146b917b2cb59149083b7ea5430..04692b0147c6b579a1693349dad131a9f9eb7557 100644
+--- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
++++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
+@@ -215,6 +215,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+ 					markClientOnlyClasses();
+ 				}
+ 
++				convertQmj5ToQmj();
+ 				remapAccessWidener();
+ 				addRefmaps();
+ 				addNestedJars();
+diff --git a/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
+index cca9638ed583a3e25e3142f02188293f2c23a6c5..7138ecdddcff8cd9959408c4205552882f014d2e 100644
+--- a/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
++++ b/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
+@@ -87,6 +87,7 @@ public abstract class RemapSourcesJarTask extends AbstractRemapJarTask {
+ 			try {
+ 				sourceRemapperService.remapSourcesJar(inputFile, outputFile);
+ 
++				convertQmj5ToQmj();
+ 				modifyJarManifest();
+ 				rewriteJar();
+ 			} catch (Exception e) {
+diff --git a/src/main/java/net/fabricmc/loom/util/ZipUtils.java b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
+index f6214aed8a99b99af52dcca76d78a36c2cf29213..e7af427658aa5564f4feea0ebe5b158e67d65d62 100644
+--- a/src/main/java/net/fabricmc/loom/util/ZipUtils.java
++++ b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
+@@ -43,6 +43,8 @@ import java.util.Map;
+ import java.util.function.Function;
+ import java.util.stream.Stream;
+ 
++import net.fabricmc.loom.util.qmj.Json5Helper;
++
+ import org.jetbrains.annotations.Nullable;
+ import org.objectweb.asm.ClassReader;
+ import org.objectweb.asm.ClassVisitor;
+@@ -50,6 +52,8 @@ import org.objectweb.asm.ClassWriter;
+ 
+ import net.fabricmc.loom.LoomGradlePlugin;
+ 
++import org.quiltmc.json5.JsonReader;
++
+ public class ZipUtils {
+ 	public static boolean isZip(Path zip) throws IOException {
+ 		if (Files.notExists(zip)) {
+@@ -112,6 +116,12 @@ public class ZipUtils {
+ 		return LoomGradlePlugin.GSON.fromJson(new String(bytes, StandardCharsets.UTF_8), clazz);
+ 	}
+ 
++	@SuppressWarnings("unchecked")
++	public static <T> T unpackGsonWithJson5(Path zip, String path, Class<T> clazz) throws IOException {
++		final byte[] bytes = unpack(zip, path);
++		return (T) Json5Helper.parseJson5Reader(JsonReader.json5(new String(bytes, StandardCharsets.UTF_8)));
++	}
++
+ 	@Nullable
+ 	public static <T> T unpackGsonNullable(Path zip, String path, Class<T> clazz) throws IOException {
+ 		try {
+@@ -121,6 +131,16 @@ public class ZipUtils {
+ 		}
+ 	}
+ 
++	@Nullable
++	@SuppressWarnings("unchecked")
++	public static <T> T unpackGsonWithJson5Nullable(Path zip, String path, Class<T> clazz) throws IOException {
++		try {
++			return unpackGsonWithJson5(zip, path, clazz);
++		} catch (NoSuchFileException e) {
++			return null;
++		}
++	}
++
+ 	public static <T> T unpackJackson(Path zip, String path, Class<T> clazz) throws IOException {
+ 		final byte[] bytes = unpack(zip, path);
+ 		return LoomGradlePlugin.OBJECT_MAPPER.readValue(new String(bytes, StandardCharsets.UTF_8), clazz);
+@@ -184,6 +204,20 @@ public class ZipUtils {
+ 		}
+ 	}
+ 
++	public static void move(Path zip, String path, String newPath) throws IOException {
++		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(zip, true)) {
++			Path fsPath = fs.get().getPath(path);
++			Path newFsPath = fs.get().getPath(newPath);
++
++			if (Files.exists(fsPath)) {
++				Files.write(newFsPath, Files.readAllBytes(fsPath), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
++				Files.delete(fsPath);
++			} else {
++				throw new NoSuchFileException(fsPath.toString());
++			}
++		}
++	}
++
+ 	public static int transformString(Path zip, Collection<Pair<String, UnsafeUnaryOperator<String>>> transforms) throws IOException {
+ 		return transformString(zip, transforms.stream());
+ 	}
+diff --git a/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
+index 1af5a154c301b8b18ddef1148b6d05fa1ceddb68..4b26643a6fc9d22071b4c7b34a23c2e034b7e107 100644
+--- a/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
++++ b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
+@@ -39,25 +39,34 @@ import net.fabricmc.loom.util.gradle.SourceSetHelper;
+ import net.fabricmc.loom.util.qmj.QuiltModJsonFactory;
+ 
+ public class ModJsonFactory {
++	public static final String QUILT_MOD_JSON = "quilt.mod.json";
++	public static final String QUILT_MOD_JSON5 = "quilt.mod.json5";
++
+ 	public static ModJson createFromZip(Path zipPath) {
+-		if (ModMetadataHelper.isQuiltMod(zipPath)) {
+-			return QuiltModJsonFactory.createFromZip(zipPath);
++		if (ModMetadataHelper.isQuiltModWithQMJ5(zipPath)) {
++			return QuiltModJsonFactory.createFromZip(zipPath, QUILT_MOD_JSON5);
++		} else if (ModMetadataHelper.isQuiltMod(zipPath)) {
++			return QuiltModJsonFactory.createFromZip(zipPath, QUILT_MOD_JSON);
+ 		} else {
+ 			return FabricModJsonFactory.createFromZip(zipPath);
+ 		}
+ 	}
+ 
+ 	public static ModJson createFromZipNullable(Path zipPath) {
+-		if (ModMetadataHelper.isQuiltMod(zipPath)) {
+-			return QuiltModJsonFactory.createFromZipNullable(zipPath);
++		if (ModMetadataHelper.isQuiltModWithQMJ5(zipPath)) {
++			return QuiltModJsonFactory.createFromZipNullable(zipPath, QUILT_MOD_JSON5);
++		} else if (ModMetadataHelper.isQuiltMod(zipPath)) {
++			return QuiltModJsonFactory.createFromZipNullable(zipPath, QUILT_MOD_JSON);
+ 		} else {
+ 			return FabricModJsonFactory.createFromZipNullable(zipPath);
+ 		}
+ 	}
+ 
+ 	public static Optional<? extends ModJson> createFromZipOptional(Path zipPath) {
+-		if (ModMetadataHelper.isQuiltMod(zipPath)) {
+-			return QuiltModJsonFactory.createFromZipOptional(zipPath);
++		if (ModMetadataHelper.isQuiltModWithQMJ5(zipPath)) {
++			return QuiltModJsonFactory.createFromZipOptional(zipPath, QUILT_MOD_JSON5);
++		} else if (ModMetadataHelper.isQuiltMod(zipPath)) {
++			return QuiltModJsonFactory.createFromZipOptional(zipPath, QUILT_MOD_JSON);
+ 		} else {
+ 			return FabricModJsonFactory.createFromZipOptional(zipPath);
+ 		}
+@@ -65,10 +74,16 @@ public class ModJsonFactory {
+ 
+ 	@Nullable
+ 	public static ModJson createFromSourceSetsNullable(SourceSet... sourceSets) throws IOException {
+-		File file = SourceSetHelper.findFirstFileInResource(ModMetadataHelper.QUILT_MOD_JSON, sourceSets);
++		File file = SourceSetHelper.findFirstFileInResource(ModMetadataHelper.QUILT_MOD_JSON5, sourceSets);
++		String qmj = QUILT_MOD_JSON5;
++
++		if (file == null) {
++			file = SourceSetHelper.findFirstFileInResource(ModMetadataHelper.QUILT_MOD_JSON, sourceSets);
++			qmj = QUILT_MOD_JSON;
++		}
+ 
+ 		if (file != null) {
+-			return QuiltModJsonFactory.createFromSourceSetsNullable(sourceSets);
++			return QuiltModJsonFactory.createFromSourceSetsNullable(qmj, sourceSets);
+ 		} else {
+ 			return FabricModJsonFactory.createFromSourceSetsNullable(sourceSets);
+ 		}
+diff --git a/src/main/java/net/fabricmc/loom/util/qmj/Json5Helper.java b/src/main/java/net/fabricmc/loom/util/qmj/Json5Helper.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..c34ad317bfb8865ea38b3e090e158be0f10fd40c
+--- /dev/null
++++ b/src/main/java/net/fabricmc/loom/util/qmj/Json5Helper.java
+@@ -0,0 +1,70 @@
++/*
++ * This file is part of fabric-loom, licensed under the MIT License (MIT).
++ *
++ * Copyright (c) 2021 FabricMC
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++package net.fabricmc.loom.util.qmj;
++
++import java.io.IOException;
++
++import com.google.gson.JsonArray;
++import com.google.gson.JsonElement;
++import com.google.gson.JsonNull;
++import com.google.gson.JsonObject;
++import com.google.gson.JsonPrimitive;
++import com.google.gson.internal.LazilyParsedNumber;
++
++import org.quiltmc.json5.JsonReader;
++
++public class Json5Helper {
++	public static final JsonElement parseJson5Reader(JsonReader reader) throws IOException {
++		return switch (reader.peek()) {
++			case STRING -> new JsonPrimitive(reader.nextString());
++			case NUMBER -> new JsonPrimitive(new LazilyParsedNumber(reader.nextString()));
++			case BOOLEAN -> new JsonPrimitive(reader.nextBoolean());
++			case NULL -> {
++				reader.nextNull();
++				yield JsonNull.INSTANCE;
++			}
++			case BEGIN_ARRAY -> {
++				JsonArray array = new JsonArray();
++				reader.beginArray();
++				while (reader.hasNext()) {
++					array.add(parseJson5Reader(reader));
++				}
++				reader.endArray();
++				yield array;
++			}
++			case BEGIN_OBJECT -> {
++				JsonObject object = new JsonObject();
++				reader.beginObject();
++				while (reader.hasNext()) {
++					object.add(reader.nextName(), parseJson5Reader(reader));
++				}
++				reader.endObject();
++				yield object;
++			}
++			default -> throw new IllegalArgumentException();
++		};
++	};
++}
++
+diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
+index e179a45578d1ef12c15e06e387886ba32cac0f9f..fb6a9c7ed7e30b83967c1841a23d0ef20f90f46b 100644
+--- a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
++++ b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
+@@ -45,8 +45,11 @@ import net.fabricmc.loom.util.ZipUtils;
+ import net.fabricmc.loom.util.gradle.SourceSetHelper;
+ import net.fabricmc.loom.util.metadata.ModJsonSource;
+ 
++import org.quiltmc.json5.JsonReader;
++
+ public final class QuiltModJsonFactory {
+ 	private static final String QUILT_MOD_JSON = "quilt.mod.json";
++	private static final String QUILT_MOD_JSON5 = "quilt.mod.json5";
+ 
+ 	private QuiltModJsonFactory() {
+ 	}
+@@ -66,20 +69,28 @@ public final class QuiltModJsonFactory {
+ 		};
+ 	}
+ 
+-	public static QuiltModJson createFromZip(Path zipPath) {
++	public static QuiltModJson createFromZip(Path zipPath, String qmj) {
+ 		try {
+-			return create(ZipUtils.unpackGson(zipPath, QUILT_MOD_JSON, JsonObject.class), new ModJsonSource.ZipSource(zipPath));
++			if (qmj.equals(QUILT_MOD_JSON5)) {
++				return create(ZipUtils.unpackGsonWithJson5(zipPath, qmj, JsonObject.class), new ModJsonSource.ZipSource(zipPath));
++			}
++
++			return create(ZipUtils.unpackGson(zipPath, qmj, JsonObject.class), new ModJsonSource.ZipSource(zipPath));
+ 		} catch (IOException e) {
+ 			throw new UncheckedIOException("Failed to read fabric.mod.json file in zip: " + zipPath, e);
+ 		}
+ 	}
+ 
+ 	@Nullable
+-	public static QuiltModJson createFromZipNullable(Path zipPath) {
++	public static QuiltModJson createFromZipNullable(Path zipPath, String qmj) {
+ 		JsonObject jsonObject;
+ 
+ 		try {
+-			jsonObject = ZipUtils.unpackGsonNullable(zipPath, QUILT_MOD_JSON, JsonObject.class);
++			if (qmj.equals(QUILT_MOD_JSON5)) {
++				jsonObject = ZipUtils.unpackGsonWithJson5Nullable(zipPath, qmj, JsonObject.class);
++			} else {
++				jsonObject = ZipUtils.unpackGsonNullable(zipPath, qmj, JsonObject.class);
++			}
+ 		} catch (IOException e) {
+ 			throw new UncheckedIOException("Failed to read zip: " + zipPath, e);
+ 		}
+@@ -91,27 +102,35 @@ public final class QuiltModJsonFactory {
+ 		return create(jsonObject, new ModJsonSource.ZipSource(zipPath));
+ 	}
+ 
+-	public static Optional<QuiltModJson> createFromZipOptional(Path zipPath) {
+-		return Optional.ofNullable(createFromZipNullable(zipPath));
++	public static Optional<QuiltModJson> createFromZipOptional(Path zipPath, String qmj) {
++		return Optional.ofNullable(createFromZipNullable(zipPath, qmj));
+ 	}
+ 
+-	public static QuiltModJson createFromDirectory(Path directory) throws IOException {
+-		final Path path = directory.resolve(QUILT_MOD_JSON);
++	public static QuiltModJson createFromDirectory(Path directory, String qmj) throws IOException {
++		final Path path = directory.resolve(qmj);
+ 
+ 		try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
++			if (qmj.equals(QUILT_MOD_JSON5)) {
++				return create((JsonObject) Json5Helper.parseJson5Reader(JsonReader.json5(reader)), new ModJsonSource.DirectorySource(directory));
++			}
++
+ 			return create(LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class), new ModJsonSource.DirectorySource(directory));
+ 		}
+ 	}
+ 
+ 	@Nullable
+-	public static QuiltModJson createFromSourceSetsNullable(SourceSet... sourceSets) throws IOException {
+-		final File file = SourceSetHelper.findFirstFileInResource(QUILT_MOD_JSON, sourceSets);
++	public static QuiltModJson createFromSourceSetsNullable(String qmj, SourceSet... sourceSets) throws IOException {
++		final File file = SourceSetHelper.findFirstFileInResource(qmj, sourceSets);
+ 
+ 		if (file == null) {
+ 			return null;
+ 		}
+ 
+ 		try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
++			if (qmj.equals(QUILT_MOD_JSON5)) {
++				return create((JsonObject) Json5Helper.parseJson5Reader(JsonReader.json5(reader)), new ModJsonSource.SourceSetSource(sourceSets));
++			}
++
+ 			return create(LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class), new ModJsonSource.SourceSetSource(sourceSets));
+ 		}
+ 	}
