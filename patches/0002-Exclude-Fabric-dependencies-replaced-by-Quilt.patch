@@ -18,20 +18,31 @@ index 9496320b9c7f7c9374f208f5445ceb174a7837f2..4083a9cf3dc8c655743a9c1c58813b68
  		LoomGradleExtension extension = LoomGradleExtension.get(project);
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-index fc3d6484b1801197c93c8f4c77efea10016eb249..536f13bce74690e3a207bd33ec29853ab0480f23 100644
+index 7274912e12820e697991389626d5bda87ddd1162..2b95638caf9acc51353a994a24431a00e2f3c2ae 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-@@ -68,14 +68,16 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
+@@ -42,7 +42,8 @@ import net.fabricmc.loom.util.FileSystemUtil;
+ import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
+ 
+ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData) {
+-	private static final String INSTALLER_PATH = "quilt_installer.json";
++	private static final String QUILT_INSTALLER_PATH = "quilt_installer.json";
++	private static final String FABRIC_INSTALLER_PATH = "fabric-installer.json";
+ 	private static final String MANIFEST_PATH = "META-INF/MANIFEST.MF";
+ 	private static final String MANIFEST_REMAP_KEY = "Fabric-Loom-Remap";
+ 
+@@ -66,11 +67,17 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
+ 				}
  			}
  
- 			Path installerPath = fs.getPath(QUILT_INSTALLER_PATH);
+-			final Path installerPath = fs.getPath(INSTALLER_PATH);
++			Path installerPath = fs.getPath(QUILT_INSTALLER_PATH);
 +			boolean isQuilt = true;
- 
- 			if (!Files.exists(installerPath)) {
--				installerPath = fs.getPath(FABRIC_INSTALLER_PATH);;
++
++			if (!Files.exists(installerPath)) {
 +				installerPath = fs.getPath(FABRIC_INSTALLER_PATH);
 +				isQuilt = false;
- 			}
++			}
  
  			if (isFabricMod && Files.exists(installerPath)) {
  				final JsonObject jsonObject = LoomGradlePlugin.GSON.fromJson(Files.readString(installerPath, StandardCharsets.UTF_8), JsonObject.class);

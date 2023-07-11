@@ -1,12 +1,12 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Ennui Langeweile <85590273+EnnuiL@users.noreply.github.com>
 Date: Mon, 3 Jul 2023 22:01:25 -0300
-Subject: [PATCH] Add support for QMJ5
+Subject: [PATCH] Support QMJ5 too (experimental!)
 
 If implemented into Loader, this will be squashed into the previous commit.
 
 diff --git a/build.gradle b/build.gradle
-index 6ee2dea93e8453387cfb996f72e5c8b7457a0fd1..7ebb32557bd707ccfca7720be2c77a3ce23fe00b 100644
+index 33d81ac54db205b54b5858c11cf3f30f09222df5..15c1b944115f9ece07befca1101773a779c8f5d6 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -113,6 +113,10 @@ dependencies {

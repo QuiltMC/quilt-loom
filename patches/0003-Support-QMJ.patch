@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: tibs <git@tibinonest.me>
 Date: Wed, 1 Feb 2023 17:13:57 -0500
-Subject: [PATCH] Support multiple metadata formats including QMJ
+Subject: [PATCH] Support QMJ
 
 
 diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
@@ -114,7 +114,7 @@ index e0480168c7231e6a3ab09dd1d1e0beccc679c9a3..af78c5ee1cb008ad7a08a66291555413
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java b/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
-index fd1664dd7a391de74dc0befd1d57486bc7894c64..9410b99b84a5c5bce2fea17a86aa98de03328e81 100644
+index 925f5a7cb85c89f9596dd3de078c6d61d384595f..d3c818cbbe8e03b86427f4757a905e93ebc64d5d 100644
 --- a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
 +++ b/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
 @@ -52,9 +52,9 @@ import org.jetbrains.annotations.Nullable;
@@ -652,10 +652,10 @@ index 725e4fb11c74c5bfb884c4fb62839f74c8ecfc26..7c390f3c94ada509babd1e53b4bf2675
  
  		return new AccessWidenerData(accessWidenerPath, header, accessWidener);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-index 7274912e12820e697991389626d5bda87ddd1162..fc3d6484b1801197c93c8f4c77efea10016eb249 100644
+index 2b95638caf9acc51353a994a24431a00e2f3c2ae..536f13bce74690e3a207bd33ec29853ab0480f23 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-@@ -38,11 +38,12 @@ import org.jetbrains.annotations.Nullable;
+@@ -38,8 +38,8 @@ import org.jetbrains.annotations.Nullable;
  
  import net.fabricmc.loom.LoomGradlePlugin;
  import net.fabricmc.loom.configuration.InstallerData;
@@ -664,13 +664,8 @@ index 7274912e12820e697991389626d5bda87ddd1162..fc3d6484b1801197c93c8f4c77efea10
 -import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
  
  public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData) {
--	private static final String INSTALLER_PATH = "quilt_installer.json";
-+	private static final String QUILT_INSTALLER_PATH = "quilt_installer.json";
-+	private static final String FABRIC_INSTALLER_PATH = "fabric-installer.json";
- 	private static final String MANIFEST_PATH = "META-INF/MANIFEST.MF";
- 	private static final String MANIFEST_REMAP_KEY = "Fabric-Loom-Remap";
- 
-@@ -52,7 +53,7 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
+ 	private static final String QUILT_INSTALLER_PATH = "quilt_installer.json";
+@@ -53,7 +53,7 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
  		InstallerData installerData = null;
  
  		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(artifact.path())) {
@@ -679,19 +674,61 @@ index 7274912e12820e697991389626d5bda87ddd1162..fc3d6484b1801197c93c8f4c77efea10
  			final Path manifestPath = fs.getPath(MANIFEST_PATH);
  
  			if (Files.exists(manifestPath)) {
-@@ -66,7 +67,11 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
- 				}
- 			}
+diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
+index cdb27fca02bae7b2f26864a90b69c812876f202d..ca00d3f012601baebbd944ea789eaeda20f87772 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
++++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
+@@ -40,11 +40,6 @@ import java.util.concurrent.atomic.AtomicReference;
+ import java.util.function.Supplier;
  
--			final Path installerPath = fs.getPath(INSTALLER_PATH);
-+			Path installerPath = fs.getPath(QUILT_INSTALLER_PATH);
-+
-+			if (!Files.exists(installerPath)) {
-+				installerPath = fs.getPath(FABRIC_INSTALLER_PATH);;
+ import com.google.common.collect.ImmutableMap;
+-
+-import net.fabricmc.loom.configuration.InstallerData;
+-
+-import net.fabricmc.loom.configuration.mods.dependency.ModDependencyFactory;
+-
+ import org.gradle.api.Project;
+ import org.gradle.api.artifacts.Configuration;
+ import org.gradle.api.artifacts.FileCollectionDependency;
+@@ -65,8 +60,10 @@ import org.jetbrains.annotations.Nullable;
+ 
+ import net.fabricmc.loom.LoomGradleExtension;
+ import net.fabricmc.loom.api.RemapConfigurationSettings;
++import net.fabricmc.loom.configuration.InstallerData;
+ import net.fabricmc.loom.configuration.RemapConfigurations;
+ import net.fabricmc.loom.configuration.mods.dependency.ModDependency;
++import net.fabricmc.loom.configuration.mods.dependency.ModDependencyFactory;
+ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
+ import net.fabricmc.loom.util.Checksum;
+ import net.fabricmc.loom.util.Constants;
+@@ -182,14 +179,14 @@ public class ModConfigurationRemapper {
+ 		if (installer.get() != null) {
+ 			project.getLogger().info("Applying installer data");
+ 
+-            if (installer.get().isQuilt()) {
+-                quiltLoader = true;
+-            } else {
++			if (installer.get().isQuilt()) {
++				quiltLoader = true;
++			} else {
+ 				quiltLoader = false;
+ 				project.getLogger().lifecycle("Warning: Quilt Loader not detected. Using Fabric Loader.");
+-            }
 +			}
  
- 			if (isFabricMod && Files.exists(installerPath)) {
- 				final JsonObject jsonObject = LoomGradlePlugin.GSON.fromJson(Files.readString(installerPath, StandardCharsets.UTF_8), JsonObject.class);
+-            installer.get().applyToProject(project);
++			installer.get().applyToProject(project);
+ 		} else {
+ 			quiltLoader = false;
+ 		}
+@@ -210,6 +207,7 @@ public class ModConfigurationRemapper {
+ 				} else if (sourceConfigsWithQsl.contains(sourceConfig) && artifact.group().equals("net.fabricmc.fabric-api")) {
+ 					continue;
+ 				}
++
+ 				final ModDependency modDependency = ModDependencyFactory.create(artifact, remappedConfig, clientRemappedConfig, mappingsSuffix, project);
+ 				scheduleSourcesRemapping(project, sourceRemapper, modDependency);
+ 				modDependencies.add(modDependency);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 index f302600a4517988772961bf6b4c7c4f6ab07c8aa..26b28183a5aa9011cad6c457a6990989f03d54fa 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java

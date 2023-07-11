@@ -1,0 +1,418 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glitch <glitch.g3431@gmail.com>
+Date: Tue, 11 Jul 2023 17:40:07 -0500
+Subject: [PATCH] Initial Quiltification
+
+This includes:
+- Changing the plugin marker (except in tests)
+- Using a different set of caches
+- Using the Quilt Loader system properties
+- Using `quilt_installer.json`
+- Renaming the shared service manager
+- Automatically applying the Quilt Maven
+- Adding Vineflower and using it by default
+
+diff --git a/build.gradle b/build.gradle
+index c7ff152af65d5e2724df765f3539de2df0a1d519..33d81ac54db205b54b5858c11cf3f30f09222df5 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -23,7 +23,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+ 	}
+ }
+ 
+-group = 'net.fabricmc'
++group = 'org.quiltmc'
+ archivesBaseName = project.name
+ def baseVersion = '1.3'
+ 
+@@ -45,6 +45,11 @@ repositories {
+ 		name = 'Fabric'
+ 		url = 'https://maven.fabricmc.net/'
+ 	}
++	maven {
++		name = "Quilt"
++		url = "https://maven.quiltmc.org/repository/release"
++	}
++	gradlePluginPortal()
+ 	mavenCentral()
+ }
+ 
+@@ -108,6 +113,11 @@ dependencies {
+ 	// Kapt integration
+ 	compileOnly libs.kotlin.gradle.plugin
+ 
++	// Plugins we apply
++	implementation('io.github.juuxel:loom-vineflower:1.11.0') {
++		exclude group: 'net.fabricmc', module: 'fabric-loom'
++	}
++
+ 	// Testing
+ 	testImplementation(gradleTestKit())
+ 	testImplementation('org.spockframework:spock-core:2.3-groovy-3.0') {
+@@ -184,10 +194,16 @@ codenarc {
+ 
+ gradlePlugin {
+ 	plugins {
+-		fabricLoom {
+-			id = 'fabric-loom'
++		quiltLoom {
++			id = 'org.quiltmc.loom'
+ 			implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
+ 		}
++		if (!ENV.MAVEN_URL) {
++			fabricLoom {
++				id = 'fabric-loom'
++				implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
++			}
++		}
+ 	}
+ }
+ 
+@@ -242,8 +258,8 @@ publishing {
+ 
+ 		// Manually crate the plugin marker for snapshot versions
+ 		snapshotPlugin(MavenPublication) { publication ->
+-			groupId 'fabric-loom'
+-			artifactId 'fabric-loom.gradle.plugin'
++			groupId 'org.quiltmc.loom'
++			artifactId 'org.quiltmc.loom.gradle.plugin'
+ 			version baseVersion + '-SNAPSHOT'
+ 
+ 			pom.withXml({
+@@ -253,9 +269,9 @@ publishing {
+ 				Node dependencies = root.appendChild(document.createElement('dependencies'))
+ 				Node dependency = dependencies.appendChild(document.createElement('dependency'))
+ 				Node groupId = dependency.appendChild(document.createElement('groupId'))
+-				groupId.setTextContent('net.fabricmc')
++				groupId.setTextContent('org.quiltmc')
+ 				Node artifactId = dependency.appendChild(document.createElement('artifactId'))
+-				artifactId.setTextContent('fabric-loom')
++				artifactId.setTextContent('loom')
+ 				Node version = dependency.appendChild(document.createElement('version'))
+ 				version.setTextContent(baseVersion + '-SNAPSHOT')
+ 			})
+@@ -263,6 +279,7 @@ publishing {
+ 	}
+ 	repositories {
+ 		maven {
++			name = 'release'
+ 			if (ENV.MAVEN_URL) {
+ 				url ENV.MAVEN_URL
+ 				credentials {
+@@ -271,6 +288,26 @@ publishing {
+ 				}
+ 			}
+ 		}
++		maven {
++			name = "snapshot"
++			if (ENV.SNAPSHOTS_URL) {
++				url ENV.SNAPSHOTS_URL
++				credentials {
++					username ENV.SNAPSHOTS_USERNAME
++					password ENV.SNAPSHOTS_PASSWORD
++				}
++			}
++		}
++	}
++}
++
++tasks.withType(PublishToMavenRepository) {
++	onlyIf {
++		(repository == publishing.repositories.release && publication == publishing.publications.pluginMaven) ||
++				(repository == publishing.repositories.snapshot
++				&& (publication == publishing.publications.snapshot
++				|| publication == publishing.publications.snapshotPlugin)) ||
++				(repository == publishing.repositories.release && publication.name == "quiltLoomPluginMarkerMaven")
+ 	}
+ }
+ 
+diff --git a/gradle.properties b/gradle.properties
+index 31014b156127886c44921900f480e68d4528da25..ee1d4c3083cdb729df09522e88a41351d332a875 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -1,5 +1,5 @@
+-name = fabric-loom
+-description = The Gradle plugin for Fabric
+-url = https://github.com/FabricMC/fabric-loom
++name = loom
++description = The Gradle plugin for Quilt
++url = https://github.com/QuiltMC/quilt-loom
+ 
+ kotlin.stdlib.default.dependency = false
+\ No newline at end of file
+diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
+index 9c9c938e2e57b1d41c732014a2d6f5bcefd37e7b..5f54c3745bd0e89cb3df6b56e8b2a36fcfb9e60b 100644
+--- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
++++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
+@@ -53,7 +53,7 @@ import net.fabricmc.loom.util.LibraryLocationLogger;
+ public class LoomGradlePlugin implements BootstrappedPlugin {
+ 	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+ 	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+-	public static final String LOOM_VERSION = Objects.requireNonNullElse(LoomGradlePlugin.class.getPackage().getImplementationVersion(), "0.0.0+unknown");
++	public static final String LOOM_VERSION = Objects.requireNonNullElse(LoomGradlePlugin.class.getPackage().getImplementationVersion(), "0.12.0+unknown");
+ 
+ 	/**
+ 	 * An ordered list of setup job classes.
+@@ -79,7 +79,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+ 	}
+ 
+ 	public void apply(Project project) {
+-		project.getLogger().lifecycle("Fabric Loom: " + LOOM_VERSION);
++		project.getLogger().lifecycle("Quilt Loom: " + LOOM_VERSION);
+ 		LibraryLocationLogger.logLibraryVersions();
+ 
+ 		// Apply default plugins
+@@ -94,5 +94,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+ 		for (Class<? extends Runnable> jobClass : SETUP_JOBS) {
+ 			project.getObjects().newInstance(jobClass).run();
+ 		}
++
++		project.apply(ImmutableMap.of("plugin", "io.github.juuxel.loom-vineflower"));
+ 	}
+ }
+diff --git a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
+index 29b4a526050a69cb5ccaa2d067fa5ecaa0347bf0..dc4895d24e908cf5d041ae71ef17dac40e6c86bf 100644
+--- a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
++++ b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
+@@ -67,7 +67,10 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
+ 			repo.setName("Fabric");
+ 			repo.setUrl(MirrorUtil.getFabricRepository(target));
+ 		});
+-
++		repositories.maven(repo -> {
++			repo.setName("Quilt Releases");
++			repo.setUrl(MirrorUtil.getQuiltRepository(target));
++		});
+ 		MavenArtifactRepository mojangRepo = repositories.maven(repo -> {
+ 			repo.setName("Mojang");
+ 			repo.setUrl(MirrorUtil.getLibrariesBase(target));
+diff --git a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java b/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
+index b41b39bf86c6bfcd8c600eb70d160d801e66f510..d9599c24f9b47d678277f0300b6b6f54ff1c9e2b 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
++++ b/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
+@@ -44,7 +44,7 @@ public class LoomDependencyManager {
+ 		sourceRemapper.remapAll();
+ 
+ 		if (extension.getInstallerData() == null) {
+-			project.getLogger().warn("fabric-installer.json not found in dependencies!");
++			project.getLogger().warn("installer json not found in dependencies!");
+ 		}
+ 	}
+ }
+diff --git a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
+index 538c3018b085067e3d0e99d6fc8a0530b07cf6e9..9e4b9dbb1d8d837653fe4d1acebebfc22fed7bdb 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
++++ b/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
+@@ -68,7 +68,7 @@ public class SingleJarDecompileConfiguration extends DecompileConfiguration<Mapp
+ 			task.setDescription("Decompile minecraft using the default decompiler.");
+ 			task.setGroup(Constants.TaskGroup.FABRIC);
+ 
+-			task.dependsOn(project.getTasks().named("genSourcesWithCfr"));
++			task.dependsOn(project.getTasks().named("genSourcesWithVineflower"));
+ 		});
+ 	}
+ }
+diff --git a/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java
+index 0cf8fbe389b957ca3d2024afd98b5a52e6a537b0..3d1a030cf2fbe7fbf57f834f362cb8aa93e22b12 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java
++++ b/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java
+@@ -108,7 +108,7 @@ public final class SplitDecompileConfiguration extends DecompileConfiguration<Ma
+ 			task.setDescription("Decompile minecraft (%s) using the default decompiler.".formatted(name));
+ 			task.setGroup(Constants.TaskGroup.FABRIC);
+ 
+-			task.dependsOn(project.getTasks().named("gen%sSourcesWithCfr".formatted(name)));
++			task.dependsOn(project.getTasks().named("gen%sSourcesWithVineflower".formatted(name)));
+ 		});
+ 	}
+ }
+diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
+index 024a35c8843e8f866f3885a1414124854bfe97ef..7274912e12820e697991389626d5bda87ddd1162 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
++++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
+@@ -42,7 +42,7 @@ import net.fabricmc.loom.util.FileSystemUtil;
+ import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
+ 
+ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData) {
+-	private static final String INSTALLER_PATH = "fabric-installer.json";
++	private static final String INSTALLER_PATH = "quilt_installer.json";
+ 	private static final String MANIFEST_PATH = "META-INF/MANIFEST.MF";
+ 	private static final String MANIFEST_REMAP_KEY = "Fabric-Loom-Remap";
+ 
+diff --git a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
+index d7f0c469b92b3acfb24a623306f8d63bf44eafbe..12f19648c39d6eec91d8bd09cdd3400aadac3ca3 100644
+--- a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
++++ b/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
+@@ -50,22 +50,22 @@ public abstract class LoomFilesBaseImpl implements LoomFiles {
+ 
+ 	@Override
+ 	public File getUserCache() {
+-		return createFile(getGradleUserHomeDir(), "caches" + File.separator + "fabric-loom");
++		return createFile(getGradleUserHomeDir(), "caches" + File.separator + "quilt-loom");
+ 	}
+ 
+ 	@Override
+ 	public File getRootProjectPersistentCache() {
+-		return createFile(getRootDir(), ".gradle" + File.separator + "loom-cache");
++		return createFile(getRootDir(), ".gradle" + File.separator + "quilt-loom-cache");
+ 	}
+ 
+ 	@Override
+ 	public File getProjectPersistentCache() {
+-		return createFile(getProjectDir(), ".gradle" + File.separator + "loom-cache");
++		return createFile(getProjectDir(), ".gradle" + File.separator + "quilt-loom-cache");
+ 	}
+ 
+ 	@Override
+ 	public File getProjectBuildCache() {
+-		return createFile(getBuildDir(), "loom-cache");
++		return createFile(getBuildDir(), "quilt-loom-cache");
+ 	}
+ 
+ 	@Override
+diff --git a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
+index c47746099e922ab35c6528bf6992a3b1ed063018..d0cce1fab554e97e7dfca0855068b82a4e601bbc 100644
+--- a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
++++ b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
+@@ -55,15 +55,17 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+ 		}
+ 
+ 		final LaunchConfig launchConfig = new LaunchConfig()
+-				.property("fabric.development", "true")
+-				.property("fabric.remapClasspathFile", getExtension().getFiles().getRemapClasspathFile().getAbsolutePath())
++				.property("loader.development", "true")
++				.property("loader.remapClasspathFile", getExtension().getFiles().getRemapClasspathFile().getAbsolutePath())
+ 				.property("log4j.configurationFile", getAllLog4JConfigFiles())
+ 				.property("log4j2.formatMsgNoLookups", "true")
+ 
+ 				.argument("client", "--assetIndex")
+ 				.argument("client", getExtension().getMinecraftProvider().getVersionInfo().assetIndex().fabricId(getExtension().getMinecraftProvider().minecraftVersion()))
+ 				.argument("client", "--assetsDir")
+-				.argument("client", assetsDirectory.getAbsolutePath());
++				.argument("client", assetsDirectory.getAbsolutePath())
++				.argument("client", "--version")
++				.argument("client", "Quilt Loom");
+ 
+ 		if (versionInfo.hasNativesToExtract()) {
+ 			String nativesPath = getExtension().getFiles().getNativesDirectory(getProject()).getAbsolutePath();
+@@ -74,12 +76,12 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+ 		}
+ 
+ 		if (getExtension().areEnvironmentSourceSetsSplit()) {
+-			launchConfig.property("client", "fabric.gameJarPath.client", getGameJarPath("client"));
+-			launchConfig.property("fabric.gameJarPath", getGameJarPath("common"));
++			launchConfig.property("client", "loader.gameJarPath.client", getGameJarPath("client"));
++			launchConfig.property("loader.gameJarPath", getGameJarPath("common"));
+ 		}
+ 
+ 		if (!getExtension().getMods().isEmpty()) {
+-			launchConfig.property("fabric.classPathGroups", getClassPathGroups());
++			launchConfig.property("loader.classPathGroups", getClassPathGroups());
+ 		}
+ 
+ 		final boolean plainConsole = getProject().getGradle().getStartParameter().getConsoleOutput() == ConsoleOutput.Plain;
+diff --git a/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java b/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java
+index b3f5456c1317acc23b903df9451b59683d677dcf..18341c50640d4e42f2391ae46c3d2be772c3a18f 100644
+--- a/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java
++++ b/src/main/java/net/fabricmc/loom/task/service/SourceRemapperService.java
+@@ -88,7 +88,7 @@ public final class SourceRemapperService implements SharedService {
+ 		// Create a temp directory with all of the sources
+ 		if (!Files.isDirectory(source)) {
+ 			isSrcTmp = true;
+-			srcPath = Files.createTempDirectory("fabric-loom-src");
++			srcPath = Files.createTempDirectory("quilt-loom-src");
+ 			ZipUtils.unpackAll(source, srcPath);
+ 		}
+ 
+diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
+index eebfeee5b4b4245aa867ee4a3c8a1bf4ffae081a..d12a938af780a8adf995da406ce7a4c2274b7980 100644
+--- a/src/main/java/net/fabricmc/loom/util/Constants.java
++++ b/src/main/java/net/fabricmc/loom/util/Constants.java
+@@ -32,6 +32,7 @@ public class Constants {
+ 	public static final String VERSION_MANIFESTS = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
+ 	public static final String EXPERIMENTAL_VERSIONS = "https://maven.fabricmc.net/net/minecraft/experimental_versions.json";
+ 	public static final String FABRIC_REPOSITORY = "https://maven.fabricmc.net/";
++	public static final String QUILT_REPOSITORY = "https://maven.quiltmc.org/repository/release/";
+ 
+ 	public static final int ASM_VERSION = Opcodes.ASM9;
+ 
+diff --git a/src/main/java/net/fabricmc/loom/util/MirrorUtil.java b/src/main/java/net/fabricmc/loom/util/MirrorUtil.java
+index 3350a985f73e403f086a2a988283cbe4644d0cc2..eef1cd42b1e53497012165e1580c6199600f2f04 100644
+--- a/src/main/java/net/fabricmc/loom/util/MirrorUtil.java
++++ b/src/main/java/net/fabricmc/loom/util/MirrorUtil.java
+@@ -66,4 +66,12 @@ public class MirrorUtil {
+ 
+ 		return Constants.FABRIC_REPOSITORY;
+ 	}
++
++	public static String getQuiltRepository(ExtensionAware aware) {
++		if (aware.getExtensions().getExtraProperties().has("loom_quilt_repository")) {
++			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_quilt_repository"));
++		}
++
++		return Constants.QUILT_REPOSITORY;
++	}
+ }
+diff --git a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
+index 17fa8a52e63b8d17b7ae5e72402b47f4046f7e31..0ad332ebf7bf1dc6316ba3c32303a685c55e02a7 100644
+--- a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
++++ b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
+@@ -128,7 +128,7 @@ public class SourceRemapper {
+ 		if (!source.isDirectory()) {
+ 			// create tmp directory
+ 			isSrcTmp = true;
+-			srcPath = Files.createTempDirectory("fabric-loom-src");
++			srcPath = Files.createTempDirectory("quilt-loom-src");
+ 			ZipUtils.unpackAll(source.toPath(), srcPath);
+ 		}
+ 
+diff --git a/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java b/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java
+index 7fd5d15941dddd97c2631c26b243b7f320d9337f..7d7122b5403049714202a7ead9be65cea04585ce 100644
+--- a/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java
++++ b/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java
+@@ -55,7 +55,7 @@ public final class GradleUtils {
+ 	}
+ 
+ 	public static boolean isLoomProject(Project project) {
+-		return project.getPluginManager().hasPlugin("fabric-loom");
++		return project.getPluginManager().hasPlugin("org.quiltmc.loom");
+ 	}
+ 
+ 	public static Provider<Boolean> getBooleanPropertyProvider(Project project, String key) {
+diff --git a/src/main/java/net/fabricmc/loom/util/service/BuildSharedServiceManager.java b/src/main/java/net/fabricmc/loom/util/service/BuildSharedServiceManager.java
+index 6575611dea711ca1bb284a76132110404cdd95cb..b6f0ed542dc183f5782e300c57dce2c3ee3969b2 100644
+--- a/src/main/java/net/fabricmc/loom/util/service/BuildSharedServiceManager.java
++++ b/src/main/java/net/fabricmc/loom/util/service/BuildSharedServiceManager.java
+@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
+ 
+ public abstract class BuildSharedServiceManager implements BuildService<BuildServiceParameters.None> {
+ 	private static final Logger LOGGER = LoggerFactory.getLogger(BuildSharedServiceManager.class);
+-	private static final String NAME = "loom:sharedServiceManager";
++	private static final String NAME = "quilt-loom:sharedServiceManager";
+ 
+ 	private SharedServiceManager sharedServiceManager = new BuildSharedServiceManagerImpl();
+ 	private final AtomicInteger refCount = new AtomicInteger(0);
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
+index 5b2f0e105991b8493ca4473a0570cd7457156c07..2543ef15921abf504683452eb2e05cb2a05b1947 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
+@@ -46,6 +46,7 @@ class DecompileTest extends Specification implements GradleProjectTestTrait {
+ 
+ 		where:
+ 		decompiler 		| task								| version
++		'vineflower'	| "genSourcesWithVineflower"		| PRE_RELEASE_GRADLE
+ 		'fernflower'	| "genSourcesWithFernFlower"		| PRE_RELEASE_GRADLE
+ 		'cfr' 			| "genSourcesWithCfr"				| PRE_RELEASE_GRADLE
+ 	}
+diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
+index a741f095beaa9510e4c723b7d8fc6079a91790db..0ee6af97f298a13b35ea6c9f794592fc6ec8fdce 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
+@@ -237,7 +237,7 @@ trait GradleProjectTestTrait {
+ 		}
+ 
+ 		File getGeneratedSources(String mappings, String jarType = "merged") {
+-			return new File(getGradleHomeDir(), "caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-${jarType}/${mappings}/minecraft-${jarType}-${mappings}-sources.jar")
++			return new File(getGradleHomeDir(), "caches/quilt-loom/minecraftMaven/net/minecraft/minecraft-${jarType}/${mappings}/minecraft-${jarType}-${mappings}-sources.jar")
+ 		}
+ 
+ 		File getGeneratedLocalSources(String mappings) {
