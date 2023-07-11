@@ -114,7 +114,7 @@ index e0480168c7231e6a3ab09dd1d1e0beccc679c9a3..af78c5ee1cb008ad7a08a66291555413
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java b/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
-index d5f01171db92b4a61f036fecb5a8b924684661b0..e2d445ae0d0648da3081ff2c3bc404dc3cf029bf 100644
+index fd1664dd7a391de74dc0befd1d57486bc7894c64..9410b99b84a5c5bce2fea17a86aa98de03328e81 100644
 --- a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
 +++ b/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
 @@ -52,9 +52,9 @@ import org.jetbrains.annotations.Nullable;
@@ -123,7 +123,7 @@ index d5f01171db92b4a61f036fecb5a8b924684661b0..e2d445ae0d0648da3081ff2c3bc404dc
  import net.fabricmc.loom.LoomGradlePlugin;
 +import net.fabricmc.loom.configuration.metadata.ModMetadataHelper;
  import net.fabricmc.loom.task.RemapTaskConfiguration;
- import net.fabricmc.loom.util.ZipUtils;
+ import net.fabricmc.loom.util.ZipReprocessorUtil;
 -import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
  
  public final class IncludedJarFactory {
@@ -461,10 +461,10 @@ index 4731422ca79b2b0032090034d71305749a579675..b23f0e55b906b06d6df4561e4006565c
  
  		for (Map.Entry<String, ModEnvironment> entry : modJson.getClassTweakers().entrySet()) {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index ea0a7327246fe1da86ad80a4342e3f2299988541..363ea0c70a83b67e253abb6073b82613a1bd2ce0 100644
+index 98a4a79811dd43e5818bf618d47a67bfec9f3080..5c48e46f39d4868a4cef34f8bf17e0c1841301fe 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-@@ -48,13 +48,13 @@ import org.slf4j.Logger;
+@@ -50,13 +50,13 @@ import org.slf4j.Logger;
  import org.slf4j.LoggerFactory;
  
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
@@ -479,7 +479,7 @@ index ea0a7327246fe1da86ad80a4342e3f2299988541..363ea0c70a83b67e253abb6073b82613
  import net.fabricmc.mappingio.tree.MappingTree;
  import net.fabricmc.mappingio.tree.MemoryMappingTree;
  
-@@ -189,9 +189,9 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
+@@ -197,9 +197,9 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  	}
  
  	private record InjectedInterface(String modId, String className, String ifaceName) {
@@ -492,7 +492,7 @@ index ea0a7327246fe1da86ad80a4342e3f2299988541..363ea0c70a83b67e253abb6073b82613
  
  			if (jsonElement == null) {
  				return Collections.emptyList();
-@@ -212,8 +212,8 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
+@@ -220,8 +220,8 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  			return result;
  		}
  
@@ -693,7 +693,7 @@ index 7274912e12820e697991389626d5bda87ddd1162..fc3d6484b1801197c93c8f4c77efea10
  			if (isFabricMod && Files.exists(installerPath)) {
  				final JsonObject jsonObject = LoomGradlePlugin.GSON.fromJson(Files.readString(installerPath, StandardCharsets.UTF_8), JsonObject.class);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
-index a1a3d27888072033cd11391084ba8a39aa027518..116eccc6e0ef7e80ebffa0846f1c0d7b28497b35 100644
+index f302600a4517988772961bf6b4c7c4f6ab07c8aa..26b28183a5aa9011cad6c457a6990989f03d54fa 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 @@ -47,6 +47,7 @@ import org.gradle.api.attributes.Usage;
@@ -784,7 +784,7 @@ index 7a773e781f1698a0ffaa48f65472911b03a2a9b3..6107b609b2fad5f997b19bbf73dafafe
  				try (Reader reader = new InputStreamReader(new ByteArrayInputStream(data))) {
  					MappingReader.read(reader, mappings);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java b/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
-index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..f8b77264f1d57f14f958de7592df9842024290ad 100644
+index 622a0a1c6766aed0f526019e7cf09b5042ed8bac..2fa93c71cfa380874ac6a7107b461d2a63f97e9e 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
 @@ -43,36 +43,36 @@ import org.gradle.api.plugins.JavaPlugin;
@@ -879,7 +879,7 @@ index 9ce71a41e369fd4203b784f9a793ae99ccc039bf..f8b77264f1d57f14f958de7592df9842
  	}
  
  	private static Function<RemapConfigurationSettings, Stream<Path>> resolveArtifacts(Project project, boolean runtime) {
-@@ -153,12 +153,12 @@ public record SpecContextImpl(List<FabricModJson> modDependencies, List<FabricMo
+@@ -154,12 +154,12 @@ public record SpecContextImpl(List<FabricModJson> modDependencies, List<FabricMo
  	}
  
  	// Sort to ensure stable caching
@@ -933,7 +933,7 @@ index 0ded46291e053224f91e053ecd5a70c25e2720a2..6b2099e99f220c336a7c6fa0f229b8ec
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index 872ce42edab7e1c73a0677d9904507c70041f907..319fde2eda353146b917b2cb59149083b7ea5430 100644
+index e680792c2267acfbce354f42a125c5e7bf73e423..330ea8ece29f26a1e85a9dc844c234c588fa0e55 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 @@ -59,9 +59,9 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
@@ -957,7 +957,7 @@ index 872ce42edab7e1c73a0677d9904507c70041f907..319fde2eda353146b917b2cb59149083
  import net.fabricmc.loom.util.service.BuildSharedServiceManager;
  import net.fabricmc.loom.util.service.UnsafeWorkQueueHelper;
  import net.fabricmc.tinyremapper.OutputConsumerPath;
-@@ -147,13 +146,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -151,13 +150,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  		final LoomGradleExtension extension = LoomGradleExtension.get(getProject());
  		final MixinExtension mixinExtension = extension.getMixin();
  
@@ -975,7 +975,7 @@ index 872ce42edab7e1c73a0677d9904507c70041f907..319fde2eda353146b917b2cb59149083
  
  		for (SourceSet sourceSet : mixinExtension.getMixinSourceSets()) {
  			MixinExtension.MixinInformationContainer container = Objects.requireNonNull(
-@@ -259,16 +259,18 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -263,16 +263,18 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  		}
  
  		private void remapAccessWidener() throws IOException {

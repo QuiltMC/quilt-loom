@@ -5,12 +5,12 @@ Subject: [PATCH] Add support for QMJ5
 
 
 diff --git a/build.gradle b/build.gradle
-index d9e90d46948d9335225f959e865af681056a3d51..ca4f9fbddf1090a1dbea4121dae1a31dceab9e83 100644
+index 70ca6eacba119b717e015ead56993595220f7e66..e3ef1e6fd4a47004162814a98a7f2441fa14d451 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -107,8 +107,12 @@ dependencies {
+@@ -113,8 +113,12 @@ dependencies {
  	// Kapt integration
- 	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0') // Must match the version included with gradle.
+ 	compileOnly libs.kotlin.gradle.plugin
  
 +	// Dependencies we import
 +	implementation('org.quiltmc.parsers:json:0.2.0')
@@ -151,10 +151,10 @@ index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..5c90400e90bf1a01b7cbf595af39c986
  			int count = ZipUtils.transform(outputFile, Map.of(MANIFEST_PATH, bytes -> {
  				var manifest = new Manifest(new ByteArrayInputStream(bytes));
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index 319fde2eda353146b917b2cb59149083b7ea5430..04692b0147c6b579a1693349dad131a9f9eb7557 100644
+index 330ea8ece29f26a1e85a9dc844c234c588fa0e55..3464d09b8ab7d58f2d7c9107165bb2b63eb1dce9 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-@@ -215,6 +215,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -219,6 +219,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  					markClientOnlyClasses();
  				}
  

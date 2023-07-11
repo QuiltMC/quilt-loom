@@ -41,7 +41,7 @@ index fc3d6484b1801197c93c8f4c77efea10016eb249..536f13bce74690e3a207bd33ec29853a
  		}
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-index 4aebf75b933724338385f9f8a9232ffcd1281a3b..4e08a78d4826f7744fa29cb49c8e3242115e1cb4 100644
+index 7ff0fbc78dc242a82a925ca72dd85168116aa115..cdb27fca02bae7b2f26864a90b69c812876f202d 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 @@ -31,12 +31,20 @@ import java.nio.file.Files;
@@ -73,7 +73,7 @@ index 4aebf75b933724338385f9f8a9232ffcd1281a3b..4e08a78d4826f7744fa29cb49c8e3242
  import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
  import net.fabricmc.loom.util.Checksum;
  import net.fabricmc.loom.util.Constants;
-@@ -120,19 +127,19 @@ public class ModConfigurationRemapper {
+@@ -121,19 +128,19 @@ public class ModConfigurationRemapper {
  		}
  
  		// Round 1: Discovery
@@ -102,7 +102,7 @@ index 4aebf75b933724338385f9f8a9232ffcd1281a3b..4e08a78d4826f7744fa29cb49c8e3242
  				final ArtifactMetadata artifactMetadata;
  
  				try {
-@@ -142,11 +149,13 @@ public class ModConfigurationRemapper {
+@@ -143,11 +150,13 @@ public class ModConfigurationRemapper {
  				}
  
  				if (artifactMetadata.installerData() != null) {
@@ -120,7 +120,7 @@ index 4aebf75b933724338385f9f8a9232ffcd1281a3b..4e08a78d4826f7744fa29cb49c8e3242
  					}
  				}
  
-@@ -157,6 +166,49 @@ public class ModConfigurationRemapper {
+@@ -158,6 +167,49 @@ public class ModConfigurationRemapper {
  					continue;
  				}
  

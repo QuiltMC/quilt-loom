@@ -23,7 +23,7 @@ index 561915428a80131439ea9e1d9f12804c491d399a..db648181f772520d1607ce2510a66be1
  
  dependencies {
 diff --git a/build.gradle b/build.gradle
-index a3c14eec516f7349d79e030b36a13f43dd64cc3e..fb7cebe7f286b435032f30d907343b0f97cb32d4 100644
+index c7ff152af65d5e2724df765f3539de2df0a1d519..5729444c20d150d8666747291bf67219d124ab55 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -23,7 +23,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -33,9 +33,9 @@ index a3c14eec516f7349d79e030b36a13f43dd64cc3e..fb7cebe7f286b435032f30d907343b0f
 -group = 'net.fabricmc'
 +group = 'org.quiltmc'
  archivesBaseName = project.name
- def baseVersion = '1.2'
+ def baseVersion = '1.3'
  
-@@ -177,8 +177,8 @@ codenarc {
+@@ -184,8 +184,8 @@ codenarc {
  
  gradlePlugin {
  	plugins {
@@ -46,7 +46,7 @@ index a3c14eec516f7349d79e030b36a13f43dd64cc3e..fb7cebe7f286b435032f30d907343b0f
  			implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
  		}
  	}
-@@ -234,8 +234,8 @@ publishing {
+@@ -242,8 +242,8 @@ publishing {
  
  		// Manually crate the plugin marker for snapshot versions
  		snapshotPlugin(MavenPublication) { publication ->
@@ -57,7 +57,7 @@ index a3c14eec516f7349d79e030b36a13f43dd64cc3e..fb7cebe7f286b435032f30d907343b0f
  			version baseVersion + '-SNAPSHOT'
  
  			pom.withXml({
-@@ -245,9 +245,9 @@ publishing {
+@@ -253,9 +253,9 @@ publishing {
  				Node dependencies = root.appendChild(document.createElement('dependencies'))
  				Node dependency = dependencies.appendChild(document.createElement('dependency'))
  				Node groupId = dependency.appendChild(document.createElement('groupId'))
@@ -69,7 +69,7 @@ index a3c14eec516f7349d79e030b36a13f43dd64cc3e..fb7cebe7f286b435032f30d907343b0f
  				Node version = dependency.appendChild(document.createElement('version'))
  				version.setTextContent(baseVersion + '-SNAPSHOT')
  			})
-@@ -255,6 +255,7 @@ publishing {
+@@ -263,6 +263,7 @@ publishing {
  	}
  	repositories {
  		maven {
@@ -77,7 +77,7 @@ index a3c14eec516f7349d79e030b36a13f43dd64cc3e..fb7cebe7f286b435032f30d907343b0f
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -263,6 +264,26 @@ publishing {
+@@ -271,6 +272,26 @@ publishing {
  				}
  			}
  		}
@@ -132,7 +132,7 @@ index 9c9c938e2e57b1d41c732014a2d6f5bcefd37e7b..a672ff8c72cd71cf2d86b63d260ad1b6
  
  		// Apply default plugins
 diff --git a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java b/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
-index 288f1d0bc20e2d4b8c32fe382f7393fc2837fc5e..d5f01171db92b4a61f036fecb5a8b924684661b0 100644
+index 925f5a7cb85c89f9596dd3de078c6d61d384595f..fd1664dd7a391de74dc0befd1d57486bc7894c64 100644
 --- a/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
 +++ b/src/main/java/net/fabricmc/loom/build/nesting/IncludedJarFactory.java
 @@ -177,7 +177,7 @@ public final class IncludedJarFactory {
@@ -145,10 +145,10 @@ index 288f1d0bc20e2d4b8c32fe382f7393fc2837fc5e..d5f01171db92b4a61f036fecb5a8b924
  			String hash = Hashing.sha256()
  					.hashString(modId, StandardCharsets.UTF_8)
 diff --git a/src/main/java/net/fabricmc/loom/configuration/CompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/CompileConfiguration.java
-index a37f36355166e7d20cf77de4a55f8adb27a987b0..b506286f463e9f830cc20cf49f7361bb96266197 100644
+index 8930e596efbe20bbca62c77a2943eff428cb6554..d239a6ded6a179cb0bfb4c351bd95be631593b30 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/CompileConfiguration.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/CompileConfiguration.java
-@@ -175,16 +175,16 @@ public abstract class CompileConfiguration implements Runnable {
+@@ -178,16 +178,16 @@ public abstract class CompileConfiguration implements Runnable {
  		final LoomGradleExtension extension = configContext.extension();
  
  		final boolean enableTransitiveAccessWideners = extension.getEnableTransitiveAccessWideners().get();
@@ -226,7 +226,7 @@ index d7f0c469b92b3acfb24a623306f8d63bf44eafbe..12f19648c39d6eec91d8bd09cdd3400a
  
  	@Override
 diff --git a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
-index 7176e985cb697a6f8e4bbb5372908b03642bf852..0439eea2bd5d80aa236f9e232dd5f21310548841 100644
+index c47746099e922ab35c6528bf6992a3b1ed063018..d0cce1fab554e97e7dfca0855068b82a4e601bbc 100644
 --- a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
 @@ -55,15 +55,17 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
@@ -446,23 +446,18 @@ index d434f05d759c48cd8e93dc5f7238a7e961f3ee53..3ee7751f63840fd2ff5847c03678d958
  
  		serverResult.successful()
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-index 591893a08e711779d3681a3c4fc31b3618a11208..747830a9792e0ad3183ff7bee8b97816fd086b1f 100644
+index a741f095beaa9510e4c723b7d8fc6079a91790db..0ee6af97f298a13b35ea6c9f794592fc6ec8fdce 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-@@ -237,11 +237,11 @@ trait GradleProjectTestTrait {
+@@ -237,7 +237,7 @@ trait GradleProjectTestTrait {
  		}
  
- 		File getGeneratedSources(String mappings) {
--			return new File(getGradleHomeDir(), "caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/${mappings}/minecraft-merged-${mappings}-sources.jar")
-+			return new File(getGradleHomeDir(), "caches/quilt-loom/minecraftMaven/net/minecraft/minecraft-merged/${mappings}/minecraft-merged-${mappings}-sources.jar")
+ 		File getGeneratedSources(String mappings, String jarType = "merged") {
+-			return new File(getGradleHomeDir(), "caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-${jarType}/${mappings}/minecraft-${jarType}-${mappings}-sources.jar")
++			return new File(getGradleHomeDir(), "caches/quilt-loom/minecraftMaven/net/minecraft/minecraft-${jarType}/${mappings}/minecraft-${jarType}-${mappings}-sources.jar")
  		}
  
  		File getGeneratedLocalSources(String mappings) {
--			return new File(getProjectDir(), ".gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-project-root/${mappings}/minecraft-merged-project-root-${mappings}-sources.jar")
-+			return new File(getProjectDir(), ".gradle/quilt-loom-cache/minecraftMaven/net/minecraft/minecraft-merged-project-root/${mappings}/minecraft-merged-project-root-${mappings}-sources.jar")
- 		}
- 
- 		void buildSrc(String name) {
 diff --git a/src/test/resources/projects/accesswidener/build.gradle b/src/test/resources/projects/accesswidener/build.gradle
 index af697460cc9366f08ac6084c7d5dba1244426dca..b02f00aab16a6e4a851f4389c917bad3b8a579cf 100644
 --- a/src/test/resources/projects/accesswidener/build.gradle
@@ -1046,7 +1041,7 @@ index 40c22f786bae76ab2365e2a337d8a25486a5b9e3..cd3bac3e45d8aceb1acba8ace079bfce
  parchment = { module = "org.parchmentmc.data:parchment-1.16.5", version.ref = "parchment" }
 \ No newline at end of file
 diff --git a/src/test/resources/projects/reproducible/build.gradle b/src/test/resources/projects/reproducible/build.gradle
-index bda1baa6271bb2deaf13ce40677923b9b1530672..c22b09fe3337f876d2ff46809837cd39c8e58381 100644
+index 08c393f887b92c81a02841ad72ea90a8a0f1d0ab..c92ac92eae001f50f29a52bfc4a5e08b4652c306 100644
 --- a/src/test/resources/projects/reproducible/build.gradle
 +++ b/src/test/resources/projects/reproducible/build.gradle
 @@ -1,5 +1,5 @@
