@@ -3,12 +3,13 @@ From: Ennui Langeweile <85590273+EnnuiL@users.noreply.github.com>
 Date: Mon, 3 Jul 2023 22:01:25 -0300
 Subject: [PATCH] Add support for QMJ5
 
+If implemented into Loader, this will be squashed into the previous commit.
 
 diff --git a/build.gradle b/build.gradle
-index 70ca6eacba119b717e015ead56993595220f7e66..e3ef1e6fd4a47004162814a98a7f2441fa14d451 100644
+index 6ee2dea93e8453387cfb996f72e5c8b7457a0fd1..7ebb32557bd707ccfca7720be2c77a3ce23fe00b 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -113,8 +113,12 @@ dependencies {
+@@ -113,6 +113,10 @@ dependencies {
  	// Kapt integration
  	compileOnly libs.kotlin.gradle.plugin
  
@@ -17,11 +18,8 @@ index 70ca6eacba119b717e015ead56993595220f7e66..e3ef1e6fd4a47004162814a98a7f2441
 +	implementation('org.quiltmc.parsers:gson:0.2.0')
 +
  	// Plugins we apply
--	implementation("io.github.juuxel:loom-quiltflower:1.10.0") {
-+	implementation('io.github.juuxel:loom-quiltflower:1.10.0') {
- 		exclude group: "net.fabricmc", module: "fabric-loom"
- 	}
- 
+ 	implementation('io.github.juuxel:loom-vineflower:1.11.0') {
+ 		exclude group: 'net.fabricmc', module: 'fabric-loom'
 diff --git a/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java b/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
 index 490240ac688d7fddba464b70005d7c236265c9b2..a2628646b174b630be103433dd1eb415449adced 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
