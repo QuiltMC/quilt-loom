@@ -89,7 +89,7 @@ index 6b2099e99f220c336a7c6fa0f229b8ecd474b1fb..b8aacec03c84745d285dda182b2978d1
  		} else {
  			return resources.matching(patternFilterable -> patternFilterable.include("fabric.mod.json")).getSingleFile();
 diff --git a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
-index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..5c90400e90bf1a01b7cbf595af39c986b8e95c68 100644
+index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..6554d5695ce9c128dfc02c512eeae7bb1509ced0 100644
 --- a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 @@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
@@ -134,15 +134,15 @@ index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..5c90400e90bf1a01b7cbf595af39c986
  		}
  
 +		protected void convertQmj5ToQmj() throws IOException {
-+			ZipUtils.transform(outputFile, Map.of(QUILT_MOD_JSON5_PATH, bytes -> {
++			if (ZipUtils.transform(outputFile, Map.of(QUILT_MOD_JSON5_PATH, bytes -> {
 +				var jsonReader = new GsonReader(JsonReader.json5(new String(bytes, StandardCharsets.UTF_8)));
 +				var element = LoomGradlePlugin.GSON.fromJson(jsonReader, JsonElement.class);
 +				var convertedElement = LoomGradlePlugin.GSON.toJson(element);
 +
 +				return convertedElement.getBytes();
-+			}));
-+
-+			ZipUtils.move(outputFile, QUILT_MOD_JSON5_PATH, QUILT_MOD_JSON_PATH);
++			})) > 0) {
++				ZipUtils.move(outputFile, QUILT_MOD_JSON5_PATH, QUILT_MOD_JSON_PATH);
++			}
 +		}
 +
  		protected void modifyJarManifest() throws IOException {
