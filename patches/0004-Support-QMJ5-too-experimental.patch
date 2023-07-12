@@ -1,8 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Ennui Langeweile <85590273+EnnuiL@users.noreply.github.com>
 Date: Wed, 12 Jul 2023 14:56:12 -0300
-Subject: [PATCH] Support QMJ5 too (experimental!) If implemented into Loader,
- this will be squashed into the previous commit.
+Subject: [PATCH] Support QMJ5 too (experimental!)
+
+If implemented into Loader, this will be squashed into the previous commit.
 
 
 diff --git a/build.gradle b/build.gradle
