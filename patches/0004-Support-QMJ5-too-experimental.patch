@@ -1,9 +1,10 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Ennui Langeweile <85590273+EnnuiL@users.noreply.github.com>
-Date: Mon, 3 Jul 2023 22:01:25 -0300
+Date: Wed, 12 Jul 2023 14:56:12 -0300
 Subject: [PATCH] Support QMJ5 too (experimental!)
 
 If implemented into Loader, this will be squashed into the previous commit.
+
 
 diff --git a/build.gradle b/build.gradle
 index 33d81ac54db205b54b5858c11cf3f30f09222df5..15c1b944115f9ece07befca1101773a779c8f5d6 100644
@@ -172,6 +173,18 @@ index cca9638ed583a3e25e3142f02188293f2c23a6c5..7138ecdddcff8cd9959408c420555288
  				modifyJarManifest();
  				rewriteJar();
  			} catch (Exception e) {
+diff --git a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
+index d0cce1fab554e97e7dfca0855068b82a4e601bbc..e10a23735cf680311e94b04d4b4519f40641053f 100644
+--- a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
++++ b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
+@@ -57,6 +57,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+ 		final LaunchConfig launchConfig = new LaunchConfig()
+ 				.property("loader.development", "true")
+ 				.property("loader.remapClasspathFile", getExtension().getFiles().getRemapClasspathFile().getAbsolutePath())
++				.property("loader.enable_quilt_mod_json5_in_dev_env", "true")
+ 				.property("log4j.configurationFile", getAllLog4JConfigFiles())
+ 				.property("log4j2.formatMsgNoLookups", "true")
+ 
 diff --git a/src/main/java/net/fabricmc/loom/util/ZipUtils.java b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
 index f6214aed8a99b99af52dcca76d78a36c2cf29213..c7fded73c2da28df3f02dfe54ce2c561b1da22bf 100644
 --- a/src/main/java/net/fabricmc/loom/util/ZipUtils.java
