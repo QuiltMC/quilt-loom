@@ -65,7 +65,7 @@ index 490240ac688d7fddba464b70005d7c236265c9b2..a2628646b174b630be103433dd1eb415
 +		}
 +
 +		if (isQuiltMod(jar)) {
-+			return QUILT_MOD_JSON5;
++			return QUILT_MOD_JSON;
 +		}
 +
 +		return FABRIC_MOD_JSON;
