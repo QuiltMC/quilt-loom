@@ -366,7 +366,7 @@ index 17fa8a52e63b8d17b7ae5e72402b47f4046f7e31..0ad332ebf7bf1dc6316ba3c32303a685
  		}
  
 diff --git a/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java b/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java
-index 7fd5d15941dddd97c2631c26b243b7f320d9337f..7d7122b5403049714202a7ead9be65cea04585ce 100644
+index dbe9144276405ca3206c88f19dae49d643ee163f..4988ca56c446a633e86f0c3dd442e92effc89efd 100644
 --- a/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java
 +++ b/src/main/java/net/fabricmc/loom/util/gradle/GradleUtils.java
 @@ -55,7 +55,7 @@ public final class GradleUtils {

@@ -5,7 +5,6 @@ Subject: [PATCH] Support QMJ5 too (experimental!)
 
 If implemented into Loader, this will be squashed into the previous commit.
 
-
 diff --git a/build.gradle b/build.gradle
 index 33d81ac54db205b54b5858c11cf3f30f09222df5..15c1b944115f9ece07befca1101773a779c8f5d6 100644
 --- a/build.gradle
@@ -22,7 +21,7 @@ index 33d81ac54db205b54b5858c11cf3f30f09222df5..15c1b944115f9ece07befca1101773a7
  	implementation('io.github.juuxel:loom-vineflower:1.11.0') {
  		exclude group: 'net.fabricmc', module: 'fabric-loom'
 diff --git a/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java b/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
-index 490240ac688d7fddba464b70005d7c236265c9b2..a2628646b174b630be103433dd1eb415449adced 100644
+index 490240ac688d7fddba464b70005d7c236265c9b2..449a396362c36fa0ed33a0236ab03e80cd1fd8a1 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
 @@ -46,6 +46,7 @@ import net.fabricmc.loom.util.metadata.ModJsonFactory;
@@ -313,7 +312,7 @@ index 1af5a154c301b8b18ddef1148b6d05fa1ceddb68..4b26643a6fc9d22071b4c7b34a23c2e0
  			return FabricModJsonFactory.createFromSourceSetsNullable(sourceSets);
  		}
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
-index e179a45578d1ef12c15e06e387886ba32cac0f9f..c32507c09c3cac0c2e691041586f78bc0672d9f8 100644
+index e179a45578d1ef12c15e06e387886ba32cac0f9f..b9ed2d676977e679b31bef14fadde370685d0312 100644
 --- a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
 +++ b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
 @@ -39,6 +39,8 @@ import com.google.gson.JsonObject;
@@ -343,9 +342,9 @@ index e179a45578d1ef12c15e06e387886ba32cac0f9f..c32507c09c3cac0c2e691041586f78bc
 -			return create(ZipUtils.unpackGson(zipPath, QUILT_MOD_JSON, JsonObject.class), new ModJsonSource.ZipSource(zipPath));
 +			if (qmj.equals(QUILT_MOD_JSON5)) {
 +				return create(ZipUtils.unpackGsonWithJson5(zipPath, qmj, JsonObject.class), new ModJsonSource.ZipSource(zipPath));
++			} else {
++				return create(ZipUtils.unpackGson(zipPath, qmj, JsonObject.class), new ModJsonSource.ZipSource(zipPath));
 +			}
-+
-+			return create(ZipUtils.unpackGson(zipPath, qmj, JsonObject.class), new ModJsonSource.ZipSource(zipPath));
  		} catch (IOException e) {
  			throw new UncheckedIOException("Failed to read fabric.mod.json file in zip: " + zipPath, e);
  		}
@@ -366,7 +365,7 @@ index e179a45578d1ef12c15e06e387886ba32cac0f9f..c32507c09c3cac0c2e691041586f78bc
  		} catch (IOException e) {
  			throw new UncheckedIOException("Failed to read zip: " + zipPath, e);
  		}
-@@ -91,28 +102,40 @@ public final class QuiltModJsonFactory {
+@@ -91,28 +102,45 @@ public final class QuiltModJsonFactory {
  		return create(jsonObject, new ModJsonSource.ZipSource(zipPath));
  	}
  
@@ -383,10 +382,13 @@ index e179a45578d1ef12c15e06e387886ba32cac0f9f..c32507c09c3cac0c2e691041586f78bc
  
  		try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
 -			return create(LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class), new ModJsonSource.DirectorySource(directory));
-+			var jsonReader = LoomGradlePlugin.GSON.newJsonReader(reader);
++			com.google.gson.stream.JsonReader jsonReader;
 +
 +			if (qmj.equals(QUILT_MOD_JSON5)) {
 +				jsonReader = new GsonReader(JsonReader.json5(reader));
++			} else {
++				jsonReader = LoomGradlePlugin.GSON.newJsonReader(reader);
++
 +			}
 +
 +			return create(LoomGradlePlugin.GSON.fromJson(jsonReader, JsonObject.class), new ModJsonSource.DirectorySource(directory));
@@ -405,10 +407,12 @@ index e179a45578d1ef12c15e06e387886ba32cac0f9f..c32507c09c3cac0c2e691041586f78bc
  
  		try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
 -			return create(LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class), new ModJsonSource.SourceSetSource(sourceSets));
-+			var jsonReader = LoomGradlePlugin.GSON.newJsonReader(reader);
++			com.google.gson.stream.JsonReader jsonReader;
 +
 +			if (qmj.equals(QUILT_MOD_JSON5)) {
 +				jsonReader = new GsonReader(JsonReader.json5(reader));
++			} else {
++				jsonReader = LoomGradlePlugin.GSON.newJsonReader(reader);
 +			}
 +
 +			return create(LoomGradlePlugin.GSON.fromJson(jsonReader, JsonObject.class), new ModJsonSource.SourceSetSource(sourceSets));
