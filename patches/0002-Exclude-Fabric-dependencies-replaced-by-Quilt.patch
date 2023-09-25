@@ -52,7 +52,7 @@ index 7274912e12820e697991389626d5bda87ddd1162..2b95638caf9acc51353a994a24431a00
  		}
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-index 7ff0fbc78dc242a82a925ca72dd85168116aa115..cdb27fca02bae7b2f26864a90b69c812876f202d 100644
+index 7ff0fbc78dc242a82a925ca72dd85168116aa115..86316049c4c17f9362ab3a10cb25489d29a05229 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 @@ -31,12 +31,20 @@ import java.nio.file.Files;
@@ -84,7 +84,7 @@ index 7ff0fbc78dc242a82a925ca72dd85168116aa115..cdb27fca02bae7b2f26864a90b69c812
  import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
  import net.fabricmc.loom.util.Checksum;
  import net.fabricmc.loom.util.Constants;
-@@ -121,19 +128,19 @@ public class ModConfigurationRemapper {
+@@ -121,19 +128,22 @@ public class ModConfigurationRemapper {
  		}
  
  		// Round 1: Discovery
@@ -98,7 +98,10 @@ index 7ff0fbc78dc242a82a925ca72dd85168116aa115..cdb27fca02bae7b2f26864a90b69c812
  		final Map<Configuration, List<ModDependency>> dependenciesBySourceConfig = new HashMap<>();
 +		final Map<Configuration, List<ArtifactRef>> artifactsBySourceConfig = new HashMap<>();
 +		final Set<Configuration> sourceConfigsWithQsl = new HashSet<>();
-+		AtomicReference<InstallerData> installer = new AtomicReference<>();
++		// todo clean this up
++		AtomicReference<ArtifactMetadata> installer = new AtomicReference<>();
++		AtomicReference<Configuration> installerConfigToApply = new AtomicReference<>();
++		AtomicReference<ArtifactRef> installerArtifactToApply = new AtomicReference<>();
  		configsToRemap.forEach((sourceConfig, remappedConfig) -> {
 -			/*
 -			sourceConfig - The source configuration where the intermediary named artifacts come from. i.e "modApi"
@@ -113,17 +116,17 @@ index 7ff0fbc78dc242a82a925ca72dd85168116aa115..cdb27fca02bae7b2f26864a90b69c812
  				final ArtifactMetadata artifactMetadata;
  
  				try {
-@@ -143,11 +150,13 @@ public class ModConfigurationRemapper {
+@@ -143,21 +153,75 @@ public class ModConfigurationRemapper {
  				}
  
  				if (artifactMetadata.installerData() != null) {
 -					if (extension.getInstallerData() != null) {
 -						project.getLogger().info("Found another installer JSON in ({}), ignoring", artifact.path());
 +					if (installer.get() == null) {
-+						installer.set(artifactMetadata.installerData());
-+					} else if (!installer.get().isQuilt() && artifactMetadata.installerData().isQuilt()) {
++						installer.set(artifactMetadata);
++					} else if (!installer.get().installerData().isQuilt() && artifactMetadata.installerData().isQuilt()) {
 +						// Prefer Quilt over Fabric loader
-+						installer.set(artifactMetadata.installerData());
++						installer.set(artifactMetadata);
  					} else {
 -						project.getLogger().info("Applying installer data from {}", artifact.path());
 -						artifactMetadata.installerData().applyToProject(project);
@@ -131,7 +134,15 @@ index 7ff0fbc78dc242a82a925ca72dd85168116aa115..cdb27fca02bae7b2f26864a90b69c812
  					}
  				}
  
-@@ -158,6 +167,49 @@ public class ModConfigurationRemapper {
+ 				if (!artifactMetadata.shouldRemap()) {
++					if (artifactMetadata.installerData() != null) {
++						installerConfigToApply.set(remappedConfig);
++						installerArtifactToApply.set(artifact);
++						continue; // we'll apply the installer later
++					}
+ 					// Note: not applying to any type of vanilla Gradle target config like
+ 					// api or implementation to fix https://github.com/FabricMC/fabric-loom/issues/572.
+ 					artifact.applyToConfiguration(project, remappedConfig);
  					continue;
  				}
  
@@ -150,15 +161,19 @@ index 7ff0fbc78dc242a82a925ca72dd85168116aa115..cdb27fca02bae7b2f26864a90b69c812
 +		if (installer.get() != null) {
 +			project.getLogger().info("Applying installer data");
 +
-+            if (installer.get().isQuilt()) {
++            if (installer.get().installerData().isQuilt()) {
 +                quiltLoader = true;
 +            } else {
 +				quiltLoader = false;
 +				project.getLogger().lifecycle("Warning: Quilt Loader not detected. Using Fabric Loader.");
 +            }
 +
-+            installer.get().applyToProject(project);
++            if (!installer.get().shouldRemap()) {
++				installerArtifactToApply.get().applyToConfiguration(project, installerConfigToApply.get());
++			}
++			installer.get().installerData().applyToProject(project);
 +		} else {
++			project.getLogger().lifecycle("Warning: No loader detected.");
 +			quiltLoader = false;
 +		}
 +

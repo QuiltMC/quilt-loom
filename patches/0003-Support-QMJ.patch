@@ -675,7 +675,7 @@ index 2b95638caf9acc51353a994a24431a00e2f3c2ae..536f13bce74690e3a207bd33ec29853a
  
  			if (Files.exists(manifestPath)) {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-index cdb27fca02bae7b2f26864a90b69c812876f202d..ca00d3f012601baebbd944ea789eaeda20f87772 100644
+index 86316049c4c17f9362ab3a10cb25489d29a05229..04b0ede63d0f2058f0d84ac8db2ae5ed72512571 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 @@ -40,11 +40,6 @@ import java.util.concurrent.atomic.AtomicReference;
@@ -701,14 +701,14 @@ index cdb27fca02bae7b2f26864a90b69c812876f202d..ca00d3f012601baebbd944ea789eaeda
  import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
  import net.fabricmc.loom.util.Checksum;
  import net.fabricmc.loom.util.Constants;
-@@ -182,14 +179,14 @@ public class ModConfigurationRemapper {
+@@ -190,14 +187,14 @@ public class ModConfigurationRemapper {
  		if (installer.get() != null) {
  			project.getLogger().info("Applying installer data");
  
--            if (installer.get().isQuilt()) {
+-            if (installer.get().installerData().isQuilt()) {
 -                quiltLoader = true;
 -            } else {
-+			if (installer.get().isQuilt()) {
++			if (installer.get().installerData().isQuilt()) {
 +				quiltLoader = true;
 +			} else {
  				quiltLoader = false;
@@ -716,12 +716,12 @@ index cdb27fca02bae7b2f26864a90b69c812876f202d..ca00d3f012601baebbd944ea789eaeda
 -            }
 +			}
  
--            installer.get().applyToProject(project);
-+			installer.get().applyToProject(project);
- 		} else {
- 			quiltLoader = false;
- 		}
-@@ -210,6 +207,7 @@ public class ModConfigurationRemapper {
+-            if (!installer.get().shouldRemap()) {
++			if (!installer.get().shouldRemap()) {
+ 				installerArtifactToApply.get().applyToConfiguration(project, installerConfigToApply.get());
+ 			}
+ 			installer.get().installerData().applyToProject(project);
+@@ -222,6 +219,7 @@ public class ModConfigurationRemapper {
  				} else if (sourceConfigsWithQsl.contains(sourceConfig) && artifact.group().equals("net.fabricmc.fabric-api")) {
  					continue;
  				}
