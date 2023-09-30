@@ -5,15 +5,17 @@ Subject: [PATCH] Exclude Fabric dependencies replaced by Quilt
 
 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/InstallerData.java b/src/main/java/net/fabricmc/loom/configuration/InstallerData.java
-index 9496320b9c7f7c9374f208f5445ceb174a7837f2..4083a9cf3dc8c655743a9c1c58813b681a0aed1f 100644
+index ce8da78d03c3bbcc19a9620c9d5d30fc8a058e7d..0d77a02472d055fab95613dbbd4e6dbaa08ea4f9 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/InstallerData.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/InstallerData.java
-@@ -35,7 +35,7 @@ import net.fabricmc.loom.LoomRepositoryPlugin;
+@@ -40,9 +40,8 @@ import net.fabricmc.loom.LoomRepositoryPlugin;
  import net.fabricmc.loom.configuration.ide.idea.IdeaUtils;
  import net.fabricmc.loom.util.Constants;
  
 -public record InstallerData(String version, JsonObject installerJson) {
 +public record InstallerData(String version, JsonObject installerJson, boolean isQuilt) {
+ 	private static final Logger LOGGER = LoggerFactory.getLogger(InstallerData.class);
+-
  	public void applyToProject(Project project) {
  		LoomGradleExtension extension = LoomGradleExtension.get(project);
  

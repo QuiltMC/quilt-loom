@@ -6,10 +6,22 @@ Subject: [PATCH] Support QMJ5 too (experimental!)
 If implemented into Loader, this will be squashed into the previous commit.
 
 diff --git a/build.gradle b/build.gradle
-index 33d81ac54db205b54b5858c11cf3f30f09222df5..15c1b944115f9ece07befca1101773a779c8f5d6 100644
+index 6df36c1184b3ee5581c68bb46d3004adc308b1ef..66d98ff968b3552d1756140f1badef0438a43b0b 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -113,6 +113,10 @@ dependencies {
+@@ -70,6 +70,11 @@ repositories {
+ 		name = 'Fabric'
+ 		url = 'https://maven.fabricmc.net/'
+ 	}
++	maven {
++		name = "Quilt"
++		url = "https://maven.quiltmc.org/repository/release"
++	}
++	gradlePluginPortal()
+ 	mavenCentral()
+ }
+ 
+@@ -167,6 +172,10 @@ dependencies {
  	// Kapt integration
  	compileOnly libs.kotlin.gradle.plugin
  
@@ -17,9 +29,9 @@ index 33d81ac54db205b54b5858c11cf3f30f09222df5..15c1b944115f9ece07befca1101773a7
 +	implementation('org.quiltmc.parsers:json:0.2.0')
 +	implementation('org.quiltmc.parsers:gson:0.2.0')
 +
- 	// Plugins we apply
- 	implementation('io.github.juuxel:loom-vineflower:1.11.0') {
- 		exclude group: 'net.fabricmc', module: 'fabric-loom'
+ 	// Testing
+ 	testImplementation(gradleTestKit())
+ 	testImplementation(testLibs.spock) {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java b/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
 index 490240ac688d7fddba464b70005d7c236265c9b2..449a396362c36fa0ed33a0236ab03e80cd1fd8a1 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
@@ -89,7 +101,7 @@ index 6b2099e99f220c336a7c6fa0f229b8ecd474b1fb..b8aacec03c84745d285dda182b2978d1
  		} else {
  			return resources.matching(patternFilterable -> patternFilterable.include("fabric.mod.json")).getSingleFile();
 diff --git a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
-index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..6554d5695ce9c128dfc02c512eeae7bb1509ced0 100644
+index 7da1ea1e580ddcd83153750031aed0f2a510b4f6..1126c8cb52e930426252d296b42c3a699b70eeb5 100644
 --- a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 @@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
@@ -99,8 +111,8 @@ index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..6554d5695ce9c128dfc02c512eeae7bb
 +import java.nio.charset.StandardCharsets;
  import java.nio.file.Path;
  import java.util.ArrayList;
- import java.util.List;
-@@ -40,6 +41,7 @@ import java.util.jar.Manifest;
+ import java.util.Collections;
+@@ -41,6 +42,7 @@ import java.util.jar.Manifest;
  import javax.inject.Inject;
  
  import com.google.common.base.Preconditions;
@@ -108,7 +120,7 @@ index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..6554d5695ce9c128dfc02c512eeae7bb
  import org.gradle.api.Action;
  import org.gradle.api.file.ConfigurableFileCollection;
  import org.gradle.api.file.RegularFileProperty;
-@@ -60,8 +62,11 @@ import org.gradle.workers.WorkParameters;
+@@ -62,8 +64,11 @@ import org.gradle.workers.WorkParameters;
  import org.gradle.workers.WorkQueue;
  import org.gradle.workers.WorkerExecutor;
  import org.jetbrains.annotations.ApiStatus;
@@ -120,8 +132,8 @@ index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..6554d5695ce9c128dfc02c512eeae7bb
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
  import net.fabricmc.loom.task.service.JarManifestService;
  import net.fabricmc.loom.util.ZipReprocessorUtil;
-@@ -75,6 +80,8 @@ public abstract class AbstractRemapJarTask extends Jar {
- 	public static final String MANIFEST_CLIENT_ENTRIES_KEY = "Fabric-Loom-Client-Only-Entries";
+@@ -78,6 +83,8 @@ public abstract class AbstractRemapJarTask extends Jar {
+ 	public static final String MANIFEST_JAR_TYPE_KEY = "Fabric-Jar-Type";
  	public static final Attributes.Name MANIFEST_SPLIT_ENV_NAME = new Attributes.Name(MANIFEST_SPLIT_ENV_KEY);
  	public static final Attributes.Name MANIFEST_CLIENT_ENTRIES_NAME = new Attributes.Name(MANIFEST_CLIENT_ENTRIES_KEY);
 +	public static final String QUILT_MOD_JSON5_PATH = "quilt.mod.json5";
@@ -129,7 +141,7 @@ index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..6554d5695ce9c128dfc02c512eeae7bb
  
  	@InputFile
  	public abstract RegularFileProperty getInputFile();
-@@ -184,6 +191,18 @@ public abstract class AbstractRemapJarTask extends Jar {
+@@ -200,6 +207,18 @@ public abstract class AbstractRemapJarTask extends Jar {
  			outputFile = getParameters().getOutputFile().getAsFile().get().toPath();
  		}
  
@@ -149,10 +161,10 @@ index 3abc7c0a49a1cb1a0f8da48a24e36bc852a4a90a..6554d5695ce9c128dfc02c512eeae7bb
  			int count = ZipUtils.transform(outputFile, Map.of(MANIFEST_PATH, bytes -> {
  				var manifest = new Manifest(new ByteArrayInputStream(bytes));
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index 330ea8ece29f26a1e85a9dc844c234c588fa0e55..3464d09b8ab7d58f2d7c9107165bb2b63eb1dce9 100644
+index 71ccb96214c455694fe9e824991b7cca0075cc1d..c6da0fd215b4d15ea506d30dcaee4c6ce3b59e9c 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-@@ -219,6 +219,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -221,6 +221,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  					markClientOnlyClasses();
  				}
  
@@ -161,10 +173,10 @@ index 330ea8ece29f26a1e85a9dc844c234c588fa0e55..3464d09b8ab7d58f2d7c9107165bb2b6
  				addRefmaps();
  				addNestedJars();
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
-index cca9638ed583a3e25e3142f02188293f2c23a6c5..7138ecdddcff8cd9959408c4205552882f014d2e 100644
+index 2a9424acc87f88c62cb2e9595dea0c80300de0ba..1f46e09dada6bf1b3de84283f24421939b698a5c 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
-@@ -87,6 +87,7 @@ public abstract class RemapSourcesJarTask extends AbstractRemapJarTask {
+@@ -88,6 +88,7 @@ public abstract class RemapSourcesJarTask extends AbstractRemapJarTask {
  			try {
  				sourceRemapperService.remapSourcesJar(inputFile, outputFile);
  
@@ -173,7 +185,7 @@ index cca9638ed583a3e25e3142f02188293f2c23a6c5..7138ecdddcff8cd9959408c420555288
  				rewriteJar();
  			} catch (Exception e) {
 diff --git a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
-index d0cce1fab554e97e7dfca0855068b82a4e601bbc..e10a23735cf680311e94b04d4b4519f40641053f 100644
+index 53a0976dfbb51cdcbd444380904145b87eecc110..b206c7077f47fd31cd50bd289e5b6513db645a79 100644
 --- a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
 @@ -57,6 +57,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {

@@ -5,10 +5,10 @@ Subject: [PATCH] Support QMJ
 
 
 diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-index 45587d96394ba1e4d9dffb790d80a76b4b3f39f8..74e2503874e0db6773a55309b56176f947258d90 100644
+index 78584e11079ec0bb5000f5441ad159b65ed22b76..cfea29e66d4c9c266dbf87824b848446f36133b6 100644
 --- a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 +++ b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-@@ -141,10 +141,10 @@ public interface LoomGradleExtensionAPI {
+@@ -144,10 +144,10 @@ public interface LoomGradleExtensionAPI {
  	void disableDeprecatedPomGeneration(MavenPublication publication);
  
  	/**
@@ -730,7 +730,7 @@ index 86316049c4c17f9362ab3a10cb25489d29a05229..04b0ede63d0f2058f0d84ac8db2ae5ed
  				scheduleSourcesRemapping(project, sourceRemapper, modDependency);
  				modDependencies.add(modDependency);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
-index f302600a4517988772961bf6b4c7c4f6ab07c8aa..26b28183a5aa9011cad6c457a6990989f03d54fa 100644
+index 3ed36eef9786d0c89a45d5552d05be292425cee8..bfd83ec633a254ebc2aa1a05f7ffa88dadbb3e1a 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 @@ -47,6 +47,7 @@ import org.gradle.api.attributes.Usage;
@@ -762,10 +762,10 @@ index f302600a4517988772961bf6b4c7c4f6ab07c8aa..26b28183a5aa9011cad6c457a6990989
  			throw new UncheckedIOException("Failed to strip nested jars from %s".formatted(path), e);
  		}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java b/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
-index 7a773e781f1698a0ffaa48f65472911b03a2a9b3..6107b609b2fad5f997b19bbf73dafafe1c82e012 100644
+index 781ca37f2c763de0acbcb9254792052289ed00f9..ffdef6f8a9d6ae671c65a0068ec04426310e0474 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
-@@ -36,17 +36,15 @@ import java.util.List;
+@@ -38,18 +38,16 @@ import java.util.Objects;
  
  import javax.inject.Inject;
  
@@ -779,12 +779,13 @@ index 7a773e781f1698a0ffaa48f65472911b03a2a9b3..6107b609b2fad5f997b19bbf73dafafe
  import net.fabricmc.loom.api.processor.MinecraftJarProcessor;
  import net.fabricmc.loom.api.processor.ProcessorContext;
  import net.fabricmc.loom.api.processor.SpecContext;
+ import net.fabricmc.loom.util.Checksum;
 -import net.fabricmc.loom.util.Constants;
 -import net.fabricmc.loom.util.fmj.FabricModJson;
  import net.fabricmc.mappingio.MappingReader;
  import net.fabricmc.mappingio.tree.MappingTree;
  import net.fabricmc.mappingio.tree.MemoryMappingTree;
-@@ -70,8 +68,8 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
+@@ -73,8 +71,8 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
  	public @Nullable ModJavadocProcessor.Spec buildSpec(SpecContext context) {
  		List<ModJavadoc> javadocs = new ArrayList<>();
  
@@ -795,9 +796,9 @@ index 7a773e781f1698a0ffaa48f65472911b03a2a9b3..6107b609b2fad5f997b19bbf73dafafe
  
  			if (javadoc != null) {
  				javadocs.add(javadoc);
-@@ -106,19 +104,18 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
+@@ -110,20 +108,19 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
  
- 	public record ModJavadoc(String modId, MemoryMappingTree mappingTree) {
+ 	public record ModJavadoc(String modId, MemoryMappingTree mappingTree, String mappingsHash) {
  		@Nullable
 -		public static ModJavadoc create(FabricModJson fabricModJson) {
 -			final String modId = fabricModJson.getId();
@@ -813,13 +814,14 @@ index 7a773e781f1698a0ffaa48f65472911b03a2a9b3..6107b609b2fad5f997b19bbf73dafafe
  
 -			final String javaDocPath = customElement.getAsString();
  			final MemoryMappingTree mappings = new MemoryMappingTree();
+ 			final String mappingsHash;
  
  			try {
 -				final byte[] data = fabricModJson.getSource().read(javaDocPath);
 +				final byte[] data = modJson.getSource().read(javaDocPath);
+ 				mappingsHash = Checksum.sha1Hex(data);
  
  				try (Reader reader = new InputStreamReader(new ByteArrayInputStream(data))) {
- 					MappingReader.read(reader, mappings);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java b/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
 index 622a0a1c6766aed0f526019e7cf09b5042ed8bac..2fa93c71cfa380874ac6a7107b461d2a63f97e9e 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
@@ -970,7 +972,7 @@ index 0ded46291e053224f91e053ecd5a70c25e2720a2..6b2099e99f220c336a7c6fa0f229b8ec
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index e680792c2267acfbce354f42a125c5e7bf73e423..330ea8ece29f26a1e85a9dc844c234c588fa0e55 100644
+index 9639f3d18bb22c437bbb0d93ac025474adc0cf03..71ccb96214c455694fe9e824991b7cca0075cc1d 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 @@ -59,9 +59,9 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
@@ -994,7 +996,7 @@ index e680792c2267acfbce354f42a125c5e7bf73e423..330ea8ece29f26a1e85a9dc844c234c5
  import net.fabricmc.loom.util.service.BuildSharedServiceManager;
  import net.fabricmc.loom.util.service.UnsafeWorkQueueHelper;
  import net.fabricmc.tinyremapper.OutputConsumerPath;
-@@ -151,13 +150,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -153,13 +152,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  		final LoomGradleExtension extension = LoomGradleExtension.get(getProject());
  		final MixinExtension mixinExtension = extension.getMixin();
  
@@ -1012,7 +1014,7 @@ index e680792c2267acfbce354f42a125c5e7bf73e423..330ea8ece29f26a1e85a9dc844c234c5
  
  		for (SourceSet sourceSet : mixinExtension.getMixinSourceSets()) {
  			MixinExtension.MixinInformationContainer container = Objects.requireNonNull(
-@@ -263,16 +263,18 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -265,16 +265,18 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  		}
  
  		private void remapAccessWidener() throws IOException {
