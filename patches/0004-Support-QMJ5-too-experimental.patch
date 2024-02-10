@@ -6,7 +6,7 @@ Subject: [PATCH] Support QMJ5 too (experimental!)
 If implemented into Loader, this will be squashed into the previous commit.
 
 diff --git a/build.gradle b/build.gradle
-index 6df36c1184b3ee5581c68bb46d3004adc308b1ef..66d98ff968b3552d1756140f1badef0438a43b0b 100644
+index 32442f2a..e15e9d26 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -70,6 +70,11 @@ repositories {
@@ -21,7 +21,7 @@ index 6df36c1184b3ee5581c68bb46d3004adc308b1ef..66d98ff968b3552d1756140f1badef04
  	mavenCentral()
  }
  
-@@ -167,6 +172,10 @@ dependencies {
+@@ -166,6 +171,10 @@ dependencies {
  	// Kapt integration
  	compileOnly libs.kotlin.gradle.plugin
  
@@ -33,7 +33,7 @@ index 6df36c1184b3ee5581c68bb46d3004adc308b1ef..66d98ff968b3552d1756140f1badef04
  	testImplementation(gradleTestKit())
  	testImplementation(testLibs.spock) {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java b/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
-index 490240ac688d7fddba464b70005d7c236265c9b2..449a396362c36fa0ed33a0236ab03e80cd1fd8a1 100644
+index 490240ac..449a3963 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/metadata/ModMetadataHelper.java
 @@ -46,6 +46,7 @@ import net.fabricmc.loom.util.metadata.ModJsonFactory;
@@ -82,26 +82,8 @@ index 490240ac688d7fddba464b70005d7c236265c9b2..449a396362c36fa0ed33a0236ab03e80
 +		return FABRIC_MOD_JSON;
  	}
  }
-diff --git a/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java b/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java
-index 6b2099e99f220c336a7c6fa0f229b8ecd474b1fb..b8aacec03c84745d285dda182b2978d1f1ef10dd 100644
---- a/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java
-+++ b/src/main/java/net/fabricmc/loom/extension/ModVersionParser.java
-@@ -68,9 +68,12 @@ public class ModVersionParser {
- 
- 	private File locateModJsonFile() {
- 		var resources = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName("main").getResources();
-+		var qmj5 = resources.matching(patternFilterable -> patternFilterable.include("quilt.mod.json5"));
- 		var qmj = resources.matching(patternFilterable -> patternFilterable.include("quilt.mod.json"));
- 
--		if (!qmj.isEmpty()) {
-+		if (!qmj5.isEmpty()) {
-+			return qmj5.getSingleFile();
-+		} else if (!qmj.isEmpty()) {
- 			return qmj.getSingleFile();
- 		} else {
- 			return resources.matching(patternFilterable -> patternFilterable.include("fabric.mod.json")).getSingleFile();
 diff --git a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
-index 7da1ea1e580ddcd83153750031aed0f2a510b4f6..1126c8cb52e930426252d296b42c3a699b70eeb5 100644
+index e0f2abf1..e0ba5d74 100644
 --- a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 @@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
@@ -112,7 +94,7 @@ index 7da1ea1e580ddcd83153750031aed0f2a510b4f6..1126c8cb52e930426252d296b42c3a69
  import java.nio.file.Path;
  import java.util.ArrayList;
  import java.util.Collections;
-@@ -41,6 +42,7 @@ import java.util.jar.Manifest;
+@@ -40,6 +41,7 @@ import java.util.jar.Manifest;
  import javax.inject.Inject;
  
  import com.google.common.base.Preconditions;
@@ -120,7 +102,7 @@ index 7da1ea1e580ddcd83153750031aed0f2a510b4f6..1126c8cb52e930426252d296b42c3a69
  import org.gradle.api.Action;
  import org.gradle.api.file.ConfigurableFileCollection;
  import org.gradle.api.file.RegularFileProperty;
-@@ -62,8 +64,11 @@ import org.gradle.workers.WorkParameters;
+@@ -61,8 +63,11 @@ import org.gradle.workers.WorkParameters;
  import org.gradle.workers.WorkQueue;
  import org.gradle.workers.WorkerExecutor;
  import org.jetbrains.annotations.ApiStatus;
@@ -131,17 +113,18 @@ index 7da1ea1e580ddcd83153750031aed0f2a510b4f6..1126c8cb52e930426252d296b42c3a69
 +import net.fabricmc.loom.LoomGradlePlugin;
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
  import net.fabricmc.loom.task.service.JarManifestService;
- import net.fabricmc.loom.util.ZipReprocessorUtil;
-@@ -78,6 +83,8 @@ public abstract class AbstractRemapJarTask extends Jar {
- 	public static final String MANIFEST_JAR_TYPE_KEY = "Fabric-Jar-Type";
- 	public static final Attributes.Name MANIFEST_SPLIT_ENV_NAME = new Attributes.Name(MANIFEST_SPLIT_ENV_KEY);
- 	public static final Attributes.Name MANIFEST_CLIENT_ENTRIES_NAME = new Attributes.Name(MANIFEST_CLIENT_ENTRIES_KEY);
+ import net.fabricmc.loom.util.Constants;
+@@ -71,6 +76,9 @@ import net.fabricmc.loom.util.ZipUtils;
+ import net.fabricmc.loom.util.gradle.SourceSetHelper;
+ 
+ public abstract class AbstractRemapJarTask extends Jar {
 +	public static final String QUILT_MOD_JSON5_PATH = "quilt.mod.json5";
 +	public static final String QUILT_MOD_JSON_PATH = "quilt.mod.json";
- 
++
  	@InputFile
  	public abstract RegularFileProperty getInputFile();
-@@ -200,6 +207,18 @@ public abstract class AbstractRemapJarTask extends Jar {
+ 
+@@ -204,6 +212,18 @@ public abstract class AbstractRemapJarTask extends Jar {
  			outputFile = getParameters().getOutputFile().getAsFile().get().toPath();
  		}
  
@@ -158,13 +141,13 @@ index 7da1ea1e580ddcd83153750031aed0f2a510b4f6..1126c8cb52e930426252d296b42c3a69
 +		}
 +
  		protected void modifyJarManifest() throws IOException {
- 			int count = ZipUtils.transform(outputFile, Map.of(MANIFEST_PATH, bytes -> {
+ 			int count = ZipUtils.transform(outputFile, Map.of(Constants.Manifest.PATH, bytes -> {
  				var manifest = new Manifest(new ByteArrayInputStream(bytes));
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index 71ccb96214c455694fe9e824991b7cca0075cc1d..c6da0fd215b4d15ea506d30dcaee4c6ce3b59e9c 100644
+index 2c2a35c4..8173c8a7 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-@@ -221,6 +221,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -238,6 +238,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  					markClientOnlyClasses();
  				}
  
@@ -173,19 +156,19 @@ index 71ccb96214c455694fe9e824991b7cca0075cc1d..c6da0fd215b4d15ea506d30dcaee4c6c
  				addRefmaps();
  				addNestedJars();
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
-index 2a9424acc87f88c62cb2e9595dea0c80300de0ba..1f46e09dada6bf1b3de84283f24421939b698a5c 100644
+index f0aa6d89..3b6141db 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
-@@ -88,6 +88,7 @@ public abstract class RemapSourcesJarTask extends AbstractRemapJarTask {
- 			try {
- 				sourceRemapperService.remapSourcesJar(inputFile, outputFile);
+@@ -98,6 +98,7 @@ public abstract class RemapSourcesJarTask extends AbstractRemapJarTask {
+ 					Files.copy(inputFile, outputFile, StandardCopyOption.REPLACE_EXISTING);
+ 				}
  
 +				convertQmj5ToQmj();
  				modifyJarManifest();
  				rewriteJar();
  			} catch (Exception e) {
 diff --git a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
-index 53a0976dfbb51cdcbd444380904145b87eecc110..b206c7077f47fd31cd50bd289e5b6513db645a79 100644
+index 53a0976d..b206c707 100644
 --- a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
 @@ -57,6 +57,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
@@ -197,7 +180,7 @@ index 53a0976dfbb51cdcbd444380904145b87eecc110..b206c7077f47fd31cd50bd289e5b6513
  				.property("log4j2.formatMsgNoLookups", "true")
  
 diff --git a/src/main/java/net/fabricmc/loom/util/ZipUtils.java b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
-index f6214aed8a99b99af52dcca76d78a36c2cf29213..c7fded73c2da28df3f02dfe54ce2c561b1da22bf 100644
+index 9b387ad9..3159594d 100644
 --- a/src/main/java/net/fabricmc/loom/util/ZipUtils.java
 +++ b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
 @@ -47,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
@@ -237,7 +220,7 @@ index f6214aed8a99b99af52dcca76d78a36c2cf29213..c7fded73c2da28df3f02dfe54ce2c561
 +
  	public static <T> T unpackJackson(Path zip, String path, Class<T> clazz) throws IOException {
  		final byte[] bytes = unpack(zip, path);
- 		return LoomGradlePlugin.OBJECT_MAPPER.readValue(new String(bytes, StandardCharsets.UTF_8), clazz);
+ 		return LoomGradlePlugin.GSON.fromJson(new String(bytes, StandardCharsets.UTF_8), clazz);
 @@ -184,6 +201,20 @@ public class ZipUtils {
  		}
  	}
@@ -260,7 +243,7 @@ index f6214aed8a99b99af52dcca76d78a36c2cf29213..c7fded73c2da28df3f02dfe54ce2c561
  		return transformString(zip, transforms.stream());
  	}
 diff --git a/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
-index 1af5a154c301b8b18ddef1148b6d05fa1ceddb68..4b26643a6fc9d22071b4c7b34a23c2e034b7e107 100644
+index 1af5a154..4b26643a 100644
 --- a/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
 +++ b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
 @@ -39,25 +39,34 @@ import net.fabricmc.loom.util.gradle.SourceSetHelper;
@@ -324,7 +307,7 @@ index 1af5a154c301b8b18ddef1148b6d05fa1ceddb68..4b26643a6fc9d22071b4c7b34a23c2e0
  			return FabricModJsonFactory.createFromSourceSetsNullable(sourceSets);
  		}
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
-index e179a45578d1ef12c15e06e387886ba32cac0f9f..b9ed2d676977e679b31bef14fadde370685d0312 100644
+index e179a455..b9ed2d67 100644
 --- a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
 +++ b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
 @@ -39,6 +39,8 @@ import com.google.gson.JsonObject;

@@ -5,7 +5,7 @@ Subject: [PATCH] Exclude Fabric dependencies replaced by Quilt
 
 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/InstallerData.java b/src/main/java/net/fabricmc/loom/configuration/InstallerData.java
-index ce8da78d03c3bbcc19a9620c9d5d30fc8a058e7d..0d77a02472d055fab95613dbbd4e6dbaa08ea4f9 100644
+index ce8da78d..0d77a024 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/InstallerData.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/InstallerData.java
 @@ -40,9 +40,8 @@ import net.fabricmc.loom.LoomRepositoryPlugin;
@@ -20,20 +20,20 @@ index ce8da78d03c3bbcc19a9620c9d5d30fc8a058e7d..0d77a02472d055fab95613dbbd4e6dba
  		LoomGradleExtension extension = LoomGradleExtension.get(project);
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-index 7274912e12820e697991389626d5bda87ddd1162..2b95638caf9acc51353a994a24431a00e2f3c2ae 100644
+index c7e91aca..c1665d6e 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-@@ -42,7 +42,8 @@ import net.fabricmc.loom.util.FileSystemUtil;
+@@ -44,7 +44,8 @@ import net.fabricmc.loom.util.FileSystemUtil;
  import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
  
- public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData) {
+ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData, MixinRemapType mixinRemapType) {
 -	private static final String INSTALLER_PATH = "quilt_installer.json";
 +	private static final String QUILT_INSTALLER_PATH = "quilt_installer.json";
 +	private static final String FABRIC_INSTALLER_PATH = "fabric-installer.json";
- 	private static final String MANIFEST_PATH = "META-INF/MANIFEST.MF";
- 	private static final String MANIFEST_REMAP_KEY = "Fabric-Loom-Remap";
  
-@@ -66,11 +67,17 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
+ 	public static ArtifactMetadata create(ArtifactRef artifact, String currentLoomVersion) throws IOException {
+ 		boolean isFabricMod;
+@@ -81,11 +82,17 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
  				}
  			}
  
@@ -54,12 +54,12 @@ index 7274912e12820e697991389626d5bda87ddd1162..2b95638caf9acc51353a994a24431a00
  		}
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-index 7ff0fbc78dc242a82a925ca72dd85168116aa115..86316049c4c17f9362ab3a10cb25489d29a05229 100644
+index 61a4d844..2cd92134 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-@@ -31,12 +31,20 @@ import java.nio.file.Files;
- import java.nio.file.Path;
+@@ -32,12 +32,20 @@ import java.nio.file.Path;
  import java.util.ArrayList;
+ import java.util.Comparator;
  import java.util.HashMap;
 +import java.util.HashSet;
  import java.util.LinkedHashMap;
@@ -78,7 +78,7 @@ index 7ff0fbc78dc242a82a925ca72dd85168116aa115..86316049c4c17f9362ab3a10cb25489d
  import org.gradle.api.Project;
  import org.gradle.api.artifacts.Configuration;
  import org.gradle.api.artifacts.FileCollectionDependency;
-@@ -59,7 +67,6 @@ import net.fabricmc.loom.LoomGradleExtension;
+@@ -61,7 +69,6 @@ import net.fabricmc.loom.LoomGradlePlugin;
  import net.fabricmc.loom.api.RemapConfigurationSettings;
  import net.fabricmc.loom.configuration.RemapConfigurations;
  import net.fabricmc.loom.configuration.mods.dependency.ModDependency;
@@ -86,7 +86,7 @@ index 7ff0fbc78dc242a82a925ca72dd85168116aa115..86316049c4c17f9362ab3a10cb25489d
  import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
  import net.fabricmc.loom.util.Checksum;
  import net.fabricmc.loom.util.Constants;
-@@ -121,19 +128,22 @@ public class ModConfigurationRemapper {
+@@ -133,20 +140,21 @@ public class ModConfigurationRemapper {
  		}
  
  		// Round 1: Discovery
@@ -95,8 +95,6 @@ index 7ff0fbc78dc242a82a925ca72dd85168116aa115..86316049c4c17f9362ab3a10cb25489d
 +		// Go through all the configs and find the installer data and QSL.
 +		// The installer data has to be added before
  		// any mods are remapped since remapping needs the dependencies provided by that data.
-+		// The presence of Quilt Loader/QSL will be used to exclude the Fabric equivalents if needed.
-+
  		final Map<Configuration, List<ModDependency>> dependenciesBySourceConfig = new HashMap<>();
 +		final Map<Configuration, List<ArtifactRef>> artifactsBySourceConfig = new HashMap<>();
 +		final Set<Configuration> sourceConfigsWithQsl = new HashSet<>();
@@ -104,6 +102,7 @@ index 7ff0fbc78dc242a82a925ca72dd85168116aa115..86316049c4c17f9362ab3a10cb25489d
 +		AtomicReference<ArtifactMetadata> installer = new AtomicReference<>();
 +		AtomicReference<Configuration> installerConfigToApply = new AtomicReference<>();
 +		AtomicReference<ArtifactRef> installerArtifactToApply = new AtomicReference<>();
+ 		final Map<ArtifactRef, ArtifactMetadata> metaCache = new HashMap<>();
  		configsToRemap.forEach((sourceConfig, remappedConfig) -> {
 -			/*
 -			sourceConfig - The source configuration where the intermediary named artifacts come from. i.e "modApi"
@@ -117,9 +116,9 @@ index 7ff0fbc78dc242a82a925ca72dd85168116aa115..86316049c4c17f9362ab3a10cb25489d
 +			for (ArtifactRef artifact : artifacts) {
  				final ArtifactMetadata artifactMetadata;
  
- 				try {
-@@ -143,21 +153,75 @@ public class ModConfigurationRemapper {
- 				}
+ 				artifactMetadata = metaCache.computeIfAbsent(artifact, a -> {
+@@ -158,21 +166,84 @@ public class ModConfigurationRemapper {
+ 				});
  
  				if (artifactMetadata.installerData() != null) {
 -					if (extension.getInstallerData() != null) {
@@ -195,11 +194,20 @@ index 7ff0fbc78dc242a82a925ca72dd85168116aa115..86316049c4c17f9362ab3a10cb25489d
 +				} else if (sourceConfigsWithQsl.contains(sourceConfig) && artifact.group().equals("net.fabricmc.fabric-api")) {
 +					continue;
 +				}
- 				final ModDependency modDependency = ModDependencyFactory.create(artifact, remappedConfig, clientRemappedConfig, mappingsSuffix, project);
++				final ArtifactMetadata artifactMetadata;
++
++				artifactMetadata = metaCache.computeIfAbsent(artifact, a -> {
++					try {
++						return ArtifactMetadata.create(a, LoomGradlePlugin.LOOM_VERSION);
++					} catch (IOException e) {
++						throw ExceptionUtil.createDescriptiveWrapper(UncheckedIOException::new, "Failed to read metadata from " + a.path(), e);
++					}
++				});
+ 				final ModDependency modDependency = ModDependencyFactory.create(artifact, artifactMetadata, remappedConfig, clientRemappedConfig, mappingsSuffix, project);
  				scheduleSourcesRemapping(project, sourceRemapper, modDependency);
  				modDependencies.add(modDependency);
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
-index 1a546c22e8ee8d4c56f9dd346a89b319402bbb2c..b56f85b7a4674b652b5bfc2c9ddf8d2daeec3a1d 100644
+index 1a546c22..b56f85b7 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
 @@ -46,6 +46,7 @@ class MavenProjectTest extends Specification implements MockMavenServerTrait, Gr
@@ -219,7 +227,7 @@ index 1a546c22e8ee8d4c56f9dd346a89b319402bbb2c..b56f85b7a4674b652b5bfc2c9ddf8d2d
  
  		when:
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy
-index da86621384189424e7a03ba0a9d6e3dcddc64e51..1f102b9348d343e6333d15dbfe4ba89c12042887 100644
+index c5669df0..18e060e5 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy
 @@ -29,6 +29,7 @@ import spock.lang.Unroll
