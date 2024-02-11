@@ -102,13 +102,6 @@ index de84c29f..32442f2a 100644
  	}
  }
  
-@@ -431,4 +458,4 @@ class PrintActionsTestName extends DefaultTask {
- 	}
- }
- 
--apply from: rootProject.file('gradle/versions.gradle')
-\ No newline at end of file
-+apply from: rootProject.file('gradle/versions.gradle')
 diff --git a/gradle.properties b/gradle.properties
 index 31014b15..ee1d4c30 100644
 --- a/gradle.properties
