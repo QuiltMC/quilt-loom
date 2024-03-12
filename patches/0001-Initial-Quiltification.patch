@@ -13,7 +13,7 @@ This includes:
 - Adding Vineflower and using it by default
 
 diff --git a/build.gradle b/build.gradle
-index 014f8da9a6d07b509d938de7c6090c1b3b8de573..6df36c1184b3ee5581c68bb46d3004adc308b1ef 100644
+index de84c29fa40819a31c2e55389d201f86456eda67..eaabc2b3ce2ef925e7deb635dc18894b73dbcc4d 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -49,7 +49,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -22,10 +22,10 @@ index 014f8da9a6d07b509d938de7c6090c1b3b8de573..6df36c1184b3ee5581c68bb46d3004ad
  
 -group = 'net.fabricmc'
 +group = 'org.quiltmc'
- def baseVersion = '1.4'
+ def baseVersion = '1.5'
  
  def ENV = System.getenv()
-@@ -251,10 +251,16 @@ codenarc {
+@@ -252,10 +252,16 @@ codenarc {
  
  gradlePlugin {
  	plugins {
@@ -44,7 +44,7 @@ index 014f8da9a6d07b509d938de7c6090c1b3b8de573..6df36c1184b3ee5581c68bb46d3004ad
  	}
  }
  
-@@ -311,8 +317,8 @@ publishing {
+@@ -312,8 +318,8 @@ publishing {
  
  		// Manually crate the plugin marker for snapshot versions
  		snapshotPlugin(MavenPublication) { publication ->
@@ -55,7 +55,7 @@ index 014f8da9a6d07b509d938de7c6090c1b3b8de573..6df36c1184b3ee5581c68bb46d3004ad
  			version baseVersion + '-SNAPSHOT'
  
  			pom.withXml({
-@@ -322,9 +328,9 @@ publishing {
+@@ -323,9 +329,9 @@ publishing {
  				Node dependencies = root.appendChild(document.createElement('dependencies'))
  				Node dependency = dependencies.appendChild(document.createElement('dependency'))
  				Node groupId = dependency.appendChild(document.createElement('groupId'))
@@ -67,7 +67,7 @@ index 014f8da9a6d07b509d938de7c6090c1b3b8de573..6df36c1184b3ee5581c68bb46d3004ad
  				Node version = dependency.appendChild(document.createElement('version'))
  				version.setTextContent(baseVersion + '-SNAPSHOT')
  			})
-@@ -332,6 +338,7 @@ publishing {
+@@ -333,6 +339,7 @@ publishing {
  	}
  	repositories {
  		maven {
@@ -75,7 +75,7 @@ index 014f8da9a6d07b509d938de7c6090c1b3b8de573..6df36c1184b3ee5581c68bb46d3004ad
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -340,6 +347,26 @@ publishing {
+@@ -341,6 +348,26 @@ publishing {
  				}
  			}
  		}
@@ -117,10 +117,10 @@ index 31014b156127886c44921900f480e68d4528da25..ee1d4c3083cdb729df09522e88a41351
  kotlin.stdlib.default.dependency = false
 \ No newline at end of file
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-index 8231476d474a431b632ee75251dbc76e9212bc7f..98be8d15cac40265413e890bf9eca9acff017944 100644
+index 71248d2d72437815aecbee42d01ee4ec62589a65..76a88fc552f9324bb9d56c57a68fd50494bb4ee0 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-@@ -79,7 +79,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+@@ -76,7 +76,7 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
  	}
  
  	public void apply(Project project) {
@@ -159,10 +159,10 @@ index b41b39bf86c6bfcd8c600eb70d160d801e66f510..d9599c24f9b47d678277f0300b6b6f54
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
-index 538c3018b085067e3d0e99d6fc8a0530b07cf6e9..9e4b9dbb1d8d837653fe4d1acebebfc22fed7bdb 100644
+index 6965a0bf521d30bf581819f5ceb07a025238abe1..8d2f1807003ada50dce5cbca57005e14bbb343fe 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/decompile/SingleJarDecompileConfiguration.java
-@@ -68,7 +68,7 @@ public class SingleJarDecompileConfiguration extends DecompileConfiguration<Mapp
+@@ -75,7 +75,7 @@ public class SingleJarDecompileConfiguration extends DecompileConfiguration<Mapp
  			task.setDescription("Decompile minecraft using the default decompiler.");
  			task.setGroup(Constants.TaskGroup.FABRIC);
  
@@ -172,10 +172,10 @@ index 538c3018b085067e3d0e99d6fc8a0530b07cf6e9..9e4b9dbb1d8d837653fe4d1acebebfc2
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java b/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java
-index 0cf8fbe389b957ca3d2024afd98b5a52e6a537b0..3d1a030cf2fbe7fbf57f834f362cb8aa93e22b12 100644
+index 0c8df985145397f23148c9bcf9e3db394a4b278c..8e6e56fe01d235bbb42e017523202234ff99251a 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/decompile/SplitDecompileConfiguration.java
-@@ -108,7 +108,7 @@ public final class SplitDecompileConfiguration extends DecompileConfiguration<Ma
+@@ -114,7 +114,7 @@ public final class SplitDecompileConfiguration extends DecompileConfiguration<Ma
  			task.setDescription("Decompile minecraft (%s) using the default decompiler.".formatted(name));
  			task.setGroup(Constants.TaskGroup.FABRIC);
  
@@ -185,18 +185,18 @@ index 0cf8fbe389b957ca3d2024afd98b5a52e6a537b0..3d1a030cf2fbe7fbf57f834f362cb8aa
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-index 024a35c8843e8f866f3885a1414124854bfe97ef..7274912e12820e697991389626d5bda87ddd1162 100644
+index 057cde42e019d890d7a9289bde235ff0efc35a7b..c7e91aca57ae87cdff349bde65db713778ae780d 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-@@ -42,7 +42,7 @@ import net.fabricmc.loom.util.FileSystemUtil;
+@@ -44,7 +44,7 @@ import net.fabricmc.loom.util.FileSystemUtil;
  import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
  
- public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData) {
+ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData, MixinRemapType mixinRemapType) {
 -	private static final String INSTALLER_PATH = "fabric-installer.json";
 +	private static final String INSTALLER_PATH = "quilt_installer.json";
- 	private static final String MANIFEST_PATH = "META-INF/MANIFEST.MF";
- 	private static final String MANIFEST_REMAP_KEY = "Fabric-Loom-Remap";
  
+ 	public static ArtifactMetadata create(ArtifactRef artifact, String currentLoomVersion) throws IOException {
+ 		boolean isFabricMod;
 diff --git a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
 index d7f0c469b92b3acfb24a623306f8d63bf44eafbe..12f19648c39d6eec91d8bd09cdd3400aadac3ca3 100644
 --- a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
@@ -294,7 +294,7 @@ index b3f5456c1317acc23b903df9451b59683d677dcf..18341c50640d4e42f2391ae46c3d2be7
  		}
  
 diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
-index 42692aabc0c49424b9fab10ae84b627ce6f5a9d5..4ad7a56e0eb19032b16b570208021dac077a03cf 100644
+index 100835711ceb553290db67f79dc503849aeb529d..e4de3dd627a8dd0597dedfb176e8e3ffff5aa2e4 100644
 --- a/src/main/java/net/fabricmc/loom/util/Constants.java
 +++ b/src/main/java/net/fabricmc/loom/util/Constants.java
 @@ -32,6 +32,7 @@ public class Constants {
@@ -323,7 +323,7 @@ index 3350a985f73e403f086a2a988283cbe4644d0cc2..eef1cd42b1e53497012165e1580c6199
 +	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
-index 1f4fca35e5773219317492661abadbc3161ecba1..c70e73680419435ee83960c21518ce6734fac9ab 100644
+index f008293d79e9551b11cd5cf27cc77c628af5c8af..7d4b0ab9a6cfeaec34ed485150a43b6bc49f6c93 100644
 --- a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
 @@ -128,7 +128,7 @@ public class SourceRemapper {
