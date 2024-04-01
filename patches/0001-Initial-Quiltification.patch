@@ -137,7 +137,7 @@ index 71248d2d72437815aecbee42d01ee4ec62589a65..76a88fc552f9324bb9d56c57a68fd504
  
  		// Apply default plugins
 diff --git a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
-index ef9bd58ef74cc149e7010220c966bb6df2ed475c..4e57a69eacd71f9b6df5dd6566fb14d3066e9760 100644
+index 896c72df20c7f64a9e44ec5883fadb21c1e6f5cb..743a5847aaeb36968739c8c3c39da67862ec95e5 100644
 --- a/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomRepositoryPlugin.java
 @@ -67,7 +67,10 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
