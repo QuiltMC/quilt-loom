@@ -6,14 +6,14 @@ Subject: [PATCH] Exclude quilt-loader dependencies from remapped
 
 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/RemapConfigurations.java b/src/main/java/net/fabricmc/loom/configuration/RemapConfigurations.java
-index 033499915d4af1a0bb29857b58a9cf66eb883658..1f04e10600d35069e7c376c754e6b01b4b943154 100644
+index 033499915d4af1a0bb29857b58a9cf66eb883658..ead9d05fb7dd09789a0b49b7cb7630d33a93fb31 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/RemapConfigurations.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/RemapConfigurations.java
 @@ -172,6 +172,8 @@ public final class RemapConfigurations {
  			extendsFrom(Constants.Configurations.MOD_COMPILE_CLASSPATH, configuration, project);
  		}
  
-+		configuration.exclude(Map.of("group", "org.quiltmc", "module", "quilt-loader-dependencies"));
++		configuration.exclude(java.util.Map.of("group", "org.quiltmc", "module", "quilt-loader-dependencies"));
 +
  		for (String outgoingConfigurationName : settings.getPublishingMode().get().outgoingConfigurations()) {
  			extendsFrom(outgoingConfigurationName, configuration, project);
