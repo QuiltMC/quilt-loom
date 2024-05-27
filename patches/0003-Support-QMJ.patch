@@ -1625,10 +1625,10 @@ index 0000000000000000000000000000000000000000..564f038b4b57dae956c70f36f30571c9
 +}
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e179a45578d1ef12c15e06e387886ba32cac0f9f
+index 0000000000000000000000000000000000000000..5c59fe29dca17a704e3fe08ac193cc1296633b16
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,127 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -1667,6 +1667,7 @@ index 0000000000000000000000000000000000000000..e179a45578d1ef12c15e06e387886ba3
 +import java.util.Optional;
 +
 +import com.google.gson.JsonObject;
++import com.google.gson.JsonSyntaxException;
 +import org.gradle.api.tasks.SourceSet;
 +import org.jetbrains.annotations.Nullable;
 +import org.jetbrains.annotations.VisibleForTesting;
@@ -1676,9 +1677,12 @@ index 0000000000000000000000000000000000000000..e179a45578d1ef12c15e06e387886ba3
 +import net.fabricmc.loom.util.gradle.SourceSetHelper;
 +import net.fabricmc.loom.util.metadata.ModJsonSource;
 +
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
 +public final class QuiltModJsonFactory {
 +	private static final String QUILT_MOD_JSON = "quilt.mod.json";
-+
++	private static final Logger LOGGER = LoggerFactory.getLogger(QuiltModJsonFactory.class);
 +	private QuiltModJsonFactory() {
 +	}
 +
@@ -1744,6 +1748,11 @@ index 0000000000000000000000000000000000000000..e179a45578d1ef12c15e06e387886ba3
 +
 +		try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
 +			return create(LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class), new ModJsonSource.SourceSetSource(sourceSets));
++		} catch (JsonSyntaxException e) {
++			LOGGER.warn("Failed to parse mod json: {}", file.getAbsolutePath());
++			return null;
++		} catch (IOException e) {
++			throw new UncheckedIOException("Failed to read " + file.getAbsolutePath(), e);
 +		}
 +	}
 +}
