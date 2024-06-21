@@ -574,7 +574,7 @@ index 4aa7949c8b46989a9916ae5ee69e9c91a62e2d54..e0e0609c9b46421c959f35dc39a273c6
  public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData, MixinRemapType mixinRemapType, List<String> knownIdyBsms) {
  	private static final String QUILT_INSTALLER_PATH = "quilt_installer.json";
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-index cbd4ed320a1cae9f38905c53d868289e69428931..16ebe53a5bed6bcf2b80e413a5825c8bb7f18616 100644
+index cbd4ed320a1cae9f38905c53d868289e69428931..26b83ad9284b883cfff107197128c2440db77803 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 @@ -41,11 +41,6 @@ import java.util.concurrent.atomic.AtomicReference;
@@ -589,18 +589,15 @@ index cbd4ed320a1cae9f38905c53d868289e69428931..16ebe53a5bed6bcf2b80e413a5825c8b
  import org.gradle.api.Project;
  import org.gradle.api.artifacts.Configuration;
  import org.gradle.api.artifacts.FileCollectionDependency;
-@@ -67,8 +62,10 @@ import org.jetbrains.annotations.Nullable;
- import net.fabricmc.loom.LoomGradleExtension;
- import net.fabricmc.loom.LoomGradlePlugin;
+@@ -69,6 +64,7 @@ import net.fabricmc.loom.LoomGradlePlugin;
  import net.fabricmc.loom.api.RemapConfigurationSettings;
-+import net.fabricmc.loom.configuration.InstallerData;
  import net.fabricmc.loom.configuration.RemapConfigurations;
  import net.fabricmc.loom.configuration.mods.dependency.ModDependency;
 +import net.fabricmc.loom.configuration.mods.dependency.ModDependencyFactory;
  import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
  import net.fabricmc.loom.util.Checksum;
  import net.fabricmc.loom.util.Constants;
-@@ -206,14 +203,14 @@ public class ModConfigurationRemapper {
+@@ -206,14 +202,14 @@ public class ModConfigurationRemapper {
  		if (installer.get() != null) {
  			project.getLogger().info("Applying installer data");
  
@@ -620,7 +617,7 @@ index cbd4ed320a1cae9f38905c53d868289e69428931..16ebe53a5bed6bcf2b80e413a5825c8b
  				installerArtifactToApply.get().applyToConfiguration(project, installerConfigToApply.get());
  			}
  
-@@ -239,6 +236,7 @@ public class ModConfigurationRemapper {
+@@ -239,6 +235,7 @@ public class ModConfigurationRemapper {
  				} else if (sourceConfigsWithQsl.contains(sourceConfig) && artifact.group().equals("net.fabricmc.fabric-api")) {
  					continue;
  				}
