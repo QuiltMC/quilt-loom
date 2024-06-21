@@ -7,16 +7,16 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-    container:
-      image: gradle:8.6.0-jdk17
-      options: --user root
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+      - uses: actions/checkout@v4
         with:
           submodules: true
-      - uses: gradle/wrapper-validation-action@v1
-
+      - uses: gradle/wrapper-validation-action@v2
       # Generate the build number based on tags to allow per branch build numbers, not something github provides by default.
       - name: Generate build number
         id: buildnumber

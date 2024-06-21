@@ -19,43 +19,8 @@ index ce8da78d03c3bbcc19a9620c9d5d30fc8a058e7d..0d77a02472d055fab95613dbbd4e6dba
  	public void applyToProject(Project project) {
  		LoomGradleExtension extension = LoomGradleExtension.get(project);
  
-diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-index c7e91aca57ae87cdff349bde65db713778ae780d..1375a06a482ee210cd7cf35f15e3923043de79f9 100644
---- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-+++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-@@ -44,7 +44,9 @@ import net.fabricmc.loom.util.FileSystemUtil;
- import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
- 
- public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData, MixinRemapType mixinRemapType) {
--	private static final String INSTALLER_PATH = "quilt_installer.json";
-+	private static final String QUILT_INSTALLER_PATH = "quilt_installer.json";
-+	private static final String FABRIC_INSTALLER_PATH = "fabric-installer.json";
-+
- 
- 	public static ArtifactMetadata create(ArtifactRef artifact, String currentLoomVersion) throws IOException {
- 		boolean isFabricMod;
-@@ -81,11 +83,17 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
- 				}
- 			}
- 
--			final Path installerPath = fs.getPath(INSTALLER_PATH);
-+			Path installerPath = fs.getPath(QUILT_INSTALLER_PATH);
-+			boolean isQuilt = true;
-+
-+			if (!Files.exists(installerPath)) {
-+				installerPath = fs.getPath(FABRIC_INSTALLER_PATH);
-+				isQuilt = false;
-+			}
- 
- 			if (isFabricMod && Files.exists(installerPath)) {
- 				final JsonObject jsonObject = LoomGradlePlugin.GSON.fromJson(Files.readString(installerPath, StandardCharsets.UTF_8), JsonObject.class);
--				installerData = new InstallerData(artifact.version(), jsonObject);
-+				installerData = new InstallerData(artifact.version(), jsonObject, isQuilt);
- 			}
- 		}
- 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-index 61a4d8443dd63ede7a8be66f9633f17459e5ae76..4fca0b0d5149eec1468e6ca8072951c23e466321 100644
+index 61a4d8443dd63ede7a8be66f9633f17459e5ae76..cbd4ed320a1cae9f38905c53d868289e69428931 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 @@ -32,12 +32,20 @@ import java.nio.file.Path;
@@ -120,7 +85,7 @@ index 61a4d8443dd63ede7a8be66f9633f17459e5ae76..4fca0b0d5149eec1468e6ca8072951c2
  				final ArtifactMetadata artifactMetadata;
  
  				artifactMetadata = metaCache.computeIfAbsent(artifact, a -> {
-@@ -158,22 +168,76 @@ public class ModConfigurationRemapper {
+@@ -158,22 +168,78 @@ public class ModConfigurationRemapper {
  				});
  
  				if (artifactMetadata.installerData() != null) {
@@ -144,6 +109,7 @@ index 61a4d8443dd63ede7a8be66f9633f17459e5ae76..4fca0b0d5149eec1468e6ca8072951c2
 +						installerArtifactToApply.set(artifact);
 +						continue; // we'll apply the installer later
 +					}
++
  					// Note: not applying to any type of vanilla Gradle target config like
  					// api or implementation to fix https://github.com/FabricMC/fabric-loom/issues/572.
  					artifact.applyToConfiguration(project, remappedConfig);
@@ -176,6 +142,7 @@ index 61a4d8443dd63ede7a8be66f9633f17459e5ae76..4fca0b0d5149eec1468e6ca8072951c2
 +            if (!installer.get().shouldRemap()) {
 +				installerArtifactToApply.get().applyToConfiguration(project, installerConfigToApply.get());
 +			}
++
 +			installer.get().installerData().applyToProject(project);
 +		} else {
 +			project.getLogger().lifecycle("Warning: No loader detected.");
@@ -203,42 +170,14 @@ index 61a4d8443dd63ede7a8be66f9633f17459e5ae76..4fca0b0d5149eec1468e6ca8072951c2
  				modDependencies.add(modDependency);
  			}
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
-index 1a546c22e8ee8d4c56f9dd346a89b319402bbb2c..b56f85b7a4674b652b5bfc2c9ddf8d2daeec3a1d 100644
+index 1a546c22e8ee8d4c56f9dd346a89b319402bbb2c..def5b3c93a6f211a20117adc0d608b9f1b8d6b87 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
-@@ -46,6 +46,7 @@ class MavenProjectTest extends Specification implements MockMavenServerTrait, Gr
- 	def "publish lib #version #gradleVersion"() {
- 		setup:
- 		setProperty('loom.test.version', version)
-+		setProperty('loom.excludeFabricReplacedDependencies', 'false')
- 		def gradle = gradleProject(project: "mavenLibrary", version: gradleVersion, sharedFiles: true)
- 
- 		when:
-@@ -73,6 +74,7 @@ class MavenProjectTest extends Specification implements MockMavenServerTrait, Gr
+@@ -73,6 +73,7 @@ class MavenProjectTest extends Specification implements MockMavenServerTrait, Gr
  	def "resolve #version #gradleVersion"() {
  		given:
  		setProperty('loom.test.resolve', "com.example:fabric-example-lib:${version}")
 +		setProperty('loom.excludeFabricReplacedDependencies', 'false')
  		def gradle = gradleProject(project: "maven", version: gradleVersion, sharedFiles: true)
- 
- 		when:
-diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy
-index c5669df049673b8800bf9d1cd2b3e9638c20a47d..18e060e5b279b0b2c57d325fc7cb8fcb936a6ac7 100644
---- a/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy
-+++ b/src/test/groovy/net/fabricmc/loom/test/integration/MultiProjectTest.groovy
-@@ -29,6 +29,7 @@ import spock.lang.Unroll
- 
- import net.fabricmc.loom.test.util.GradleProjectTestTrait
- 
-+import static java.lang.System.setProperty
- import static net.fabricmc.loom.test.LoomTestConstants.STANDARD_TEST_VERSIONS
- import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
- 
-@@ -36,6 +37,7 @@ class MultiProjectTest extends Specification implements GradleProjectTestTrait {
- 	@Unroll
- 	def "build (gradle #version)"() {
- 		setup:
-+		setProperty('loom.excludeFabricReplacedDependencies', 'false')
- 		def gradle = gradleProject(project: "multiproject", version: version)
  
  		when:
