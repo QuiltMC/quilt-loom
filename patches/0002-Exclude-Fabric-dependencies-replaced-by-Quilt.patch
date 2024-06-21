@@ -169,15 +169,3 @@ index 61a4d8443dd63ede7a8be66f9633f17459e5ae76..cbd4ed320a1cae9f38905c53d868289e
  				scheduleSourcesRemapping(project, sourceRemapper, modDependency);
  				modDependencies.add(modDependency);
  			}
-diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
-index 1a546c22e8ee8d4c56f9dd346a89b319402bbb2c..def5b3c93a6f211a20117adc0d608b9f1b8d6b87 100644
---- a/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
-+++ b/src/test/groovy/net/fabricmc/loom/test/integration/MavenProjectTest.groovy
-@@ -73,6 +73,7 @@ class MavenProjectTest extends Specification implements MockMavenServerTrait, Gr
- 	def "resolve #version #gradleVersion"() {
- 		given:
- 		setProperty('loom.test.resolve', "com.example:fabric-example-lib:${version}")
-+		setProperty('loom.excludeFabricReplacedDependencies', 'false')
- 		def gradle = gradleProject(project: "maven", version: gradleVersion, sharedFiles: true)
- 
- 		when:
