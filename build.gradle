@@ -4,6 +4,6 @@ plugins {
 
 patches {
     submodule = "fabric-loom"
-    target = file('quilt-loom')
+    target = file('patched-quilt-loom')
     patches = file('patches')
 }
