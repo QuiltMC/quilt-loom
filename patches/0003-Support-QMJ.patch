@@ -228,7 +228,7 @@ index 67d97342cca46d64d45ea545dcc48b246e7973ed..95709db93959da80a5d49fb250392199
  
  					return fabricModJson.getId();
 diff --git a/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java b/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java
-index 73bbc878d5658e706764c0134a7483dc455b235e..1e0b04d0ecf3de98702d67d3e49d516789affc28 100644
+index 603b4c63616f269b5365b1ee7c6d6b669b2d3449..c977a7c51fa2ca7d6dff5ed6900aad9b9d949a0f 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java
 @@ -25,9 +25,6 @@
@@ -250,18 +250,17 @@ index 73bbc878d5658e706764c0134a7483dc455b235e..1e0b04d0ecf3de98702d67d3e49d5167
  import org.apache.commons.io.FilenameUtils;
  import org.gradle.api.InvalidUserDataException;
  import org.gradle.api.Project;
-@@ -45,8 +40,9 @@ import org.gradle.api.artifacts.Configuration;
+@@ -45,7 +40,8 @@ import org.gradle.api.artifacts.Configuration;
  import org.gradle.api.artifacts.Dependency;
  import org.gradle.api.artifacts.FileCollectionDependency;
  
 -import net.fabricmc.loom.util.ZipUtils;
- import net.fabricmc.loom.util.gradle.SelfResolvingDependencyUtils;
 +import net.fabricmc.loom.api.metadata.ModJson;
 +import net.fabricmc.loom.util.metadata.ModJsonFactory;
  
  public class FileDependencyInfo extends DependencyInfo {
  	protected final Map<String, File> classifierToFile = new HashMap<>();
-@@ -102,31 +98,28 @@ public class FileDependencyInfo extends DependencyInfo {
+@@ -101,31 +97,28 @@ public class FileDependencyInfo extends DependencyInfo {
  		} else {
  			group = "net.fabricmc.synthetic";
  			File root = classifierToFile.get(""); //We've built the classifierToFile map, now to try find a name and version for our dependency
@@ -467,7 +466,7 @@ index 4731422ca79b2b0032090034d71305749a579675..7e8812f74185f5398a05b9049d93693a
  
  		for (Map.Entry<String, ModEnvironment> entry : modJson.getClassTweakers().entrySet()) {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index 1ced9ba3a019f2cfab727bbe720edfe40f875d7b..46a798725545a96534bad43edc56f090a9db7c56 100644
+index 1e6c1391e329ab32e94f4b00e29ac827836ff0a5..c5687c124307186649869041d2d3637bcd4afb6e 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 @@ -53,6 +53,7 @@ import org.slf4j.Logger;
@@ -559,7 +558,7 @@ index 725e4fb11c74c5bfb884c4fb62839f74c8ecfc26..94051a2f75ded30c9b49042b3762999a
  
  		return new AccessWidenerData(accessWidenerPath, header, accessWidener);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-index 4aa7949c8b46989a9916ae5ee69e9c91a62e2d54..e0e0609c9b46421c959f35dc39a273c6fb806c00 100644
+index f657b1e945597b9d09cd454967e3d512f54bd9cf..e1e0d0eb980caab8b2314835ec68107ae8230a91 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 @@ -42,9 +42,9 @@ import org.jetbrains.annotations.Nullable;
@@ -574,7 +573,7 @@ index 4aa7949c8b46989a9916ae5ee69e9c91a62e2d54..e0e0609c9b46421c959f35dc39a273c6
  public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData, MixinRemapType mixinRemapType, List<String> knownIdyBsms) {
  	private static final String QUILT_INSTALLER_PATH = "quilt_installer.json";
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-index cbd4ed320a1cae9f38905c53d868289e69428931..26b83ad9284b883cfff107197128c2440db77803 100644
+index bf10eb071b244720521860e85af02380a94d82c4..1ec8c2a072f7b5a10b77c7f95042de2f355b7fd0 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 @@ -41,11 +41,6 @@ import java.util.concurrent.atomic.AtomicReference;
@@ -626,7 +625,7 @@ index cbd4ed320a1cae9f38905c53d868289e69428931..26b83ad9284b883cfff107197128c244
  				scheduleSourcesRemapping(project, sourceRemapper, modDependency);
  				modDependencies.add(modDependency);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
-index 2891c929f37b594b7e4be4e8483e68347b2aad41..e6a7fa29145e10ca5fa25717f078edf9f9aab42a 100644
+index b9e7b8cc1f03cd4bed4f70b5562b646dce60500e..0367286af9bc166e9dc0a9ea12930bc7285d342a 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 @@ -49,6 +49,7 @@ import org.gradle.api.attributes.Usage;
@@ -642,7 +641,7 @@ index 2891c929f37b594b7e4be4e8483e68347b2aad41..e6a7fa29145e10ca5fa25717f078edf9
  import net.fabricmc.loom.util.kotlin.KotlinClasspathService;
  import net.fabricmc.loom.util.kotlin.KotlinRemapperClassloader;
 +import net.fabricmc.loom.util.metadata.ModJsonFactory;
- import net.fabricmc.loom.util.service.SharedServiceManager;
+ import net.fabricmc.loom.util.service.ServiceFactory;
  import net.fabricmc.tinyremapper.InputTag;
  import net.fabricmc.tinyremapper.NonClassCopyMode;
 @@ -120,10 +122,7 @@ public class ModProcessor {
@@ -719,7 +718,7 @@ index 781ca37f2c763de0acbcb9254792052289ed00f9..ffdef6f8a9d6ae671c65a0068ec04426
  
  				try (Reader reader = new InputStreamReader(new ByteArrayInputStream(data))) {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java b/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
-index 97e96a47ee9848d0809ae9b7ea6e01165a0e5d8e..85f2191a3a668d569044f9832794d32ac04bebdd 100644
+index 1882634657e0577535692328df1b00a730abb5ae..4d6290fbb6fa8acb698824e718b906facdc6b003 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/processors/SpecContextImpl.java
 @@ -45,35 +45,35 @@ import org.gradle.api.plugins.JavaPlugin;
@@ -821,11 +820,11 @@ index 97e96a47ee9848d0809ae9b7ea6e01165a0e5d8e..85f2191a3a668d569044f9832794d32a
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
-index 5e6500877a224215da681810d74e4f38cc04c9b2..f707173d126ce76fd4e3df73db3f068649152b5c 100644
+index 64d7524eb679a4287d0e3c9dfdc6b871b79db4c2..a8c83fd2eb723e96ab8a1c1995e15d4e51709b54 100644
 --- a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
 +++ b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
-@@ -72,8 +72,8 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
- import net.fabricmc.loom.task.GenerateSourcesTask;
+@@ -74,8 +74,8 @@ import net.fabricmc.loom.task.GenerateSourcesTask;
+ import net.fabricmc.loom.util.Constants;
  import net.fabricmc.loom.util.DeprecationHelper;
  import net.fabricmc.loom.util.MirrorUtil;
 -import net.fabricmc.loom.util.fmj.FabricModJson;
@@ -835,7 +834,7 @@ index 5e6500877a224215da681810d74e4f38cc04c9b2..f707173d126ce76fd4e3df73db3f0686
  import net.fabricmc.loom.util.gradle.SourceSetHelper;
  
  /**
-@@ -277,7 +277,7 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+@@ -295,7 +295,7 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  	@Override
  	public String getModVersion() {
  		try {
@@ -845,52 +844,29 @@ index 5e6500877a224215da681810d74e4f38cc04c9b2..f707173d126ce76fd4e3df73db3f0686
  			if (fabricModJson == null) {
  				throw new RuntimeException("Could not find a fabric.mod.json file in the main sourceset");
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index d986c6ed14251b31d9da03c38ccebd4dde68d923..cc4f7715916a61f5a4dd0a785b87aa0dd607b662 100644
+index a50d0a99615ff2a23013f90b9381f36ec713b9b9..c70ffbe4be44d5370db4e955b795fe9d7fc39d14 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-@@ -64,7 +64,6 @@ import net.fabricmc.accesswidener.AccessWidenerWriter;
+@@ -56,9 +56,9 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
+ import net.fabricmc.accesswidener.AccessWidenerRemapper;
+ import net.fabricmc.accesswidener.AccessWidenerWriter;
  import net.fabricmc.loom.LoomGradleExtension;
++import net.fabricmc.loom.api.metadata.ModJson;
  import net.fabricmc.loom.build.nesting.JarNester;
  import net.fabricmc.loom.build.nesting.NestableJarGenerationTask;
 -import net.fabricmc.loom.configuration.accesswidener.AccessWidenerFile;
  import net.fabricmc.loom.configuration.mods.ArtifactMetadata;
- import net.fabricmc.loom.extension.MixinExtension;
- import net.fabricmc.loom.task.service.TinyRemapperService;
-@@ -73,13 +72,14 @@ import net.fabricmc.loom.util.ExceptionUtil;
- import net.fabricmc.loom.util.Pair;
- import net.fabricmc.loom.util.SidedClassVisitor;
+ import net.fabricmc.loom.task.service.ClientEntriesService;
+ import net.fabricmc.loom.task.service.MixinRefmapService;
+@@ -70,6 +70,7 @@ import net.fabricmc.loom.util.SidedClassVisitor;
  import net.fabricmc.loom.util.ZipUtils;
--import net.fabricmc.loom.util.fmj.FabricModJson;
  import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
  import net.fabricmc.loom.util.fmj.FabricModJsonUtils;
 +import net.fabricmc.loom.util.metadata.ModJsonFactory;
- import net.fabricmc.loom.util.service.BuildSharedServiceManager;
- import net.fabricmc.loom.util.service.UnsafeWorkQueueHelper;
+ import net.fabricmc.loom.util.service.ScopedServiceFactory;
+ import net.fabricmc.loom.util.service.ServiceFactory;
  import net.fabricmc.tinyremapper.OutputConsumerPath;
- import net.fabricmc.tinyremapper.TinyRemapper;
-+import net.fabricmc.loom.api.metadata.ModJson;
- 
- public abstract class RemapJarTask extends AbstractRemapJarTask {
- 	@InputFiles
-@@ -176,13 +176,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
- 		final LoomGradleExtension extension = LoomGradleExtension.get(getProject());
- 		final MixinExtension mixinExtension = extension.getMixin();
- 
--		final FabricModJson fabricModJson = FabricModJsonFactory.createFromZipNullable(getInputFile().getAsFile().get().toPath());
-+		final Path jar = getInputFile().getAsFile().get().toPath();
-+		final ModJson modJson = ModJsonFactory.createFromZipNullable(jar);
- 
--		if (fabricModJson == null) {
-+		if (modJson == null) {
- 			return;
- 		}
- 
--		final Collection<String> allMixinConfigs = fabricModJson.getMixinConfigurations();
-+		final Collection<String> allMixinConfigs = modJson.getMixinConfigurations();
- 
- 		for (SourceSet sourceSet : mixinExtension.getMixinSourceSets()) {
- 			MixinExtension.MixinInformationContainer container = Objects.requireNonNull(
-@@ -309,16 +310,18 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -250,16 +251,18 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  				return;
  			}
  

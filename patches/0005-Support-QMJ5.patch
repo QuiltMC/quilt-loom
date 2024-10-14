@@ -5,10 +5,10 @@ Subject: [PATCH] Support QMJ5
 
 
 diff --git a/build.gradle b/build.gradle
-index 9a8124c8f720d6c2a347146fa92932b0745a67c0..9f2a1035a9907781fb59cf6c82ebd50d5b40c34f 100644
+index 09543e2db653f6f426a4bb6c83aaa3dfebef3cd1..89c4050232234d78431114ca23a20997fe702129 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -73,6 +73,10 @@ repositories {
+@@ -77,6 +77,10 @@ repositories {
  		name = 'Fabric'
  		url = 'https://maven.fabricmc.net/'
  	}
@@ -19,7 +19,7 @@ index 9a8124c8f720d6c2a347146fa92932b0745a67c0..9f2a1035a9907781fb59cf6c82ebd50d
  	mavenCentral()
  }
  
-@@ -130,6 +134,7 @@ dependencies {
+@@ -134,6 +138,7 @@ dependencies {
  	implementation libs.gson
  	implementation libs.guava
  	implementation libs.bundles.asm
@@ -28,17 +28,17 @@ index 9a8124c8f720d6c2a347146fa92932b0745a67c0..9f2a1035a9907781fb59cf6c82ebd50d
  	// game handling utils
  	implementation (libs.fabric.stitch) {
 diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
-index 47e1626dc3005c3cd4c0c6d832622a1ce0c9b14d..f3053a1f5938e0e91673d7fccc08d457d793e76d 100644
+index c807301c9fc44f12cb8ef2018f99b2ff971b6db4..320e65538376f6c2d5f44b3103e3afe4e5724e5e 100644
 --- a/gradle/libs.versions.toml
 +++ b/gradle/libs.versions.toml
-@@ -4,6 +4,7 @@ asm = "9.6"
+@@ -4,6 +4,7 @@ asm = "9.7.1"
  commons-io = "2.15.1"
  gson = "2.10.1"
  guava = "33.0.0-jre"
 +quilt-parsers = "0.3.0"
  
  stitch = "0.6.2"
- tiny-remapper = "0.10.3"
+ tiny-remapper = "0.10.4"
 @@ -32,6 +33,9 @@ commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
  gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
  guava = { module = "com.google.guava:guava", version.ref = "guava" }
@@ -55,18 +55,18 @@ index 47e1626dc3005c3cd4c0c6d832622a1ce0c9b14d..f3053a1f5938e0e91673d7fccc08d457
  asm = ["asm", "asm-analysis", "asm-commons", "asm-tree", "asm-util"]
 +quilt-parsers = ["quilt-parsers-gson", "quilt-parsers-json"]
 diff --git a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
-index e0f2abf1cd9c975c7c3b9e2c2c74dbf1d9f1b24a..22e9dba46692af36684ef42691b89f709c50e1e3 100644
+index 9b818e386bbb97055bab42895b7c74a55c5feb0c..186620fce02d9e7e69dd35eccefa1d05528322fa 100644
 --- a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
-@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
+@@ -27,6 +27,7 @@ package net.fabricmc.loom.task;
+ import java.io.ByteArrayInputStream;
  import java.io.ByteArrayOutputStream;
- import java.io.File;
  import java.io.IOException;
 +import java.nio.charset.StandardCharsets;
  import java.nio.file.Path;
  import java.util.ArrayList;
  import java.util.Collections;
-@@ -40,6 +41,7 @@ import java.util.jar.Manifest;
+@@ -37,6 +38,7 @@ import java.util.jar.Manifest;
  import javax.inject.Inject;
  
  import com.google.common.base.Preconditions;
@@ -74,7 +74,7 @@ index e0f2abf1cd9c975c7c3b9e2c2c74dbf1d9f1b24a..22e9dba46692af36684ef42691b89f70
  import org.gradle.api.Action;
  import org.gradle.api.file.ConfigurableFileCollection;
  import org.gradle.api.file.RegularFileProperty;
-@@ -61,13 +63,17 @@ import org.gradle.workers.WorkParameters;
+@@ -57,14 +59,18 @@ import org.gradle.workers.WorkParameters;
  import org.gradle.workers.WorkQueue;
  import org.gradle.workers.WorkerExecutor;
  import org.jetbrains.annotations.ApiStatus;
@@ -84,15 +84,16 @@ index e0f2abf1cd9c975c7c3b9e2c2c74dbf1d9f1b24a..22e9dba46692af36684ef42691b89f70
  import net.fabricmc.loom.LoomGradleExtension;
 +import net.fabricmc.loom.LoomGradlePlugin;
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+ import net.fabricmc.loom.task.service.ClientEntriesService;
  import net.fabricmc.loom.task.service.JarManifestService;
  import net.fabricmc.loom.util.Constants;
  import net.fabricmc.loom.util.ZipReprocessorUtil;
  import net.fabricmc.loom.util.ZipUtils;
 +import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
  import net.fabricmc.loom.util.gradle.SourceSetHelper;
+ import net.fabricmc.loom.util.service.ScopedServiceFactory;
  
- public abstract class AbstractRemapJarTask extends Jar {
-@@ -219,6 +225,20 @@ public abstract class AbstractRemapJarTask extends Jar {
+@@ -228,6 +234,20 @@ public abstract class AbstractRemapJarTask extends Jar {
  			Preconditions.checkState(count > 0, "Did not transform any jar manifest");
  		}
  
@@ -114,11 +115,11 @@ index e0f2abf1cd9c975c7c3b9e2c2c74dbf1d9f1b24a..22e9dba46692af36684ef42691b89f70
  			final boolean isReproducibleFileOrder = getParameters().getArchiveReproducibleFileOrder().get();
  			final boolean isPreserveFileTimestamps = getParameters().getArchivePreserveFileTimestamps().get();
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index cc4f7715916a61f5a4dd0a785b87aa0dd607b662..0f5d3f17235253e5fdb2ef691d480510f9ba10bc 100644
+index c70ffbe4be44d5370db4e955b795fe9d7fc39d14..e9c51994eb99d348e5c3147e453486fce54e63ec 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-@@ -256,6 +256,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
- 				addRefmaps();
+@@ -197,6 +197,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+ 				addRefmaps(serviceFactory);
  				addNestedJars();
  				modifyJarManifest();
 +				processQmj5sIntoQmjs();
@@ -126,10 +127,10 @@ index cc4f7715916a61f5a4dd0a785b87aa0dd607b662..0f5d3f17235253e5fdb2ef691d480510
  
  				if (getParameters().getOptimizeFmj().get()) {
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
-index f0aa6d89e2cae57535859e4ef48a347b1e268998..ed66d860f5fca17fd6280b55a096e6e63c80ea5d 100644
+index ffa2adca4944b8071b1ce3dbf4109a626a22101a..66878997ca9d08bf0040e2cc6494eeaa202e80fc 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
-@@ -99,6 +99,7 @@ public abstract class RemapSourcesJarTask extends AbstractRemapJarTask {
+@@ -94,6 +94,7 @@ public abstract class RemapSourcesJarTask extends AbstractRemapJarTask {
  				}
  
  				modifyJarManifest();
@@ -150,7 +151,7 @@ index 7cbed11774d38a15d4793dd6700d831f516424ba..60d7b6df0b1def743c8020c288c8f48d
  				.property("log4j2.formatMsgNoLookups", "true")
  
 diff --git a/src/main/java/net/fabricmc/loom/util/ZipUtils.java b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
-index 714dce833423ee40df3adc80b19a8d4691ddc3c0..e34743e7da20f7d085391a0577753fa55e7076a7 100644
+index 9d73a4c24bc02d075165bf1a6f59fb85d6c05ce2..ef3bc3a3c5fab04b887a84e113349dd455a4022c 100644
 --- a/src/main/java/net/fabricmc/loom/util/ZipUtils.java
 +++ b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
 @@ -47,6 +47,8 @@ import org.jetbrains.annotations.Nullable;

@@ -20,7 +20,7 @@ index ce8da78d03c3bbcc19a9620c9d5d30fc8a058e7d..0d77a02472d055fab95613dbbd4e6dba
  		LoomGradleExtension extension = LoomGradleExtension.get(project);
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-index 61a4d8443dd63ede7a8be66f9633f17459e5ae76..cbd4ed320a1cae9f38905c53d868289e69428931 100644
+index 4de303cbc1a85494b07120b68ec6ad3392b79b84..bf10eb071b244720521860e85af02380a94d82c4 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
 @@ -32,12 +32,20 @@ import java.nio.file.Path;
