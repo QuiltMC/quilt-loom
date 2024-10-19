@@ -21,7 +21,7 @@ jobs:
       - uses: gradle/wrapper-validation-action@v2
       - run: ./gradlew applyPatches
       - run: ./gradlew build check -x test --stacktrace --warning-mode fail
-        working-directory: quilt-loom
+        working-directory: patched-quilt-loom
   build_windows:
     runs-on: windows-2022
     steps:
@@ -37,7 +37,7 @@ jobs:
       - uses: gradle/wrapper-validation-action@v2
       - run: ./gradlew applyPatches
       - run: ./gradlew build check -x test --stacktrace --warning-mode fail
-        working-directory: quilt-loom
+        working-directory: patched-quilt-loom
   # This job is used to feed the test matrix of next job to allow the tests to run in parallel
   prepare_test_matrix:
     # Wait to ensure it builds before going running tests
@@ -58,9 +58,9 @@ jobs:
       - run: ./gradlew applyPatches
 
       - run: ./gradlew writeActionsTestMatrix --stacktrace --warning-mode fail
-        working-directory: quilt-loom
+        working-directory: patched-quilt-loom
       - id: set-matrix
-        run: echo "matrix=$(cat quilt-loom/build/test_matrix.json)" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(cat patched-quilt-loom/build/test_matrix.json)" >> $GITHUB_OUTPUT
 
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -90,7 +90,7 @@ jobs:
       - run: ./gradlew applyPatches
 
       - run: ./gradlew printActionsTestName --name="${{ matrix.test }}" test --tests ${{ matrix.test }} --stacktrace --warning-mode fail
-        working-directory: quilt-loom
+        working-directory: patched-quilt-loom
         env:
           TEST_WARNING_MODE: fail
         id: test
@@ -99,7 +99,7 @@ jobs:
         if: ${{ failure() }}
         with:
           name: ${{ matrix.test }} (${{ matrix.java }}) Results
-          path: quilt-loom/build/reports/
+          path: patched-quilt-loom/build/reports/
       - uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
@@ -130,7 +130,7 @@ jobs:
           distribution: 'temurin'
       - run: ./gradlew applyPatches
       - run: ./gradlew printActionsTestName --name="${{ matrix.test }}" test --tests ${{ matrix.test }} --stacktrace --warning-mode fail
-        working-directory: quilt-loom
+        working-directory: patched-quilt-loom
         env:
           TEST_WARNING_MODE: fail
         id: test
@@ -139,7 +139,7 @@ jobs:
         if: ${{ failure() }}
         with:
           name: ${{ matrix.test }} (${{ matrix.java }}) Results (Windows)
-          path: quilt-loom/build/reports/
+          path: patched-quilt-loom/build/reports/
       - uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
@@ -170,9 +170,9 @@ jobs:
           distribution: 'temurin'
       - run: ./gradlew applyPatches
       - run: ./gradlew test --tests *ReproducibleBuildTest --stacktrace --warning-mode fail
-        working-directory: quilt-loom
+        working-directory: patched-quilt-loom
       - uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
           name: Reproducible Build ${{ matrix.os }} (${{ matrix.java }}) Results
-          path: quilt-loom/build/reports/
+          path: patched-quilt-loom/build/reports/

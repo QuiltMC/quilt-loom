@@ -28,7 +28,7 @@ jobs:
       - run: git config --global user.name "Nobody"
       - run: ./gradlew applyPatches
       - run: ./gradlew build publish -x check -x test --stacktrace
-        working-directory: quilt-loom
+        working-directory: patched-quilt-loom
         env:
           MAVEN_URL: ${{ secrets.MAVEN_URL }}
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
