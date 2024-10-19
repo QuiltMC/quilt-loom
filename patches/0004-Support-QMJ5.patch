@@ -28,7 +28,7 @@ index 09543e2db653f6f426a4bb6c83aaa3dfebef3cd1..89c4050232234d78431114ca23a20997
  	// game handling utils
  	implementation (libs.fabric.stitch) {
 diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
-index c807301c9fc44f12cb8ef2018f99b2ff971b6db4..320e65538376f6c2d5f44b3103e3afe4e5724e5e 100644
+index 0719412bf45efe75c98d9b48946d23ff18744d09..a74cc6388b0c6bef0d81e6e327956b04e83cfdf4 100644
 --- a/gradle/libs.versions.toml
 +++ b/gradle/libs.versions.toml
 @@ -4,6 +4,7 @@ asm = "9.7.1"
