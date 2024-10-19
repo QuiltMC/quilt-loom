@@ -151,6 +151,19 @@ index 896c72df20c7f64a9e44ec5883fadb21c1e6f5cb..743a5847aaeb36968739c8c3c39da678
  		MavenArtifactRepository mojangRepo = repositories.maven(repo -> {
  			repo.setName("Mojang");
  			repo.setUrl(MirrorUtil.getLibrariesBase(target));
+diff --git a/src/main/java/net/fabricmc/loom/configuration/InstallerData.java b/src/main/java/net/fabricmc/loom/configuration/InstallerData.java
+index ce8da78d03c3bbcc19a9620c9d5d30fc8a058e7d..1c1195c247f8e71b07511add792815955e6b8a69 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/InstallerData.java
++++ b/src/main/java/net/fabricmc/loom/configuration/InstallerData.java
+@@ -40,7 +40,7 @@ import net.fabricmc.loom.LoomRepositoryPlugin;
+ import net.fabricmc.loom.configuration.ide.idea.IdeaUtils;
+ import net.fabricmc.loom.util.Constants;
+ 
+-public record InstallerData(String version, JsonObject installerJson) {
++public record InstallerData(String version, JsonObject installerJson, boolean isQuilt) {
+ 	private static final Logger LOGGER = LoggerFactory.getLogger(InstallerData.class);
+ 
+ 	public void applyToProject(Project project) {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java b/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
 index 2728b23537d2e36ccf130c029083f0044bd53253..4d4398c3682e8ac908df59fe881be692318db9b6 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/LoomDependencyManager.java
