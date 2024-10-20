@@ -214,10 +214,10 @@ index 9d73a4c24bc02d075165bf1a6f59fb85d6c05ce2..ef3bc3a3c5fab04b887a84e113349dd4
  	public interface UnsafeUnaryOperator<T> {
  		T apply(T arg) throws IOException;
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
-index 3f0c080f06f1b97067038d9a1708ee6582481c8e..48d49e1a115bffceeaaf8eb69c92e9a76a07aa24 100644
+index 784556605cc4130aabd907757b691673ff37f89f..e37c6d709704be64836138c0730ba2227f030501 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
 +++ b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
-@@ -131,11 +131,15 @@ public final class FabricModJsonFactory {
+@@ -132,11 +132,15 @@ public final class FabricModJsonFactory {
  	}
  
  	public static boolean isModJar(Path input) {
@@ -235,7 +235,7 @@ index 3f0c080f06f1b97067038d9a1708ee6582481c8e..48d49e1a115bffceeaaf8eb69c92e9a7
  	}
  
  	public static boolean isQuiltMod(Path jar) {
-@@ -150,7 +154,25 @@ public final class FabricModJsonFactory {
+@@ -151,7 +155,25 @@ public final class FabricModJsonFactory {
  		}
  	}
  
@@ -275,7 +275,7 @@ index d0e1e13b984c9360bf60e3b63cf81121410eca45..dca62d1a748ea65fa1da24b78c1073df
  	// Returns a list of Mods found in the provided project's main or client sourcesets
  	public static List<ModJson> getModsInProject(Project project) {
 diff --git a/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
-index 7bbcc7cb14f8cab527f11a45c4ff1ece52e56dd7..b52165453eff6054518e7bbbc46021f2e11bc042 100644
+index 2efa025ffca563ae9777111e38874a15ae6f8890..09096afa467f2c6d4ae6b61715e025548d661777 100644
 --- a/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
 +++ b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
 @@ -40,7 +40,9 @@ import net.fabricmc.loom.util.qmj.QuiltModJsonFactory;
@@ -288,7 +288,7 @@ index 7bbcc7cb14f8cab527f11a45c4ff1ece52e56dd7..b52165453eff6054518e7bbbc46021f2
 +		} else if (FabricModJsonFactory.isQuiltMod(zipPath)) {
  			return QuiltModJsonFactory.createFromZip(zipPath);
  		} else {
- 			return FabricModJsonFactory.createFromZip(zipPath);
+ 			return FabricModJsonFactory.createFromZip0(zipPath);
 @@ -48,7 +50,9 @@ public class ModJsonFactory {
  	}
  
@@ -299,7 +299,7 @@ index 7bbcc7cb14f8cab527f11a45c4ff1ece52e56dd7..b52165453eff6054518e7bbbc46021f2
 +		} else if (FabricModJsonFactory.isQuiltMod(zipPath)) {
  			return QuiltModJsonFactory.createFromZipNullable(zipPath);
  		} else {
- 			return FabricModJsonFactory.createFromZipNullable(zipPath);
+ 			return FabricModJsonFactory.createFromZipNullable0(zipPath);
 @@ -56,7 +60,9 @@ public class ModJsonFactory {
  	}
  
@@ -310,7 +310,7 @@ index 7bbcc7cb14f8cab527f11a45c4ff1ece52e56dd7..b52165453eff6054518e7bbbc46021f2
 +		} else if (FabricModJsonFactory.isQuiltMod(zipPath)) {
  			return QuiltModJsonFactory.createFromZipOptional(zipPath);
  		} else {
- 			return FabricModJsonFactory.createFromZipOptional(zipPath);
+ 			return FabricModJsonFactory.createFromZipOptional0(zipPath);
 @@ -65,12 +71,18 @@ public class ModJsonFactory {
  
  	@Nullable
@@ -322,7 +322,7 @@ index 7bbcc7cb14f8cab527f11a45c4ff1ece52e56dd7..b52165453eff6054518e7bbbc46021f2
 -			return QuiltModJsonFactory.createFromSourceSetsNullable(sourceSets);
 +			return QuiltModJsonFactory.createFromJson5SourceSetsNullable(sourceSets);
  		} else {
--			return FabricModJsonFactory.createFromSourceSetsNullable(sourceSets);
+-			return FabricModJsonFactory.createFromSourceSetsNullable0(sourceSets);
 +			File qmjFile = SourceSetHelper.findFirstFileInResource(FabricModJsonHelpers.QUILT_MOD_JSON, sourceSets);
 +
 +			if (qmjFile != null) {
@@ -330,7 +330,7 @@ index 7bbcc7cb14f8cab527f11a45c4ff1ece52e56dd7..b52165453eff6054518e7bbbc46021f2
 +			}
  		}
 +
-+		return FabricModJsonFactory.createFromSourceSetsNullable(sourceSets);
++		return FabricModJsonFactory.createFromSourceSetsNullable0(sourceSets);
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java

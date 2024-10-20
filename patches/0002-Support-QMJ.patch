@@ -851,6 +851,30 @@ index a50d0a99615ff2a23013f90b9381f36ec713b9b9..c70ffbe4be44d5370db4e955b795fe9d
  		}
  
  		private byte[] remapAccessWidener(byte[] input) {
+diff --git a/src/main/java/net/fabricmc/loom/task/service/MixinRefmapService.java b/src/main/java/net/fabricmc/loom/task/service/MixinRefmapService.java
+index da98bd78505d6763196b73027c55bbc93bbb9670..f1719cae723e82b5b8f5e39a3a86004512169a27 100644
+--- a/src/main/java/net/fabricmc/loom/task/service/MixinRefmapService.java
++++ b/src/main/java/net/fabricmc/loom/task/service/MixinRefmapService.java
+@@ -32,6 +32,10 @@ import java.util.Objects;
+ import java.util.stream.Collectors;
+ 
+ import com.google.gson.JsonObject;
++
++import net.fabricmc.loom.api.metadata.ModJson;
++import net.fabricmc.loom.util.metadata.ModJsonFactory;
++
+ import org.gradle.api.Project;
+ import org.gradle.api.provider.ListProperty;
+ import org.gradle.api.provider.Property;
+@@ -106,7 +110,7 @@ public class MixinRefmapService extends Service<MixinRefmapService.Options> {
+ 	}
+ 
+ 	public void applyToJar(Path path) throws IOException {
+-		final FabricModJson fabricModJson = FabricModJsonFactory.createFromZipNullable(path);
++		final ModJson fabricModJson = ModJsonFactory.createFromZipNullable(path);
+ 
+ 		if (fabricModJson == null) {
+ 			return;
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java
 index 617019cb93a5722de3be614322f4143bb98f1efd..90a0712caa28ccf9dbb669acadaf57eb52e0e377 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java
@@ -967,7 +991,7 @@ index 617019cb93a5722de3be614322f4143bb98f1efd..90a0712caa28ccf9dbb669acadaf57eb
 +	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
-index 8c64cecbe7b7a40e7ebc1b47a16eafb419443f7e..3f0c080f06f1b97067038d9a1708ee6582481c8e 100644
+index 8c64cecbe7b7a40e7ebc1b47a16eafb419443f7e..784556605cc4130aabd907757b691673ff37f89f 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
 +++ b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
 @@ -32,6 +32,7 @@ import java.io.Reader;
@@ -993,7 +1017,7 @@ index 8c64cecbe7b7a40e7ebc1b47a16eafb419443f7e..3f0c080f06f1b97067038d9a1708ee65
  
  	private static final Logger LOGGER = LoggerFactory.getLogger(FabricModJsonFactory.class);
  
-@@ -69,7 +71,7 @@ public final class FabricModJsonFactory {
+@@ -69,11 +71,12 @@ public final class FabricModJsonFactory {
  		case 0 -> new FabricModJsonV0(jsonObject, source);
  		case 1 -> new FabricModJsonV1(jsonObject, source);
  		case 2 -> new FabricModJsonV2(jsonObject, source);
@@ -1002,7 +1026,38 @@ index 8c64cecbe7b7a40e7ebc1b47a16eafb419443f7e..3f0c080f06f1b97067038d9a1708ee65
  		};
  	}
  
-@@ -117,7 +119,7 @@ public final class FabricModJsonFactory {
+-	public static FabricModJson createFromZip(Path zipPath) {
++	// Quilt Loom: Add 0 to the end of all factory names so new upstream usages are caught at comptime to be changed to ModJsonFactory
++	public static FabricModJson createFromZip0(Path zipPath) {
+ 		try {
+ 			return create(ZipUtils.unpackGson(zipPath, FABRIC_MOD_JSON, JsonObject.class), new FabricModJsonSource.ZipSource(zipPath));
+ 		} catch (IOException e) {
+@@ -84,7 +87,7 @@ public final class FabricModJsonFactory {
+ 	}
+ 
+ 	@Nullable
+-	public static FabricModJson createFromZipNullable(Path zipPath) {
++	public static FabricModJson createFromZipNullable0(Path zipPath) {
+ 		JsonObject jsonObject;
+ 
+ 		try {
+@@ -102,12 +105,12 @@ public final class FabricModJsonFactory {
+ 		return create(jsonObject, new FabricModJsonSource.ZipSource(zipPath));
+ 	}
+ 
+-	public static Optional<FabricModJson> createFromZipOptional(Path zipPath) {
+-		return Optional.ofNullable(createFromZipNullable(zipPath));
++	public static Optional<FabricModJson> createFromZipOptional0(Path zipPath) {
++		return Optional.ofNullable(createFromZipNullable0(zipPath));
+ 	}
+ 
+ 	@Nullable
+-	public static FabricModJson createFromSourceSetsNullable(SourceSet... sourceSets) throws IOException {
++	public static FabricModJson createFromSourceSetsNullable0(SourceSet... sourceSets) throws IOException {
+ 		final File file = SourceSetHelper.findFirstFileInResource(FABRIC_MOD_JSON, sourceSets);
+ 
+ 		if (file == null) {
+@@ -117,7 +120,7 @@ public final class FabricModJsonFactory {
  		try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
  			return create(LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class), new FabricModJsonSource.SourceSetSource(sourceSets));
  		} catch (JsonSyntaxException e) {
@@ -1011,7 +1066,7 @@ index 8c64cecbe7b7a40e7ebc1b47a16eafb419443f7e..3f0c080f06f1b97067038d9a1708ee65
  			return null;
  		} catch (IOException e) {
  			throw new UncheckedIOException("Failed to read " + file.getAbsolutePath(), e);
-@@ -129,10 +131,26 @@ public final class FabricModJsonFactory {
+@@ -129,10 +132,26 @@ public final class FabricModJsonFactory {
  	}
  
  	public static boolean isModJar(Path input) {
@@ -1205,7 +1260,7 @@ index 16239e0bc34a9529bdb10393bbf23697ec504dd7..92ad87480fab5c8ad7a66c6be781b543
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..7bbcc7cb14f8cab527f11a45c4ff1ece52e56dd7
+index 0000000000000000000000000000000000000000..2efa025ffca563ae9777111e38874a15ae6f8890
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
 @@ -0,0 +1,76 @@
@@ -1254,7 +1309,7 @@ index 0000000000000000000000000000000000000000..7bbcc7cb14f8cab527f11a45c4ff1ece
 +		if (FabricModJsonFactory.isQuiltMod(zipPath)) {
 +			return QuiltModJsonFactory.createFromZip(zipPath);
 +		} else {
-+			return FabricModJsonFactory.createFromZip(zipPath);
++			return FabricModJsonFactory.createFromZip0(zipPath);
 +		}
 +	}
 +
@@ -1262,7 +1317,7 @@ index 0000000000000000000000000000000000000000..7bbcc7cb14f8cab527f11a45c4ff1ece
 +		if (FabricModJsonFactory.isQuiltMod(zipPath)) {
 +			return QuiltModJsonFactory.createFromZipNullable(zipPath);
 +		} else {
-+			return FabricModJsonFactory.createFromZipNullable(zipPath);
++			return FabricModJsonFactory.createFromZipNullable0(zipPath);
 +		}
 +	}
 +
@@ -1270,7 +1325,7 @@ index 0000000000000000000000000000000000000000..7bbcc7cb14f8cab527f11a45c4ff1ece
 +		if (FabricModJsonFactory.isQuiltMod(zipPath)) {
 +			return QuiltModJsonFactory.createFromZipOptional(zipPath);
 +		} else {
-+			return FabricModJsonFactory.createFromZipOptional(zipPath);
++			return FabricModJsonFactory.createFromZipOptional0(zipPath);
 +		}
 +	}
 +
@@ -1281,7 +1336,7 @@ index 0000000000000000000000000000000000000000..7bbcc7cb14f8cab527f11a45c4ff1ece
 +		if (file != null) {
 +			return QuiltModJsonFactory.createFromSourceSetsNullable(sourceSets);
 +		} else {
-+			return FabricModJsonFactory.createFromSourceSetsNullable(sourceSets);
++			return FabricModJsonFactory.createFromSourceSetsNullable0(sourceSets);
 +		}
 +	}
 +}

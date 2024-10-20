@@ -61,10 +61,34 @@ index 009d91ecafc42640135d9ebf5c1eb06be323e115..ac9c0ac012c82a50cb95eb4a9ac8a776
  		// Go through all the configs to find artifacts to remap and
 diff --git a/src/main/java/net/fabricmc/loom/util/FabricCapabilities.java b/src/main/java/net/fabricmc/loom/util/FabricCapabilities.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..18a7fd910a93e363852f16bd6c686ce4a68436f7
+index 0000000000000000000000000000000000000000..a0b77bedca33b58cc7112002dae4527cc5aa61c1
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/FabricCapabilities.java
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,43 @@
++/*
++ * This file is part of fabric-loom, licensed under the MIT License (MIT).
++ *
++ * Copyright (c) 2024 FabricMC
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
 +package net.fabricmc.loom.util;
 +
 +import org.gradle.api.artifacts.CacheableRule;
