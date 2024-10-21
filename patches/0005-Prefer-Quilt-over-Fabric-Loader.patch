@@ -5,10 +5,10 @@ Subject: [PATCH] Prefer Quilt over Fabric Loader
 
 
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-index d19cd534d53871aa1f2618cf493b66a3676a6f4c..e5a694936cfc55e5b1f6b263441f5203a7355572 100644
+index d19cd534d53871aa1f2618cf493b66a3676a6f4c..96aaf56ff212bb7fbe50003f2340ce9417cc4838 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-@@ -30,6 +30,9 @@ import java.util.Objects;
+@@ -30,7 +30,11 @@ import java.util.Objects;
  import com.google.common.collect.ImmutableMap;
  import com.google.gson.Gson;
  import com.google.gson.GsonBuilder;
@@ -16,55 +16,35 @@ index d19cd534d53871aa1f2618cf493b66a3676a6f4c..e5a694936cfc55e5b1f6b263441f5203
 +import net.fabricmc.loom.util.FabricCapabilities;
 +
  import org.gradle.api.Project;
++import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
  import org.gradle.api.plugins.PluginAware;
  
-@@ -83,6 +86,9 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+ import net.fabricmc.loom.api.LoomGradleExtensionAPI;
+@@ -83,6 +87,18 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
  		project.apply(ImmutableMap.of("plugin", "java-library"));
  		project.apply(ImmutableMap.of("plugin", "eclipse"));
  
 +		// Tell Gradle that Quilt Loader/Fabric Loader are the same thing
 +		project.getDependencies().getComponents().all(FabricCapabilities.class);
++		project.getConfigurations().all(c -> {
++			// this mirrors how it's done at https://docs.gradle.org/current/userguide/dependency_capability_conflict.html#sub:capabilities for gradle 8.10.2
++			var rs = c.getResolutionStrategy().getCapabilitiesResolution();
++			rs.withCapability("net.fabricmc:fabric-loader", a -> {
++				a.getCandidates().stream().filter(id -> id.getId() instanceof ModuleComponentIdentifier moduleId && moduleId.getModule().equals("quilt-loader"))
++						.findFirst().ifPresent(a::select);
++				a.because("use quilt loader over fabric loader");
++			});
++		});
 +
  		// Setup extensions
  		project.getExtensions().create(LoomGradleExtensionAPI.class, "loom", LoomGradleExtensionImpl.class, project, LoomFiles.create(project));
  		project.getExtensions().create("fabricApi", FabricApiExtension.class);
-diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-index 009d91ecafc42640135d9ebf5c1eb06be323e115..ac9c0ac012c82a50cb95eb4a9ac8a77613ae255f 100644
---- a/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-+++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModConfigurationRemapper.java
-@@ -43,6 +43,7 @@ import org.gradle.api.artifacts.Configuration;
- import org.gradle.api.artifacts.FileCollectionDependency;
- import org.gradle.api.artifacts.MutableVersionConstraint;
- import org.gradle.api.artifacts.ResolvedArtifact;
-+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
- import org.gradle.api.artifacts.dsl.DependencyHandler;
- import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
- import org.gradle.api.artifacts.result.ArtifactResult;
-@@ -131,6 +132,18 @@ public class ModConfigurationRemapper {
- 				configsToRemap.put(entry.getSourceConfiguration().get(), remappedConfig);
- 			}
- 		}
-+		// Round 0: Constraints
-+		// TODO: this is probably the wrong place for this
-+		// Explain to Gradle how to handle conflicts
-+		for (Configuration c : configsToRemap.keySet()) {
-+			// this mirrors how it's done at https://docs.gradle.org/current/userguide/dependency_capability_conflict.html#sub:capabilities for gradle 8.10.2
-+			var rs = c.getResolutionStrategy().getCapabilitiesResolution();
-+			rs.withCapability("net.fabricmc:fabric-loader", a -> {
-+				a.getCandidates().stream().filter(id -> id instanceof ModuleComponentIdentifier && ((ModuleComponentIdentifier) id).getModule().equals("quilt-loader"))
-+						.findFirst().ifPresent(a::select);
-+				a.because("use quilt loader over fabric loader");
-+			});
-+		}
- 
- 		// Round 1: Discovery
- 		// Go through all the configs to find artifacts to remap and
 diff --git a/src/main/java/net/fabricmc/loom/util/FabricCapabilities.java b/src/main/java/net/fabricmc/loom/util/FabricCapabilities.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a0b77bedca33b58cc7112002dae4527cc5aa61c1
+index 0000000000000000000000000000000000000000..f4dc3b7a9de753ac12b38aa4903fe342ecc71370
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/FabricCapabilities.java
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,42 @@
 +/*
 + * This file is part of fabric-loom, licensed under the MIT License (MIT).
 + *
@@ -102,8 +82,7 @@ index 0000000000000000000000000000000000000000..a0b77bedca33b58cc7112002dae4527c
 +		var id = componentMetadataContext.getDetails().getId();
 +		if (id.getGroup().equals("org.quiltmc") && id.getName().equals("quilt-loader")) {
 +			componentMetadataContext.getDetails().allVariants(
-+					// TODO: actually provide the version here?
-+					v -> v.withCapabilities(c -> c.addCapability("org.fabricmc", "fabric.loader", "0.0.0+" + id.getVersion()))
++					v -> v.withCapabilities(c -> c.addCapability("net.fabricmc", "fabric-loader", "0.0.0+" + id.getVersion()))
 +			);
 +		}
 +	}
