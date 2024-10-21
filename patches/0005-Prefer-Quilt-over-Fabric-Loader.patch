@@ -41,7 +41,7 @@ index d19cd534d53871aa1f2618cf493b66a3676a6f4c..96aaf56ff212bb7fbe50003f2340ce94
  		project.getExtensions().create("fabricApi", FabricApiExtension.class);
 diff --git a/src/main/java/net/fabricmc/loom/util/FabricCapabilities.java b/src/main/java/net/fabricmc/loom/util/FabricCapabilities.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..0033a987e4a722dad44f98248f59f3fc708a0010
+index 0000000000000000000000000000000000000000..f4dc3b7a9de753ac12b38aa4903fe342ecc71370
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/FabricCapabilities.java
 @@ -0,0 +1,42 @@
@@ -82,7 +82,7 @@ index 0000000000000000000000000000000000000000..0033a987e4a722dad44f98248f59f3fc
 +		var id = componentMetadataContext.getDetails().getId();
 +		if (id.getGroup().equals("org.quiltmc") && id.getName().equals("quilt-loader")) {
 +			componentMetadataContext.getDetails().allVariants(
-+					v -> v.withCapabilities(c -> c.addCapability("net.fabricmc", "fabric-loader", id.getVersion()))
++					v -> v.withCapabilities(c -> c.addCapability("net.fabricmc", "fabric-loader", "0.0.0+" + id.getVersion()))
 +			);
 +		}
 +	}
