@@ -2,6 +2,10 @@ plugins {
     id 'net.minecraftforge.gitpatcher' version "0.10.+"
 }
 
+tasks.named('wrapper') {
+    distributionType = Wrapper.DistributionType.ALL
+}
+
 patches {
     submodule = "fabric-loom"
     target = file('patched-quilt-loom')

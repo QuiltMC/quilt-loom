@@ -7,4 +7,29 @@ pluginManagement {
         mavenCentral()
     }
 }
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        maven {
+            url = "https://files.minecraftforge.net/maven"
+        }
+    }
+    versionCatalogs {
+        libs {
+            from(files("fabric-loom/gradle/libs.versions.toml"))
+        }
+        runtimeLibs {
+            from(files("fabric-loom/gradle/runtime.libs.versions.toml"))
+        }
+        testLibs {
+            from(files("fabric-loom/gradle/test.libs.versions.toml"))
+        }
+    }
+}
+
 rootProject.name = 'quilt-loom-parent'
+
+include(":fabric-loom", ":bootstrap")
+project(":bootstrap").projectDir = file("fabric-loom/bootstrap")
