@@ -33,3 +33,8 @@ rootProject.name = 'quilt-loom-parent'
 
 include(":fabric-loom", ":bootstrap")
 project(":bootstrap").projectDir = file("fabric-loom/bootstrap")
+
+
+// ✅ Include the patched output of gitpatcher
+include(":quilt-loom")
+project(":quilt-loom").projectDir = file("quilt-loom")
