@@ -1,27 +1,17 @@
-# Ignore everything
-/*
+# === Gradle ===
+.gradle/
+build/
+**/build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
 
-# Folders
-!/gradle
-!/src
-!/.github
-!/fabric-loom
-!/quilt-loom
-!/patches
+# === IntelliJ ===
+.idea/
+*.iml
 
-# Files
-!/.gitattributes
-!/.gitignore
-!/.editorconfig
-!/build.gradle
-!/gradle.properties
-!/gradlew
-!/gradlew.bat
-!/HEADER
-!/LICENSE
-!/README.md
-!/settings.gradle
-!/Jenkinsfile
-!/checkstyle.xml
-!/codenarc.groovy
-!/bootstrap
+# === OS / Tooling ===
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+*.log
