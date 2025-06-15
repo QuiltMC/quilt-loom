@@ -6,7 +6,7 @@
 !/src
 !/.github
 !/fabric-loom
-# intentionally ignore quilt-loom
+!/quilt-loom
 !/patches
 
 # Files
