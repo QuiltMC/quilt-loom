@@ -8,6 +8,6 @@ tasks.named('wrapper') {
 
 patches {
     submodule = "fabric-loom"
-    target = file('patched-quilt-loom')
+    target = file('quilt-loom')
     patches = file('patches')
 }
