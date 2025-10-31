@@ -375,6 +375,32 @@ index 120d9e73b50bde3e5ce3775ae9f0df1f18fadbdd..773756633e3c741c67a85bf1be7020a8
  		'fernflower'	| "genSourcesWithFernFlower"		| PRE_RELEASE_GRADLE
  		'cfr' 			| "genSourcesWithCfr"				| PRE_RELEASE_GRADLE
  		'vineflower' 	| "genSourcesWithVineflower"		| PRE_RELEASE_GRADLE
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MultiMcVersionTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MultiMcVersionTest.groovy
+index 3c8d531b8d40da8eb6321b6b0214efffa168d6ee..a32fa8cd59c0670377a0cfa9107226f2a222785f 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/MultiMcVersionTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/MultiMcVersionTest.groovy
+@@ -95,7 +95,7 @@ class MultiMcVersionTest extends Specification implements GradleProjectTestTrait
+ 		then:
+ 		result.task(":fabric-1.19.3:build").outcome == SUCCESS
+ 		// Ensure that loom is only loaded once.
+-		result.output.count("Fabric Loom:") == 1
++		result.output.count("Quilt Loom:") == 1
+ 
+ 		where:
+ 		version << STANDARD_TEST_VERSIONS
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/OfflineModeTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/OfflineModeTest.groovy
+index dca628789b7ecf180d054112bfefd6e9b6205a7e..2e6c3cf47b9a2527ed533af278b96af8f2286161 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/OfflineModeTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/OfflineModeTest.groovy
+@@ -58,7 +58,7 @@ class OfflineModeTest extends Specification implements GradleProjectTestTrait {
+ 		def projectHash = result1.output.split("%%")[1]
+ 
+ 		// Create a dummy lock file to ensure that the loom cache is rebuilt on the next run
+-		def lockFile = new File(gradle.gradleHomeDir, "caches/fabric-loom/.${projectHash}.lock")
++		def lockFile = new File(gradle.gradleHomeDir, "caches/quilt-loom/.${projectHash}.lock")
+ 		lockFile.text = "12345"
+ 
+ 		// Run with --offline to ensure that nothing is downloaded.
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 index d14673be40e6545c359c2a7a5f21737a48386e97..4d33203f5de752e6a6336f7059965ad131afec06 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy

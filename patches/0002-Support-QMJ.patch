@@ -938,7 +938,7 @@ index da98bd78505d6763196b73027c55bbc93bbb9670..38678cd99363e8224c935a77f6197b0d
  		if (fabricModJson == null) {
  			return;
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java
-index 3fcd2a39933fc592f1e0cbceb5adc7df29d1ce8b..90a0712caa28ccf9dbb669acadaf57eb52e0e377 100644
+index 3fcd2a39933fc592f1e0cbceb5adc7df29d1ce8b..8b8e1ca0f498edc7525e6d6430a8d9b51360a06a 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java
 +++ b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJson.java
 @@ -24,18 +24,19 @@
@@ -990,25 +990,24 @@ index 3fcd2a39933fc592f1e0cbceb5adc7df29d1ce8b..90a0712caa28ccf9dbb669acadaf57eb
  
 -	public abstract List<String> getMixinConfigurations();
 +	@Override
-+	public JsonElement getInjectedInterfaces() {
++	public final JsonElement getInjectedInterfaces() {
 +		return getCustom(Constants.CustomModJsonKeys.INJECTED_INTERFACE);
 +	}
  
 -	public abstract Map<String, ModEnvironment> getClassTweakers();
 +	@Override
-+	public @Nullable String getProvidedJavadocPath() {
++	public final @Nullable String getProvidedJavadocPath() {
 +		JsonElement ret = getCustom(Constants.CustomModJsonKeys.PROVIDED_JAVADOC);
 +		return ret != null ? ret.getAsString() : null;
 +	}
 +
 +	@Override
-+	public @Nullable String getModName() {
++	public final @Nullable String getModName() {
 +		return FabricModJsonUtils.readStringOrNull(jsonObject, "name");
 +	}
  
--	public FabricModJsonSource getSource() {
 +	@Override
-+	public final FabricModJsonSource getSource() {
+ 	public FabricModJsonSource getSource() {
  		return source;
  	}
  
@@ -1254,22 +1253,8 @@ index d1c972ab1b9bcd040aa869c8d5104af1ed44acc4..ca4446828dd90412cd9751b05ce4b6db
  	public static int readInt(JsonObject jsonObject, String key) {
  		final JsonElement element = getElement(jsonObject, key);
  		ensurePrimitive(element, JsonPrimitive::isNumber, key);
-diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonV0.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonV0.java
-index 935b0cea80d8cd0aa83e1e9cbeba193d268b79c9..48e5a398da1402aa9c0c85fedbdeec4c1346cd3a 100644
---- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonV0.java
-+++ b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonV0.java
-@@ -87,4 +87,9 @@ public final class FabricModJsonV0 extends FabricModJson {
- 	public Map<String, ModEnvironment> getClassTweakers() {
- 		return Collections.emptyMap();
- 	}
-+
-+	@Override
-+	public JsonElement getInjectedInterfaces() {
-+		return null;
-+	}
- }
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonV1.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonV1.java
-index 16239e0bc34a9529bdb10393bbf23697ec504dd7..92ad87480fab5c8ad7a66c6be781b5436d472ca1 100644
+index 16239e0bc34a9529bdb10393bbf23697ec504dd7..6c85d8a50e6cbbbce68774fd18b7b5b8643993ce 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonV1.java
 +++ b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonV1.java
 @@ -24,8 +24,6 @@
@@ -1281,16 +1266,16 @@ index 16239e0bc34a9529bdb10393bbf23697ec504dd7..92ad87480fab5c8ad7a66c6be781b543
  import java.util.Collections;
  import java.util.List;
  import java.util.Map;
-@@ -38,6 +36,8 @@ import com.google.gson.JsonObject;
+@@ -38,7 +36,7 @@ import com.google.gson.JsonObject;
  import com.google.gson.JsonPrimitive;
  import org.jetbrains.annotations.Nullable;
  
-+import net.fabricmc.loom.util.Constants;
-+
- public final class FabricModJsonV1 extends FabricModJson {
+-public final class FabricModJsonV1 extends FabricModJson {
++ public final class FabricModJsonV1 extends FabricModJson {
  	FabricModJsonV1(JsonObject jsonObject, FabricModJsonSource source) {
  		super(jsonObject, source);
-@@ -48,7 +48,6 @@ public final class FabricModJsonV1 extends FabricModJson {
+ 	}
+@@ -48,7 +46,6 @@ public final class FabricModJsonV1 extends FabricModJson {
  		return 1;
  	}
  
@@ -1298,17 +1283,12 @@ index 16239e0bc34a9529bdb10393bbf23697ec504dd7..92ad87480fab5c8ad7a66c6be781b543
  	@Nullable
  	public JsonElement getCustom(String key) {
  		return getCustom(jsonObject, key);
-@@ -97,6 +96,11 @@ public final class FabricModJsonV1 extends FabricModJson {
+@@ -97,6 +94,6 @@ public final class FabricModJsonV1 extends FabricModJson {
  			return Collections.emptyMap();
  		}
  
 -		return Map.of(readString(jsonObject, "accessWidener"), ModEnvironment.UNIVERSAL);
 +		return Map.of(FabricModJsonUtils.readString(jsonObject, "accessWidener"), ModEnvironment.UNIVERSAL);
-+	}
-+
-+	@Override
-+	public JsonElement getInjectedInterfaces() {
-+		return getCustom(Constants.CustomModJsonKeys.INJECTED_INTERFACE);
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/mixin/MixinConfiguration.java b/src/main/java/net/fabricmc/loom/util/fmj/mixin/MixinConfiguration.java
