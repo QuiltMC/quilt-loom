@@ -1271,7 +1271,7 @@ index 16239e0bc34a9529bdb10393bbf23697ec504dd7..6c85d8a50e6cbbbce68774fd18b7b5b8
  import org.jetbrains.annotations.Nullable;
  
 -public final class FabricModJsonV1 extends FabricModJson {
-+ public final class FabricModJsonV1 extends FabricModJson {
++public final class FabricModJsonV1 extends FabricModJson {
  	FabricModJsonV1(JsonObject jsonObject, FabricModJsonSource source) {
  		super(jsonObject, source);
  	}
