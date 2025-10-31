@@ -31,7 +31,7 @@ jobs:
           submodules: true
       - run: git config --global user.email "nobody@example.com"
       - run: git config --global user.name "Nobody"
-      - uses: gradle/wrapper-validation-action@v4
+      - uses: gradle/actions/wrapper-validation@v4
       - run: ./gradlew applyPatches
       - run: ./gradlew build check -x test --stacktrace --warning-mode fail
         working-directory: patched-quilt-loom
@@ -50,7 +50,7 @@ jobs:
           distribution: 'temurin'
       - run: git config --global user.email "nobody@example.com"
       - run: git config --global user.name "Nobody"
-      - uses: gradle/wrapper-validation-action@v4
+      - uses: gradle/actions/wrapper-validation@v4
       - run: ./gradlew applyPatches
       - run: ./gradlew build check -x test --stacktrace --warning-mode fail
         working-directory: patched-quilt-loom
@@ -71,7 +71,7 @@ jobs:
           submodules: true
       - run: git config --global user.email "nobody@example.com"
       - run: git config --global user.name "Nobody"
-      - uses: gradle/wrapper-validation-action@v4
+      - uses: gradle/actions/wrapper-validation@v4
       - run: ./gradlew applyPatches
 
       - run: ./gradlew writeActionsTestMatrix --stacktrace --warning-mode fail
@@ -103,7 +103,7 @@ jobs:
           submodules: true
       - run: git config --global user.email "nobody@example.com"
       - run: git config --global user.name "Nobody"
-      - uses: gradle/wrapper-validation-action@v4
+      - uses: gradle/actions/wrapper-validation@v4
       - run: ./gradlew applyPatches
       - run: ./gradlew printActionsTestName --name="${{ matrix.test }}" test --tests ${{ matrix.test }} --stacktrace --warning-mode fail
         working-directory: patched-quilt-loom
@@ -141,7 +141,7 @@ jobs:
           submodules: true
       - run: git config --global user.email "nobody@example.com"
       - run: git config --global user.name "Nobody"
-      - uses: gradle/wrapper-validation-action@v4
+      - uses: gradle/actions/wrapper-validation@v4
       - name: setup jdk
         uses: actions/setup-java@v4
         with:
@@ -182,7 +182,7 @@ jobs:
           submodules: true
       - run: git config --global user.email "nobody@example.com"
       - run: git config --global user.name "Nobody"
-      - uses: gradle/wrapper-validation-action@v4
+      - uses: gradle/actions/wrapper-validation@v4
       - uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
