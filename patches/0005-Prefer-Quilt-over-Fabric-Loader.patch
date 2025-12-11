@@ -5,7 +5,7 @@ Subject: [PATCH] Prefer Quilt over Fabric Loader
 
 
 diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
-index a04fcb8f62c552470969e71004382a6160e39caf..a7cb1e7fdf9fd6da8034d8480258b47be20df4de 100644
+index f2de3f3171fa21e1ba72bd08b65a325c516910d0..cf95747457f8e51afef57b2e000c3ff25919b80f 100644
 --- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 +++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
 @@ -32,6 +32,7 @@ import com.google.gson.Gson;
@@ -22,9 +22,9 @@ index a04fcb8f62c552470969e71004382a6160e39caf..a7cb1e7fdf9fd6da8034d8480258b47b
  import net.fabricmc.loom.task.RemapTaskConfiguration;
 +import net.fabricmc.loom.util.FabricCapabilities;
  import net.fabricmc.loom.util.LibraryLocationLogger;
+ import net.fabricmc.loom.util.OneDrive;
  
- public class LoomGradlePlugin implements Plugin<PluginAware> {
-@@ -85,6 +87,18 @@ public class LoomGradlePlugin implements Plugin<PluginAware> {
+@@ -88,6 +90,18 @@ public class LoomGradlePlugin implements Plugin<PluginAware> {
  		project.apply(Map.of("plugin", "java-library"));
  		project.apply(Map.of("plugin", "eclipse"));
  
