@@ -5,7 +5,7 @@ Subject: [PATCH] Support QMJ5
 
 
 diff --git a/build.gradle b/build.gradle
-index 27af65220e8f5f2f2837315d8a3335b1f3b0ec18..b4191f8003628ad8986666f5eb0c59555462edf2 100644
+index 9ecb7aed2f3eaf8c86bb1eb8fab4597d859e58d3..5f7fac291e66298fbbb7152cfbb47644544ce440 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -51,6 +51,10 @@ repositories {
@@ -19,43 +19,43 @@ index 27af65220e8f5f2f2837315d8a3335b1f3b0ec18..b4191f8003628ad8986666f5eb0c5955
  	mavenCentral()
  }
  
-@@ -97,6 +101,7 @@ dependencies {
+@@ -95,6 +99,7 @@ dependencies {
+ 	// libraries
  	implementation libs.gson
- 	implementation libs.guava
  	implementation libs.bundles.asm
 +	implementation libs.bundles.quilt.parsers
  
  	// game handling utils
  	implementation (libs.fabric.stitch) {
 diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
-index 81de1c06f900ce9901f4be46a453d77042d71576..d4fe51608492252635dc6c4ea4818e5da87ab062 100644
+index 8c02b64a7fd1c827ec0e972f80deb2b48bb349b8..cb31bf0a1ce02d2c0a3cf3821d1134d2865eb352 100644
 --- a/gradle/libs.versions.toml
 +++ b/gradle/libs.versions.toml
-@@ -4,6 +4,7 @@ asm = "9.8"
- commons-io = "2.15.1"
+@@ -2,6 +2,7 @@
+ kotlin = "2.2.20"
+ asm = "9.9"
  gson = "2.10.1"
- guava = "33.0.0-jre"
 +quilt-parsers = "0.3.0"
  
  stitch = "0.6.2"
- tiny-remapper = "0.11.1"
-@@ -32,6 +33,9 @@ commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
+ tiny-remapper = "0.12.0"
+@@ -29,6 +30,9 @@ asm-util = { module = "org.ow2.asm:asm-util", version.ref = "asm" }
+ 
  gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
- guava = { module = "com.google.guava:guava", version.ref = "guava" }
  
 +quilt-parsers-gson = { module = "org.quiltmc.parsers:gson", version.ref = "quilt-parsers" }
 +quilt-parsers-json = { module = "org.quiltmc.parsers:json", version.ref = "quilt-parsers" }
 +
  fabric-stitch = { module = "net.fabricmc:stitch", version.ref = "stitch" }
  fabric-tiny-remapper = { module = "net.fabricmc:tiny-remapper", version.ref = "tiny-remapper" }
- fabric-access-widener = { module = "net.fabricmc:access-widener", version.ref = "access-widener" }
-@@ -53,3 +57,4 @@ retry = { id = "org.gradle.test-retry", version.ref = "test-retry" }
+ fabric-clazz-tweaker = { module = "net.fabricmc:class-tweaker", version.ref = "clazz-tweaker" }
+@@ -51,3 +55,4 @@ retry = { id = "org.gradle.test-retry", version.ref = "test-retry" }
  
  [bundles]
  asm = ["asm", "asm-analysis", "asm-commons", "asm-tree", "asm-util"]
 +quilt-parsers = ["quilt-parsers-gson", "quilt-parsers-json"]
 diff --git a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
-index 7e6493e189f96023f0d6c9d3e2c530d82aad6ae3..570933bd991fd990fb46cdcc5682e1b5215e8803 100644
+index 4ec34c3137d32f47819a85ac07db91014bc54067..755e901a91f2f9c1f68006ebc02feab2da52cafb 100644
 --- a/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/AbstractRemapJarTask.java
 @@ -27,6 +27,7 @@ package net.fabricmc.loom.task;
@@ -63,21 +63,21 @@ index 7e6493e189f96023f0d6c9d3e2c530d82aad6ae3..570933bd991fd990fb46cdcc5682e1b5
  import java.io.ByteArrayOutputStream;
  import java.io.IOException;
 +import java.nio.charset.StandardCharsets;
+ import java.nio.file.Files;
  import java.nio.file.Path;
- import java.util.ArrayList;
- import java.util.Collections;
-@@ -37,6 +38,7 @@ import java.util.jar.Manifest;
+ import java.nio.file.StandardCopyOption;
+@@ -39,6 +40,7 @@ import java.util.jar.Manifest;
+ 
  import javax.inject.Inject;
  
- import com.google.common.base.Preconditions;
 +import com.google.gson.JsonElement;
  import org.gradle.api.Action;
  import org.gradle.api.file.ConfigurableFileCollection;
  import org.gradle.api.file.RegularFileProperty;
-@@ -57,14 +59,18 @@ import org.gradle.workers.WorkParameters;
- import org.gradle.workers.WorkQueue;
- import org.gradle.workers.WorkerExecutor;
+@@ -61,8 +63,11 @@ import org.gradle.workers.WorkerExecutor;
  import org.jetbrains.annotations.ApiStatus;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
 +import org.quiltmc.parsers.json.JsonReader;
 +import org.quiltmc.parsers.json.gson.GsonReader;
  
@@ -86,15 +86,16 @@ index 7e6493e189f96023f0d6c9d3e2c530d82aad6ae3..570933bd991fd990fb46cdcc5682e1b5
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
  import net.fabricmc.loom.task.service.ClientEntriesService;
  import net.fabricmc.loom.task.service.JarManifestService;
- import net.fabricmc.loom.util.Constants;
+@@ -71,6 +76,7 @@ import net.fabricmc.loom.util.Constants;
+ import net.fabricmc.loom.util.ExceptionUtil;
  import net.fabricmc.loom.util.ZipReprocessorUtil;
  import net.fabricmc.loom.util.ZipUtils;
 +import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
  import net.fabricmc.loom.util.gradle.SourceSetHelper;
  import net.fabricmc.loom.util.service.ScopedServiceFactory;
  
-@@ -241,6 +247,20 @@ public abstract class AbstractRemapJarTask extends Jar {
- 			Preconditions.checkState(count > 0, "Did not transform any jar manifest");
+@@ -277,6 +283,20 @@ public abstract class AbstractRemapJarTask extends Jar {
+ 			Check.require(count > 0, "Did not transform any jar manifest");
  		}
  
 +		protected void processQmj5sIntoQmjs() throws IOException {
@@ -115,10 +116,10 @@ index 7e6493e189f96023f0d6c9d3e2c530d82aad6ae3..570933bd991fd990fb46cdcc5682e1b5
  			final boolean isReproducibleFileOrder = getParameters().getArchiveReproducibleFileOrder().get();
  			final boolean isPreserveFileTimestamps = getParameters().getArchivePreserveFileTimestamps().get();
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index 5798b8f92b49c85795431c7badb9f9b128346489..be62df8f0cda650142c7673beac20100583077ac 100644
+index f2cc03b0594126b6d5016fc6a4d5897f31530bea..ef5d2343b5c2ef316ffc4911882acd58a4aacbed 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-@@ -197,6 +197,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
+@@ -202,6 +202,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
  				addRefmaps(serviceFactory);
  				addNestedJars();
  				modifyJarManifest();
@@ -127,34 +128,34 @@ index 5798b8f92b49c85795431c7badb9f9b128346489..be62df8f0cda650142c7673beac20100
  
  				if (getParameters().getOptimizeFmj().get()) {
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
-index ffa2adca4944b8071b1ce3dbf4109a626a22101a..66878997ca9d08bf0040e2cc6494eeaa202e80fc 100644
+index 4a92c257ab7262db2b3732b3d9c9dd8f4b0c104c..c715478b57e278659b2f063edbcc3935b2105f2d 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapSourcesJarTask.java
-@@ -94,6 +94,7 @@ public abstract class RemapSourcesJarTask extends AbstractRemapJarTask {
- 				}
+@@ -91,6 +91,7 @@ public abstract class RemapSourcesJarTask extends AbstractRemapJarTask {
+ 			}
  
- 				modifyJarManifest();
-+				processQmj5sIntoQmjs();
- 				rewriteJar();
- 			} catch (Exception e) {
- 				try {
+ 			modifyJarManifest();
++			processQmj5sIntoQmjs();
+ 			rewriteJar();
+ 		}
+ 	}
 diff --git a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
-index 7cbed11774d38a15d4793dd6700d831f516424ba..60d7b6df0b1def743c8020c288c8f48d63d506af 100644
+index 0fae8cb4f3c3685f31038bc2034c93c3518230c5..aee9f30acde33672aebf405c7825fa89c02208cc 100644
 --- a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
-@@ -131,6 +131,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+@@ -133,6 +133,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+ 
  		final LaunchConfig launchConfig = new LaunchConfig()
  				.property("loader.development", "true")
- 				.property("loader.remapClasspathFile", getRemapClasspathFile().get().getAsFile().getAbsolutePath())
 +				.property("loader.enable_quilt_mod_json5_in_dev_env", "true")
  				.property("log4j.configurationFile", getLog4jConfigPaths().get())
  				.property("log4j2.formatMsgNoLookups", "true")
- 
+ 				.property("loader.defaultModDistributionNamespace", getProductionNamespace().get())
 diff --git a/src/main/java/net/fabricmc/loom/util/ZipUtils.java b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
-index 9d73a4c24bc02d075165bf1a6f59fb85d6c05ce2..ef3bc3a3c5fab04b887a84e113349dd455a4022c 100644
+index 29884c8b3e67535e22e00b377aa817676fc22153..a1a0962c05114a9ef786c0880b03788a1e15e2b5 100644
 --- a/src/main/java/net/fabricmc/loom/util/ZipUtils.java
 +++ b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
-@@ -47,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
+@@ -47,6 +47,8 @@ import org.jspecify.annotations.Nullable;
  import org.objectweb.asm.ClassReader;
  import org.objectweb.asm.ClassVisitor;
  import org.objectweb.asm.ClassWriter;
@@ -214,18 +215,10 @@ index 9d73a4c24bc02d075165bf1a6f59fb85d6c05ce2..ef3bc3a3c5fab04b887a84e113349dd4
  	public interface UnsafeUnaryOperator<T> {
  		T apply(T arg) throws IOException;
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
-index d3c058d3164ef85f121bc6b0dd05fe568e32bf1c..fa7e10353e7ce64659b37a5fe310381b3775fcc0 100644
+index f987bcfb37371900fb93ca02e17341f0a5aff129..d76d6f7f3d47e70c2cca7954d834f27f3511e095 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
 +++ b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
-@@ -46,13 +46,14 @@ import org.slf4j.Logger;
- import org.slf4j.LoggerFactory;
- 
- import net.fabricmc.loom.LoomGradlePlugin;
--import net.fabricmc.loom.util.FileSystemUtil;
- import net.fabricmc.loom.util.ZipUtils;
- import net.fabricmc.loom.util.gradle.SourceSetHelper;
-+import net.fabricmc.loom.util.FileSystemUtil;
- 
+@@ -53,6 +53,7 @@ import net.fabricmc.loom.util.gradle.SourceSetHelper;
  public final class FabricModJsonFactory {
  	public static final String FABRIC_MOD_JSON = "fabric.mod.json";
  	public static final String QUILT_MOD_JSON = "quilt.mod.json";
@@ -233,7 +226,7 @@ index d3c058d3164ef85f121bc6b0dd05fe568e32bf1c..fa7e10353e7ce64659b37a5fe310381b
  
  	private static final Logger LOGGER = LoggerFactory.getLogger(FabricModJsonFactory.class);
  
-@@ -141,11 +142,15 @@ public final class FabricModJsonFactory {
+@@ -161,11 +162,15 @@ public final class FabricModJsonFactory {
  	}
  
  	public static boolean isModJar(Path input) {
@@ -251,7 +244,7 @@ index d3c058d3164ef85f121bc6b0dd05fe568e32bf1c..fa7e10353e7ce64659b37a5fe310381b
  	}
  
  	public static boolean isQuiltMod(Path jar) {
-@@ -160,7 +165,25 @@ public final class FabricModJsonFactory {
+@@ -180,7 +185,25 @@ public final class FabricModJsonFactory {
  		}
  	}
  
@@ -279,7 +272,7 @@ index d3c058d3164ef85f121bc6b0dd05fe568e32bf1c..fa7e10353e7ce64659b37a5fe310381b
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
-index f7aa29f29ce4c1361acae6befca9ad8de7b5e819..e07bd5bfb5d56000ea6a5577784224027a004684 100644
+index 759f81ed4f5d102f2416c9590591ab7e757f5fef..4f233952da02ec1c779a4aa860d8319b87266fce 100644
 --- a/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
 +++ b/src/main/java/net/fabricmc/loom/util/metadata/ModJsonFactory.java
 @@ -40,7 +40,9 @@ import net.fabricmc.loom.util.qmj.QuiltModJsonFactory;
@@ -334,13 +327,13 @@ index f7aa29f29ce4c1361acae6befca9ad8de7b5e819..e07bd5bfb5d56000ea6a557778422402
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
-index 502234b74515b90c6121c362b998259a6d403415..a04df0544a41a86a677fb5821a82522261f154a0 100644
+index 8f05556168149e2f0e86c5d082db250929f7dbfa..189794ef392ab85ae4a30d92e0210ce15cd69b52 100644
 --- a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
 +++ b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonFactory.java
 @@ -41,6 +41,8 @@ import org.gradle.api.Project;
  import org.gradle.api.tasks.SourceSet;
- import org.jetbrains.annotations.Nullable;
  import org.jetbrains.annotations.VisibleForTesting;
+ import org.jspecify.annotations.Nullable;
 +import org.quiltmc.parsers.json.JsonReader;
 +import org.quiltmc.parsers.json.gson.GsonReader;
  import org.slf4j.Logger;
