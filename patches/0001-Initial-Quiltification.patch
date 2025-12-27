@@ -12,7 +12,7 @@ This includes:
 - Automatically applying the Quilt Maven
 
 diff --git a/build.gradle b/build.gradle
-index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..9ecb7aed2f3eaf8c86bb1eb8fab4597d859e58d3 100644
+index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..990de5c7ba7914d4c63fda47123a45b81674ed93 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -22,7 +22,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -24,15 +24,7 @@ index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..9ecb7aed2f3eaf8c86bb1eb8fab4597d
  def baseVersion = '1.14'
  
  def ENV = System.getenv()
-@@ -160,7 +160,6 @@ dependencies {
- 	testImplementation testLibs.bcprov
- 	testImplementation testLibs.bcutil
- 	testImplementation testLibs.bcpkix
--	testImplementation testLibs.fabric.loader
- 
- 	compileOnly runtimeLibs.jetbrains.annotations
- 	testCompileOnly runtimeLibs.jetbrains.annotations
-@@ -234,23 +233,42 @@ codenarc {
+@@ -234,23 +234,42 @@ codenarc {
  
  gradlePlugin {
  	plugins {
@@ -84,7 +76,7 @@ index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..9ecb7aed2f3eaf8c86bb1eb8fab4597d
  	}
  }
  
-@@ -320,11 +338,11 @@ publishing {
+@@ -320,11 +339,11 @@ publishing {
  						Node dependencies = root.appendChild(document.createElement('dependencies'))
  						Node dependency = dependencies.appendChild(document.createElement('dependency'))
  						Node groupId = dependency.appendChild(document.createElement('groupId'))
@@ -99,7 +91,7 @@ index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..9ecb7aed2f3eaf8c86bb1eb8fab4597d
  					})
  				}
  			}
-@@ -332,6 +350,7 @@ publishing {
+@@ -332,6 +351,7 @@ publishing {
  	}
  	repositories {
  		maven {
@@ -107,7 +99,7 @@ index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..9ecb7aed2f3eaf8c86bb1eb8fab4597d
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -340,6 +359,26 @@ publishing {
+@@ -340,6 +360,26 @@ publishing {
  				}
  			}
  		}
@@ -134,7 +126,7 @@ index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..9ecb7aed2f3eaf8c86bb1eb8fab4597d
  	}
  }
  
-@@ -421,4 +460,4 @@ abstract class PrintActionsTestName extends DefaultTask {
+@@ -421,4 +461,4 @@ abstract class PrintActionsTestName extends DefaultTask {
  }
  
  apply from: rootProject.file('gradle/versions.gradle')
@@ -508,20 +500,8 @@ index dca628789b7ecf180d054112bfefd6e9b6205a7e..2e6c3cf47b9a2527ed533af278b96af8
  		lockFile.text = "12345"
  
  		// Run with --offline to ensure that nothing is downloaded.
-diff --git a/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1GeneratorTest.groovy b/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1GeneratorTest.groovy
-index 38c0edd7a26a4917c3a164bc16f1ebcc2ef1307f..2db8e886d179afc16732c0bb64ed199e6c408262 100644
---- a/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1GeneratorTest.groovy
-+++ b/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1GeneratorTest.groovy
-@@ -29,7 +29,6 @@ import org.gradle.api.model.ObjectFactory
- import org.intellij.lang.annotations.Language
- import spock.lang.Specification
- 
--import net.fabricmc.loader.impl.metadata.ModMetadataParser
- import net.fabricmc.loom.api.fmj.FabricModJsonV1Spec
- import net.fabricmc.loom.test.util.GradleTestUtil
- import net.fabricmc.loom.util.fmj.gen.FabricModJsonV1Generator
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
-index 06bf5ab6f40a9d0e28133eb774b41d816133cb9c..c2882d88a5d54c1f54288bd1af867065afb9395d 100644
+index 06bf5ab6f40a9d0e28133eb774b41d816133cb9c..579c5fef4fc29739e74d42e2ae6695672837eb3a 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 +++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 @@ -256,7 +256,7 @@ trait GradleProjectTestTrait {
@@ -533,20 +513,12 @@ index 06bf5ab6f40a9d0e28133eb774b41d816133cb9c..c2882d88a5d54c1f54288bd1af867065
  		}
  
  		File getGeneratedSources(String mappings, String jarType = "merged") {
-@@ -264,11 +264,11 @@ trait GradleProjectTestTrait {
- 		}
- 
+@@ -266,7 +266,7 @@ trait GradleProjectTestTrait {
  		File getGeneratedLocalMinecraft(String mappings, String jarType = "merged", String classifier = "") {
--			String classifierSuffix = classifier.isEmpty() ? "" : "-$classifier"
--
--			File file = new File(getProjectDir(), ".gradle/loom-cache/minecraftMaven/net/minecraft")
--			file = file.listFiles().find {
--				it.name.startsWith("minecraft-${jarType}-")
-+			File file
-+			getProjectDir().traverse(type: FileType.FILES) {
-+				if (it.name.startsWith("minecraft-${jarType}-")) {
-+					file = it
-+				}
- 			}
+ 			String classifierSuffix = classifier.isEmpty() ? "" : "-$classifier"
  
- 			if (file == null) {
+-			File file = new File(getProjectDir(), ".gradle/loom-cache/minecraftMaven/net/minecraft")
++			File file = new File(getProjectDir(), ".gradle/quilt-loom-cache/minecraftMaven/net/minecraft")
+ 			file = file.listFiles().find {
+ 				it.name.startsWith("minecraft-${jarType}-")
+ 			}
