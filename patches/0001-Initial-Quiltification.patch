@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: glitch <glitch.g3431@gmail.com>
-Date: Tue, 11 Jul 2023 17:40:07 -0500
+Date: Tue, 11 Jul 2023 15:40:07 -0700
 Subject: [PATCH] Initial Quiltification
 
 This includes:
@@ -236,6 +236,28 @@ index 1709db949d032c8a69a205e96afd0ade39055cfb..e3ee87fdd5c945a0d8b4443f07ee1f46
  		MavenArtifactRepository mojangRepo = repositories.maven(repo -> {
  			repo.setName("Mojang");
  			repo.setUrl(MirrorUtil.getLibrariesBase(target));
+diff --git a/src/main/java/net/fabricmc/loom/configuration/DebofInstallerData.java b/src/main/java/net/fabricmc/loom/configuration/DebofInstallerData.java
+index 091289ceba0c9918a0679ee6375860dc97f47176..5e898419a2002aef78b3791cd9be540448b1b179 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/DebofInstallerData.java
++++ b/src/main/java/net/fabricmc/loom/configuration/DebofInstallerData.java
+@@ -66,7 +66,7 @@ public class DebofInstallerData {
+ 	@Nullable
+ 	private static InstallerData getInstaller(File file) {
+ 		try {
+-			byte[] installerData = ZipUtils.unpackNullable(file.toPath(), InstallerData.INSTALLER_PATH);
++			byte[] installerData = ZipUtils.unpackNullable(file.toPath(), InstallerData.FABRIC_INSTALLER_PATH);
+ 
+ 			if (installerData == null) {
+ 				return null;
+@@ -74,7 +74,7 @@ public class DebofInstallerData {
+ 
+ 			FabricModJson fabricModJson = FabricModJsonFactory.createFromZip(file.toPath());
+ 			LOGGER.info("Found installer in mod {} version {}", fabricModJson.getId(), fabricModJson.getModVersion());
+-			return InstallerData.fromBytes(installerData, fabricModJson.getModVersion());
++			return InstallerData.fromBytes(installerData, fabricModJson.getModVersion(), false);
+ 		} catch (IOException e) {
+ 			throw new UncheckedIOException("Failed to read " + file, e);
+ 		}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/InstallerData.java b/src/main/java/net/fabricmc/loom/configuration/InstallerData.java
 index 639e7b3081ff00f7c71f9ae37392ed0b33fbc35f..92254f93fe3fc4da7caf4e1fd801b119b60f96dd 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/InstallerData.java
@@ -272,7 +294,7 @@ index 2237933d7828e72f2b1b0ba78de2249e7f19b078..316b3b451a49a49854eefda878dc2046
  	}
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-index b13cf33d38a4b7463d4858a69c9b8a08ec965592..9b58b34875c46e0ceaf97f2127c6ba0f6a06a2ec 100644
+index b13cf33d38a4b7463d4858a69c9b8a08ec965592..74feadf0ce04f99686c328a429841dee4b29b261 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 @@ -26,6 +26,7 @@ package net.fabricmc.loom.configuration.mods;
@@ -283,21 +305,22 @@ index b13cf33d38a4b7463d4858a69c9b8a08ec965592..9b58b34875c46e0ceaf97f2127c6ba0f
  import java.nio.file.Files;
  import java.nio.file.Path;
  import java.util.ArrayList;
-@@ -36,6 +37,10 @@ import java.util.function.Predicate;
+@@ -36,8 +37,10 @@ import java.util.function.Predicate;
  import java.util.jar.Attributes;
  import java.util.jar.Manifest;
  
 +import com.google.gson.JsonObject;
-+
-+import net.fabricmc.loom.LoomGradlePlugin;
-+
  import org.jspecify.annotations.Nullable;
  
++import net.fabricmc.loom.LoomGradlePlugin;
  import net.fabricmc.loom.configuration.InstallerData;
-@@ -86,9 +91,17 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
+ import net.fabricmc.loom.util.Constants;
+ import net.fabricmc.loom.util.FileSystemUtil;
+@@ -85,10 +88,17 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
+ 				}
  			}
  
- 			final Path installerPath = fs.getPath(InstallerData.INSTALLER_PATH);
+-			final Path installerPath = fs.getPath(InstallerData.INSTALLER_PATH);
 +			Path installerPath = fs.getPath(InstallerData.QUILT_INSTALLER_PATH);
 +			boolean isQuilt = true;
 +
@@ -459,18 +482,6 @@ index 0da65dd135a5428394f2653c52948fb7e13f9a75..584b87e96280e1a058b907d17d16b650
  			ZipUtils.unpackAll(source.toPath(), srcPath);
  		}
  
-diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
-index 57b2d32fef64c00491460a563d3edd25c2173d6b..dcc3069ba91d3af9bf0a28f3ec2ccb66b3756610 100644
---- a/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
-+++ b/src/test/groovy/net/fabricmc/loom/test/integration/DecompileTest.groovy
-@@ -46,6 +46,7 @@ class DecompileTest extends Specification implements GradleProjectTestTrait {
- 
- 		where:
- 		decompiler 		| task								| version
-+		'vineflower'	| "genSourcesWithVineflower"		| PRE_RELEASE_GRADLE
- 		'fernflower'	| "genSourcesWithFernFlower"		| PRE_RELEASE_GRADLE
- 		'cfr' 			| "genSourcesWithCfr"				| PRE_RELEASE_GRADLE
- 		'vineflower' 	| "genSourcesWithVineflower"		| PRE_RELEASE_GRADLE
 diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/MultiMcVersionTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/MultiMcVersionTest.groovy
 index 14ccba0de8e27aa4486f308d4a4211ebf7daefac..8ceebb26bcb1111e06e4793a9980b7a292d8a4a1 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/integration/MultiMcVersionTest.groovy
@@ -497,6 +508,18 @@ index dca628789b7ecf180d054112bfefd6e9b6205a7e..2e6c3cf47b9a2527ed533af278b96af8
  		lockFile.text = "12345"
  
  		// Run with --offline to ensure that nothing is downloaded.
+diff --git a/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1GeneratorTest.groovy b/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1GeneratorTest.groovy
+index 38c0edd7a26a4917c3a164bc16f1ebcc2ef1307f..2db8e886d179afc16732c0bb64ed199e6c408262 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1GeneratorTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/unit/fmj/FabricModJsonV1GeneratorTest.groovy
+@@ -29,7 +29,6 @@ import org.gradle.api.model.ObjectFactory
+ import org.intellij.lang.annotations.Language
+ import spock.lang.Specification
+ 
+-import net.fabricmc.loader.impl.metadata.ModMetadataParser
+ import net.fabricmc.loom.api.fmj.FabricModJsonV1Spec
+ import net.fabricmc.loom.test.util.GradleTestUtil
+ import net.fabricmc.loom.util.fmj.gen.FabricModJsonV1Generator
 diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
 index 06bf5ab6f40a9d0e28133eb774b41d816133cb9c..c2882d88a5d54c1f54288bd1af867065afb9395d 100644
 --- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy

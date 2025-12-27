@@ -24,7 +24,7 @@ index 2c644561d75e47b08fc8895aa28a7a2e763b902c..5306266824abf4b63a9856a2cb04d83c
  
 diff --git a/src/main/java/net/fabricmc/loom/api/metadata/ModJson.java b/src/main/java/net/fabricmc/loom/api/metadata/ModJson.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..87b60fd6b52341fe776c005f3f7c461bd7984007
+index 0000000000000000000000000000000000000000..9f1effeffa355a50b040d3d6b40f893fc84edc9b
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/api/metadata/ModJson.java
 @@ -0,0 +1,58 @@
@@ -60,7 +60,7 @@ index 0000000000000000000000000000000000000000..87b60fd6b52341fe776c005f3f7c461b
 +import com.google.gson.JsonElement;
 +import com.google.gson.JsonObject;
 +import org.jetbrains.annotations.ApiStatus;
-+import org.jetbrains.annotations.Nullable;
++import org.jspecify.annotations.Nullable;
 +
 +import net.fabricmc.loom.util.fmj.ModEnvironment;
 +import net.fabricmc.loom.util.fmj.FabricModJsonSource;
@@ -88,26 +88,47 @@ index 0000000000000000000000000000000000000000..87b60fd6b52341fe776c005f3f7c461b
 +}
 diff --git a/src/main/java/net/fabricmc/loom/api/metadata/package-info.java b/src/main/java/net/fabricmc/loom/api/metadata/package-info.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3aa62c7a66330f2b3e1aa185782a04d9658477c4
+index 0000000000000000000000000000000000000000..781b779cae0d52f2743dcaa037ece6da6d3f6df8
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/api/metadata/package-info.java
-@@ -0,0 +1 @@
+@@ -0,0 +1,28 @@
++/*
++ * This file is part of fabric-loom, licensed under the MIT License (MIT).
++ *
++ * Copyright (c) 2022 FabricMC
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++@NullMarked
 +package net.fabricmc.loom.api.metadata;
-\ No newline at end of file
++
++import org.jspecify.annotations.NullMarked;
 diff --git a/src/main/java/net/fabricmc/loom/api/processor/SpecContext.java b/src/main/java/net/fabricmc/loom/api/processor/SpecContext.java
-index 51924e8b1e5f37763b80ee9eee7ff29f99ac3d0f..83abe12dbeacee1ee39ef862a3be644c96cbcec0 100644
+index 51924e8b1e5f37763b80ee9eee7ff29f99ac3d0f..d1da2a61242a34b8b7217395b2278d63286cd31f 100644
 --- a/src/main/java/net/fabricmc/loom/api/processor/SpecContext.java
 +++ b/src/main/java/net/fabricmc/loom/api/processor/SpecContext.java
-@@ -28,34 +28,35 @@ import java.util.Comparator;
- import java.util.List;
- import java.util.stream.Stream;
- 
-+import net.fabricmc.loom.api.metadata.ModJson;
-+
- import org.gradle.api.Project;
+@@ -32,30 +32,30 @@ import org.gradle.api.Project;
  import org.gradle.api.plugins.JavaPlugin;
  
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
++import net.fabricmc.loom.api.metadata.ModJson;
  import net.fabricmc.loom.configuration.processors.speccontext.ProjectView;
 -import net.fabricmc.loom.util.fmj.FabricModJson;
  
@@ -140,7 +161,7 @@ index 51924e8b1e5f37763b80ee9eee7ff29f99ac3d0f..83abe12dbeacee1ee39ef862a3be644c
  		return Stream.concat(modDependencies().stream(), localMods().stream()).toList();
  	}
  
-@@ -70,10 +71,10 @@ public interface SpecContext {
+@@ -70,10 +70,10 @@ public interface SpecContext {
  	}
  
  	// Sort to ensure stable caching
@@ -154,10 +175,10 @@ index 51924e8b1e5f37763b80ee9eee7ff29f99ac3d0f..83abe12dbeacee1ee39ef862a3be644c
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java b/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
-index 31967f3a314a3a5ff0dc5c583a36f10db29840b0..36c9cb9a1326c4ee64aa2b659a9ebd540589016d 100644
+index 31967f3a314a3a5ff0dc5c583a36f10db29840b0..fc9a8ec4a9711275ee25c9136eaee713d6c4d641 100644
 --- a/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
 +++ b/src/main/java/net/fabricmc/loom/build/nesting/JarNester.java
-@@ -27,8 +27,10 @@ package net.fabricmc.loom.build.nesting;
+@@ -27,13 +27,13 @@ package net.fabricmc.loom.build.nesting;
  import java.io.File;
  import java.io.IOException;
  import java.nio.file.Files;
@@ -168,7 +189,12 @@ index 31967f3a314a3a5ff0dc5c583a36f10db29840b0..36c9cb9a1326c4ee64aa2b659a9ebd54
  import java.util.stream.Collectors;
  import java.util.stream.Stream;
  
-@@ -42,6 +44,7 @@ import net.fabricmc.loom.util.Check;
+-import com.google.gson.JsonArray;
+-import com.google.gson.JsonElement;
+ import com.google.gson.JsonObject;
+ import org.gradle.api.UncheckedIOException;
+ import org.slf4j.Logger;
+@@ -42,6 +42,7 @@ import net.fabricmc.loom.util.Check;
  import net.fabricmc.loom.util.Pair;
  import net.fabricmc.loom.util.ZipUtils;
  import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
@@ -176,7 +202,7 @@ index 31967f3a314a3a5ff0dc5c583a36f10db29840b0..36c9cb9a1326c4ee64aa2b659a9ebd54
  
  public class JarNester {
  	public static void nestJars(Collection<File> jars, File modJar, Logger logger) {
-@@ -51,6 +54,14 @@ public class JarNester {
+@@ -51,6 +52,13 @@ public class JarNester {
  		}
  
  		Check.require(FabricModJsonFactory.isModJar(modJar), "Cannot nest jars into none mod jar " + modJar.getName());
@@ -187,11 +213,10 @@ index 31967f3a314a3a5ff0dc5c583a36f10db29840b0..36c9cb9a1326c4ee64aa2b659a9ebd54
 +			Check.require(FabricModJsonFactory.isModJar(file), "Cannot nest non-mod jar: " + file.getName());
 +			files.add(nestedJarPath);
 +		}
-+
  
  		// Ensure deterministic ordering of entries in fabric.mod.json
  		Collection<File> sortedJars = jars.stream().sorted(Comparator.comparing(File::getName)).toList();
-@@ -64,36 +75,7 @@ public class JarNester {
+@@ -64,36 +72,7 @@ public class JarNester {
  				}
  			}).collect(Collectors.toList()));
  
@@ -229,11 +254,73 @@ index 31967f3a314a3a5ff0dc5c583a36f10db29840b0..36c9cb9a1326c4ee64aa2b659a9ebd54
  
  			Check.require(count > 0, "Failed to transform fabric.mod.json");
  		} catch (IOException e) {
+diff --git a/src/main/java/net/fabricmc/loom/configuration/DebofInstallerData.java b/src/main/java/net/fabricmc/loom/configuration/DebofInstallerData.java
+index 5e898419a2002aef78b3791cd9be540448b1b179..3e352d43c016a985211fdfb8f116cfd33dc61c14 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/DebofInstallerData.java
++++ b/src/main/java/net/fabricmc/loom/configuration/DebofInstallerData.java
+@@ -36,10 +36,10 @@ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import net.fabricmc.loom.api.metadata.ModJson;
+ import net.fabricmc.loom.configuration.processors.speccontext.DebofConfiguration;
+ import net.fabricmc.loom.util.ZipUtils;
+-import net.fabricmc.loom.util.fmj.FabricModJson;
+-import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
++import net.fabricmc.loom.util.metadata.ModJsonFactory;
+ 
+ public class DebofInstallerData {
+ 	private static final Logger LOGGER = LoggerFactory.getLogger(DebofInstallerData.class);
+@@ -66,15 +66,21 @@ public class DebofInstallerData {
+ 	@Nullable
+ 	private static InstallerData getInstaller(File file) {
+ 		try {
+-			byte[] installerData = ZipUtils.unpackNullable(file.toPath(), InstallerData.FABRIC_INSTALLER_PATH);
++			byte[] installerData = ZipUtils.unpackNullable(file.toPath(), InstallerData.QUILT_INSTALLER_PATH);
++			boolean isQuilt = true;
+ 
+ 			if (installerData == null) {
+-				return null;
++				installerData = ZipUtils.unpackNullable(file.toPath(), InstallerData.FABRIC_INSTALLER_PATH);
++				isQuilt = false;
++
++				if (installerData == null) {
++					return null;
++				}
+ 			}
+ 
+-			FabricModJson fabricModJson = FabricModJsonFactory.createFromZip(file.toPath());
+-			LOGGER.info("Found installer in mod {} version {}", fabricModJson.getId(), fabricModJson.getModVersion());
+-			return InstallerData.fromBytes(installerData, fabricModJson.getModVersion(), false);
++			ModJson modJson = ModJsonFactory.createFromZip(file.toPath());
++			LOGGER.info("Found installer in mod {} version {}", modJson.getId(), modJson.getModVersion());
++			return InstallerData.fromBytes(installerData, modJson.getModVersion(), isQuilt);
+ 		} catch (IOException e) {
+ 			throw new UncheckedIOException("Failed to read " + file, e);
+ 		}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java b/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java
-index 9b11776fa009e56c0f3343a610504f1416992767..994d571dd387bad5b28e260cb424ad4c3f7b447c 100644
+index 9b11776fa009e56c0f3343a610504f1416992767..9684e4f573ff18b394d90a18bd7c28b90d998975 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/FileDependencyInfo.java
-@@ -43,7 +43,8 @@ import org.gradle.api.artifacts.Configuration;
+@@ -25,9 +25,6 @@
+ package net.fabricmc.loom.configuration;
+ 
+ import java.io.File;
+-import java.io.IOException;
+-import java.io.UncheckedIOException;
+-import java.nio.charset.StandardCharsets;
+ import java.util.Comparator;
+ import java.util.HashMap;
+ import java.util.List;
+@@ -35,15 +32,14 @@ import java.util.Map;
+ import java.util.Set;
+ import java.util.stream.Collectors;
+ 
+-import com.google.gson.Gson;
+-import com.google.gson.JsonObject;
+ import org.gradle.api.InvalidUserDataException;
+ import org.gradle.api.Project;
+ import org.gradle.api.artifacts.Configuration;
  import org.gradle.api.artifacts.Dependency;
  import org.gradle.api.artifacts.FileCollectionDependency;
  
@@ -243,7 +330,7 @@ index 9b11776fa009e56c0f3343a610504f1416992767..994d571dd387bad5b28e260cb424ad4c
  
  public class FileDependencyInfo extends DependencyInfo {
  	protected final Map<String, File> classifierToFile = new HashMap<>();
-@@ -99,31 +100,28 @@ public class FileDependencyInfo extends DependencyInfo {
+@@ -99,31 +95,28 @@ public class FileDependencyInfo extends DependencyInfo {
  		} else {
  			group = "net.fabricmc.synthetic";
  			File root = classifierToFile.get(""); //We've built the classifierToFile map, now to try find a name and version for our dependency
@@ -416,10 +503,10 @@ index 5559c077b34d6dd798c1fb6f8349d4652cad4f31..a1783b9645d2f3c0621ced79a35be49a
  
  		for (Map.Entry<String, ModEnvironment> entry : modJson.getClassTweakers().entrySet()) {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/fabricapi/FabricApiAbstractSourceSet.java b/src/main/java/net/fabricmc/loom/configuration/fabricapi/FabricApiAbstractSourceSet.java
-index 3f74f27988f71c5b18477ff846f63793fc5e81d6..76a4bbffc23e5fcfd40a5f8656f01e1aa4361333 100644
+index 3f74f27988f71c5b18477ff846f63793fc5e81d6..f74dec8ac3490c55c364fec0caa672b4b1e47447 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/fabricapi/FabricApiAbstractSourceSet.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/fabricapi/FabricApiAbstractSourceSet.java
-@@ -33,11 +33,13 @@ import org.gradle.api.tasks.SourceSet;
+@@ -33,9 +33,9 @@ import org.gradle.api.tasks.SourceSet;
  import org.gradle.api.tasks.SourceSetContainer;
  
  import net.fabricmc.loom.LoomGradleExtension;
@@ -430,31 +517,21 @@ index 3f74f27988f71c5b18477ff846f63793fc5e81d6..76a4bbffc23e5fcfd40a5f8656f01e1a
 +import net.fabricmc.loom.util.metadata.ModJsonFactory;
  import net.fabricmc.loom.util.gradle.SourceSetHelper;
  
-+import java.io.IOException;
-+
  abstract class FabricApiAbstractSourceSet {
- 	@Inject
- 	protected abstract Project getProject();
-@@ -62,13 +64,17 @@ abstract class FabricApiAbstractSourceSet {
+@@ -62,13 +62,13 @@ abstract class FabricApiAbstractSourceSet {
  		});
  
  		modId.convention(getProject().provider(() -> {
 -			final FabricModJson fabricModJson = FabricModJsonFactory.createFromSourceSetsNullable(getProject(), sourceSet);
-+			try {
-+				final ModJson modJson = ModJsonFactory.createFromSourceSetsNullable(getProject(), sourceSet);
++			final ModJson modJson = ModJsonFactory.createFromSourceSetsNullable(getProject(), sourceSet);
  
 -			if (fabricModJson == null) {
--				throw new RuntimeException("Could not find a fabric.mod.json file in the data source set or a value for DataGenerationSettings.getModId()");
--			}
-+				if (modJson == null) {
-+					throw new RuntimeException("Could not find a fabric.mod.json file in the data source set or a value for DataGenerationSettings.getModId()");
-+				}
++			if (modJson == null) {
+ 				throw new RuntimeException("Could not find a fabric.mod.json file in the data source set or a value for DataGenerationSettings.getModId()");
+ 			}
  
 -			return fabricModJson.getId();
-+				return modJson.getId();
-+			} catch (IOException e) {
-+				throw new org.gradle.api.UncheckedIOException("Failed to read mod id from the datagen source set.", e);
-+			}
++			return modJson.getId();
  		}));
  
  		extension.getMods().create(modId.get(), mod -> {
@@ -512,14 +589,14 @@ index 67050399ec4cfac055392cf3012866900589ee17..def09d5b92ca121fc6bf8caa80db3db2
  					.flatMap(List::stream)
  					.toList();
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java b/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
-index 3ebf78349865db0e26dc1cbeeb9e477455698cf5..78a372fbe9e7a0964aa5c61b943ad1cc4c72c7e1 100644
+index 3ebf78349865db0e26dc1cbeeb9e477455698cf5..9d370b6ae15fc50895b54f3abb66d988b9c1ad29 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/AccessWidenerUtils.java
 @@ -28,13 +28,15 @@ import java.io.IOException;
  import java.nio.file.Path;
  import java.util.List;
  
-+import org.jetbrains.annotations.Nullable;
++import org.jspecify.annotations.Nullable;
  import org.objectweb.asm.commons.Remapper;
  
  import net.fabricmc.classtweaker.api.ClassTweakerReader;
@@ -630,10 +707,16 @@ index d9d35fd76b54d6706bbfac48a47db0e4c0a5562c..037a0ce414e2c97acaac4c7be61e4b9b
  				throw ExceptionUtil.createDescriptiveWrapper(IOException::new, "Failed to read mixin configuration from " + mod.getInputFile(), e);
  			}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java b/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
-index 5a5a1977aec7b7160b770b4750b949ebd087c57c..f87cf4fd4acdad849ffc290eb5dd5fa77cc932b4 100644
+index 5a5a1977aec7b7160b770b4750b949ebd087c57c..243b405d5f6c9bae1ff2924cb53808662b651550 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
-@@ -45,6 +45,7 @@ import org.slf4j.Logger;
+@@ -39,18 +39,16 @@ import java.util.Objects;
+ 
+ import javax.inject.Inject;
+ 
+-import com.google.gson.JsonElement;
+ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
  import org.slf4j.LoggerFactory;
  
  import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
@@ -641,18 +724,24 @@ index 5a5a1977aec7b7160b770b4750b949ebd087c57c..f87cf4fd4acdad849ffc290eb5dd5fa7
  import net.fabricmc.loom.api.processor.MinecraftJarProcessor;
  import net.fabricmc.loom.api.processor.ProcessorContext;
  import net.fabricmc.loom.api.processor.SpecContext;
-@@ -79,8 +80,8 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
+ import net.fabricmc.loom.util.Checksum;
+-import net.fabricmc.loom.util.Constants;
+-import net.fabricmc.loom.util.fmj.FabricModJson;
+ import net.fabricmc.mappingio.MappedElementKind;
+ import net.fabricmc.mappingio.MappingReader;
+ import net.fabricmc.mappingio.MappingUtil;
+@@ -79,8 +77,8 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
  	public ModJavadocProcessor.@Nullable Spec buildSpec(SpecContext context) {
  		List<ModJavadoc> javadocs = new ArrayList<>();
  
 -		for (FabricModJson fabricModJson : context.allMods()) {
 -			ModJavadoc javadoc = ModJavadoc.create(fabricModJson, context.productionNamespace());
 +		for (ModJson modJson : context.allMods()) {
-+			ModJavadoc javadoc = ModJavadoc.create(modJson);
++			ModJavadoc javadoc = ModJavadoc.create(modJson, context.productionNamespace());
  
  			if (javadoc != null) {
  				javadocs.add(javadoc);
-@@ -116,20 +117,19 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
+@@ -116,20 +114,19 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
  
  	public record ModJavadoc(String modId, MemoryMappingTree mappingTree, String mappingsHash) {
  		@Nullable
@@ -678,20 +767,193 @@ index 5a5a1977aec7b7160b770b4750b949ebd087c57c..f87cf4fd4acdad849ffc290eb5dd5fa7
  				mappingsHash = Checksum.of(data).sha1().hex();
  
  				try (Reader reader = new InputStreamReader(new ByteArrayInputStream(data))) {
+diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/DeobfSpecContext.java b/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/DeobfSpecContext.java
+index 61458ca2d35fe2b207e8f7c5457967f9de33f458..6fa0afb5f8c309ca3ca5a5b426d767989ac2bf63 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/DeobfSpecContext.java
++++ b/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/DeobfSpecContext.java
+@@ -43,42 +43,42 @@ import org.gradle.api.Project;
+ import org.gradle.api.file.FileCollection;
+ 
+ import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
++import net.fabricmc.loom.api.metadata.ModJson;
+ import net.fabricmc.loom.api.processor.SpecContext;
+ import net.fabricmc.loom.util.AsyncCache;
+-import net.fabricmc.loom.util.fmj.FabricModJson;
+-import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
+ import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
++import net.fabricmc.loom.util.metadata.ModJsonFactory;
+ 
+-public record DeobfSpecContext(List<FabricModJson> modDependencies,
+-								List<FabricModJson> localMods,
++public record DeobfSpecContext(List<ModJson> modDependencies,
++								List<ModJson> localMods,
+ 								// Mods that are in the following configurations: [runtimeClasspath, compileClasspath] or [runtimeClientClasspath, compileClientClasspath]
+ 								// These are mods that will be used to transform both the client and server jars
+-								List<FabricModJson> modDependenciesCompileRuntime,
++								List<ModJson> modDependenciesCompileRuntime,
+ 								// Here we want mods that are ONLY in [runtimeClientClasspath, compileClientClasspath] and not [runtimeClasspath, compileClasspath]
+ 								// These mods will be excluded from transforming the server jar
+-								List<FabricModJson> modDependenciesCompileRuntimeClient
++								List<ModJson> modDependenciesCompileRuntimeClient
+ ) implements SpecContext {
+ 	public static DeobfSpecContext create(Project project) {
+ 		return create(new DeobfProjectView.Impl(project));
+ 	}
+ 
+ 	public static DeobfSpecContext create(DeobfProjectView projectView) {
+-		AsyncCache<List<FabricModJson>> fmjCache = new AsyncCache<>();
++		AsyncCache<List<ModJson>> fmjCache = new AsyncCache<>();
+ 
+ 		FileCollection mainRuntimeClasspath = projectView.getDependencies(DebofConfiguration.RUNTIME, DebofConfiguration.TargetSourceSet.MAIN);
+ 		FileCollection mainCompileClasspath = projectView.getDependencies(DebofConfiguration.COMPILE, DebofConfiguration.TargetSourceSet.MAIN);
+ 
+ 		// All mods in both [runtimeClasspath, compileClasspath]
+-		List<FabricModJson> mainRuntimeMods = getModsFromConfiguration(mainRuntimeClasspath, fmjCache);
+-		List<FabricModJson> mainCompileMods = getModsFromConfiguration(mainCompileClasspath, fmjCache);
++		List<ModJson> mainRuntimeMods = getModsFromConfiguration(mainRuntimeClasspath, fmjCache);
++		List<ModJson> mainCompileMods = getModsFromConfiguration(mainCompileClasspath, fmjCache);
+ 
+ 		Set<String> mainRuntimeModIds = toModIdSet(mainRuntimeMods);
+ 		Set<String> mainCompileModIds = toModIdSet(mainCompileMods);
+ 		Set<String> mainTransformingModIds = common(mainRuntimeModIds, mainCompileModIds);
+ 
+ 		// All mods in both [runtimeClientClasspath, compileClientClasspath]
+-		List<FabricModJson> clientRuntimeMods;
+-		List<FabricModJson> clientCompileMods;
++		List<ModJson> clientRuntimeMods;
++		List<ModJson> clientCompileMods;
+ 		Set<String> clientTransformingModIds;
+ 
+ 		if (projectView.areEnvironmentSourceSetsSplit()) {
+@@ -98,7 +98,7 @@ public record DeobfSpecContext(List<FabricModJson> modDependencies,
+ 		}
+ 
+ 		// Build the full list of dependent mods from all configurations
+-		List<FabricModJson> allMods = new ArrayList<>();
++		List<ModJson> allMods = new ArrayList<>();
+ 		allMods.addAll(mainRuntimeMods);
+ 		allMods.addAll(mainCompileMods);
+ 		allMods.addAll(clientRuntimeMods);
+@@ -111,12 +111,12 @@ public record DeobfSpecContext(List<FabricModJson> modDependencies,
+ 			}
+ 		}
+ 
+-		List<FabricModJson> dependentMods = SpecContext.distinctSorted(allMods);
+-		Map<String, FabricModJson> mods = dependentMods.stream()
++		List<ModJson> dependentMods = SpecContext.distinctSorted(allMods);
++		Map<String, ModJson> mods = dependentMods.stream()
+ 				.collect(HashMap::new, (map, mod) -> map.put(mod.getId(), mod), Map::putAll);
+ 
+ 		// All dependency mods that are on both the compile and runtime classpath
+-		List<FabricModJson> modDependenciesCompileRuntime = new ArrayList<>(getMods(mods, combine(mainTransformingModIds, clientTransformingModIds)));
++		List<ModJson> modDependenciesCompileRuntime = new ArrayList<>(getMods(mods, combine(mainTransformingModIds, clientTransformingModIds)));
+ 
+ 		// Add all of the project depedencies that are on both the compile and runtime classpath
+ 		modDependenciesCompileRuntime.addAll(getCompileRuntimeProjectMods(projectView, fmjCache));
+@@ -130,8 +130,8 @@ public record DeobfSpecContext(List<FabricModJson> modDependencies,
+ 	}
+ 
+ 	// Returns a list of all the mods that the current project depends on
+-	private static List<FabricModJson> getDependentMods(DeobfProjectView projectView, AsyncCache<List<FabricModJson>> fmjCache) {
+-		var futures = new ArrayList<CompletableFuture<List<FabricModJson>>>();
++	private static List<ModJson> getDependentMods(DeobfProjectView projectView, AsyncCache<List<ModJson>> fmjCache) {
++		var futures = new ArrayList<CompletableFuture<List<ModJson>>>();
+ 
+ 		for (File artifact : projectView.getFullClasspath().getFiles()) {
+ 			futures.add(fmjCache.get(artifact.toPath().toAbsolutePath().toString(), () -> {
+@@ -152,8 +152,8 @@ public record DeobfSpecContext(List<FabricModJson> modDependencies,
+ 	}
+ 
+ 	// Returns a list of mods from a given configuration
+-	private static List<FabricModJson> getModsFromConfiguration(FileCollection configuration, AsyncCache<List<FabricModJson>> fmjCache) {
+-		var futures = new ArrayList<CompletableFuture<List<FabricModJson>>>();
++	private static List<ModJson> getModsFromConfiguration(FileCollection configuration, AsyncCache<List<ModJson>> fmjCache) {
++		var futures = new ArrayList<CompletableFuture<List<ModJson>>>();
+ 
+ 		for (File artifact : configuration.getFiles()) {
+ 			futures.add(fmjCache.get(artifact.toPath().toAbsolutePath().toString(), () -> getMod(artifact.toPath())
+@@ -164,22 +164,22 @@ public record DeobfSpecContext(List<FabricModJson> modDependencies,
+ 		return SpecContext.distinctSorted(AsyncCache.joinList(futures));
+ 	}
+ 
+-	private static Set<String> toModIdSet(List<FabricModJson> mods) {
++	private static Set<String> toModIdSet(List<ModJson> mods) {
+ 		return mods.stream()
+-				.map(FabricModJson::getId)
++				.map(ModJson::getId)
+ 				.collect(HashSet::new, Set::add, Set::addAll);
+ 	}
+ 
+-	private static Optional<FabricModJson> getMod(Path path) {
++	private static Optional<ModJson> getMod(Path path) {
+ 		if (Files.isRegularFile(path)) {
+-			return FabricModJsonFactory.createFromZipOptional(path);
++			return (Optional<ModJson>) ModJsonFactory.createFromZipOptional(path);
+ 		}
+ 
+ 		return Optional.empty();
+ 	}
+ 
+-	private static List<FabricModJson> getMods(Map<String, FabricModJson> mods, Set<String> ids) {
+-		List<FabricModJson> result = new ArrayList<>();
++	private static List<ModJson> getMods(Map<String, ModJson> mods, Set<String> ids) {
++		List<ModJson> result = new ArrayList<>();
+ 
+ 		for (String id : ids) {
+ 			result.add(Objects.requireNonNull(mods.get(id), "Could not find mod with id: " + id));
+@@ -189,11 +189,11 @@ public record DeobfSpecContext(List<FabricModJson> modDependencies,
+ 	}
+ 
+ 	// Returns a list of mods that are on both to compile and runtime classpath
+-	private static List<FabricModJson> getCompileRuntimeProjectMods(DeobfProjectView projectView, AsyncCache<List<FabricModJson>> fmjCache) {
+-		var mods = new ArrayList<FabricModJson>();
++	private static List<ModJson> getCompileRuntimeProjectMods(DeobfProjectView projectView, AsyncCache<List<ModJson>> fmjCache) {
++		var mods = new ArrayList<ModJson>();
+ 
+ 		for (Project dependentProject : getCompileRuntimeProjectDependencies(projectView).toList()) {
+-			List<FabricModJson> projectMods = fmjCache.getBlocking(dependentProject.getPath(), () -> FabricModJsonHelpers.getModsInProject(dependentProject));
++			List<ModJson> projectMods = fmjCache.getBlocking(dependentProject.getPath(), () -> FabricModJsonHelpers.getModsInProject(dependentProject));
+ 
+ 			mods.addAll(projectMods);
+ 		}
+diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/ProjectView.java b/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/ProjectView.java
+index 43ed093be6ed5d10e2dabf89ed7bbbeee1c98bbd..1a276e3088048f89d052157ba93243138b70613d 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/ProjectView.java
++++ b/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/ProjectView.java
+@@ -33,8 +33,8 @@ import org.gradle.api.artifacts.ProjectDependency;
+ import org.gradle.api.attributes.Usage;
+ 
+ import net.fabricmc.loom.LoomGradleExtension;
++import net.fabricmc.loom.api.metadata.ModJson;
+ import net.fabricmc.loom.util.Constants;
+-import net.fabricmc.loom.util.fmj.FabricModJson;
+ import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
+ import net.fabricmc.loom.util.gradle.GradleUtils;
+ 
+@@ -44,7 +44,7 @@ public interface ProjectView {
+ 	Stream<Project> getLoomProjectDependencies(String name);
+ 
+ 	// Returns the mods defined in the current project
+-	List<FabricModJson> getMods();
++	List<ModJson> getMods();
+ 
+ 	boolean disableProjectDependantMods();
+ 
+@@ -85,7 +85,7 @@ public interface ProjectView {
+ 		}
+ 
+ 		@Override
+-		public List<FabricModJson> getMods() {
++		public List<ModJson> getMods() {
+ 			return FabricModJsonHelpers.getModsInProject(project);
+ 		}
+ 
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/RemappedSpecContext.java b/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/RemappedSpecContext.java
-index 00aec308c71d5044b7c8ce2680be610e7977fb95..b5053c320960719fa22b6bf57de20a0600e76ac7 100644
+index 00aec308c71d5044b7c8ce2680be610e7977fb95..2983268f4607f446a1d01adb40abe99263bbd910 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/RemappedSpecContext.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/processors/speccontext/RemappedSpecContext.java
-@@ -37,19 +37,24 @@ import java.util.function.Function;
- import java.util.stream.Collectors;
- import java.util.stream.Stream;
+@@ -39,17 +39,17 @@ import java.util.stream.Stream;
  
-+import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
-+import net.fabricmc.loom.util.AsyncCache;
-+import net.fabricmc.loom.util.fmj.FabricModJson;
-+
-+import net.fabricmc.loom.util.metadata.ModJsonFactory;
-+
  import org.gradle.api.Project;
  import org.gradle.api.plugins.JavaPlugin;
 -import org.jspecify.annotations.Nullable;
@@ -700,19 +962,19 @@ index 00aec308c71d5044b7c8ce2680be610e7977fb95..b5053c320960719fa22b6bf57de20a06
  
 -import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
  import net.fabricmc.loom.api.RemapConfigurationSettings;
++import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
 +import net.fabricmc.loom.api.metadata.ModJson;
  import net.fabricmc.loom.api.processor.SpecContext;
  import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
--import net.fabricmc.loom.util.AsyncCache;
+ import net.fabricmc.loom.util.AsyncCache;
 -import net.fabricmc.loom.util.fmj.FabricModJson;
 -import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
-+import net.fabricmc.loom.util.Constants;
  import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
-+import net.fabricmc.loom.util.gradle.GradleUtils;
++import net.fabricmc.loom.util.metadata.ModJsonFactory;
  
  /**
   * @param modDependencies External mods that are depended on
-@@ -57,8 +62,8 @@ import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
+@@ -57,8 +57,8 @@ import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
   * @param compileRuntimeMods Dependent mods found in both the compile and runtime classpath.
   */
  public record RemappedSpecContext(
@@ -723,7 +985,7 @@ index 00aec308c71d5044b7c8ce2680be610e7977fb95..b5053c320960719fa22b6bf57de20a06
  		List<ModHolder> compileRuntimeMods,
  		MappingsNamespace productionNamespace) implements SpecContext {
  	public static RemappedSpecContext create(Project project) {
-@@ -67,7 +72,7 @@ public record RemappedSpecContext(
+@@ -67,7 +67,7 @@ public record RemappedSpecContext(
  
  	@VisibleForTesting
  	public static RemappedSpecContext create(RemappedProjectView projectView) {
@@ -732,7 +994,7 @@ index 00aec308c71d5044b7c8ce2680be610e7977fb95..b5053c320960719fa22b6bf57de20a06
  		return new RemappedSpecContext(
  				getDependentMods(projectView, fmjCache),
  				projectView.getMods(),
-@@ -77,15 +82,15 @@ public record RemappedSpecContext(
+@@ -77,15 +77,15 @@ public record RemappedSpecContext(
  	}
  
  	// Returns a list of mods found on both the compile and/or runtime classpaths
@@ -751,7 +1013,7 @@ index 00aec308c71d5044b7c8ce2680be610e7977fb95..b5053c320960719fa22b6bf57de20a06
  							.map(List::of)
  							.orElseGet(List::of);
  				}));
-@@ -95,7 +100,8 @@ public record RemappedSpecContext(
+@@ -95,7 +95,8 @@ public record RemappedSpecContext(
  		if (!projectView.disableProjectDependantMods()) {
  			// Add all the dependent projects
  			for (Project dependentProject : SpecContext.getDependentProjects(projectView).toList()) {
@@ -761,7 +1023,7 @@ index 00aec308c71d5044b7c8ce2680be610e7977fb95..b5053c320960719fa22b6bf57de20a06
  			}
  		}
  
-@@ -103,15 +109,13 @@ public record RemappedSpecContext(
+@@ -103,15 +104,13 @@ public record RemappedSpecContext(
  	}
  
  	// Returns a list of mods that are on both to compile and runtime classpath
@@ -780,7 +1042,7 @@ index 00aec308c71d5044b7c8ce2680be610e7977fb95..b5053c320960719fa22b6bf57de20a06
  				mods.add(new ModHolder(mod));
  			}
  		}
-@@ -120,7 +124,7 @@ public record RemappedSpecContext(
+@@ -120,7 +119,7 @@ public record RemappedSpecContext(
  	}
  
  	// Returns a list of jar mods that are found on the compile and runtime remapping configurations
@@ -789,7 +1051,7 @@ index 00aec308c71d5044b7c8ce2680be610e7977fb95..b5053c320960719fa22b6bf57de20a06
  		// A set of mod ids from all remap configurations that are considered for dependency transforms.
  		final Set<String> runtimeModIds = getModIds(
  				ProjectView.ArtifactUsage.RUNTIME,
-@@ -141,7 +145,7 @@ public record RemappedSpecContext(
+@@ -141,7 +140,7 @@ public record RemappedSpecContext(
  						.filter(settings -> settings.getApplyDependencyTransforms().get()))
  				: null;
  
@@ -798,7 +1060,7 @@ index 00aec308c71d5044b7c8ce2680be610e7977fb95..b5053c320960719fa22b6bf57de20a06
  				ProjectView.ArtifactUsage.COMPILE,
  				projectView,
  				fmjCache,
-@@ -152,28 +156,28 @@ public record RemappedSpecContext(
+@@ -152,28 +151,28 @@ public record RemappedSpecContext(
  				// Only check based on the modid, as there may be differing versions used between the compile and runtime classpath.
  				// We assume that the version used at runtime will be binary compatible with the version used to compile against.
  				// It's not perfect but better than silently not supplying the mod, and this could happen with regular API that you compile against anyway.
@@ -836,7 +1098,7 @@ index 00aec308c71d5044b7c8ce2680be610e7977fb95..b5053c320960719fa22b6bf57de20a06
  						.map(List::of)
  						.orElseGet(List::of);
  			});
-@@ -195,22 +199,22 @@ public record RemappedSpecContext(
+@@ -195,22 +194,22 @@ public record RemappedSpecContext(
  	}
  
  	@Override
@@ -864,26 +1126,24 @@ index 00aec308c71d5044b7c8ce2680be610e7977fb95..b5053c320960719fa22b6bf57de20a06
  		}
  	}
 diff --git a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
-index 400fff15daa24a1dc0fe9cbf400faba3c4afc425..eb92e7f0a66b454d63b4f5eed978f49583fce2c7 100644
+index 400fff15daa24a1dc0fe9cbf400faba3c4afc425..ac6eeb52e0392e3cca30bc75a1eeeb04af77938b 100644
 --- a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
 +++ b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
-@@ -74,8 +74,8 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
+@@ -74,7 +74,7 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
  import net.fabricmc.loom.task.GenerateSourcesTask;
  import net.fabricmc.loom.util.DeprecationHelper;
  import net.fabricmc.loom.util.MirrorUtil;
 -import net.fabricmc.loom.util.fmj.FabricModJson;
--import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
 +import net.fabricmc.loom.api.metadata.ModJson;
-+import net.fabricmc.loom.util.metadata.ModJsonFactory;
+ import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
  import net.fabricmc.loom.util.gradle.SourceSetHelper;
  
- /**
 @@ -320,13 +320,13 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  
  	@Override
  	public String getModVersion() {
 -		List<FabricModJson> fabricModJsons = FabricModJsonHelpers.getModsInProject(getProject());
-+		List<ModJson> modJsons = ModJsonHelpers.getModsInProject(getProject());
++		List<ModJson> modJsons = FabricModJsonHelpers.getModsInProject(getProject());
  
 -		if (fabricModJsons.isEmpty()) {
 +		if (modJsons.isEmpty()) {
@@ -1202,10 +1462,10 @@ index 4bd9b255e6ade023b32aee4823dccef4281ce992..f987bcfb37371900fb93ca02e17341f0
  	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonHelpers.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonHelpers.java
-index 4481283afd0178db9950cce7c525d758d3c0997f..73e9992c9e16b4ccff38c4725956cfb4a6bfb35e 100644
+index 4481283afd0178db9950cce7c525d758d3c0997f..d52da00ea0ac67a8e1744be03a4af05d0b17687e 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonHelpers.java
 +++ b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonHelpers.java
-@@ -25,24 +25,29 @@
+@@ -25,6 +25,8 @@
  package net.fabricmc.loom.util.fmj;
  
  import java.io.File;
@@ -1214,18 +1474,15 @@ index 4481283afd0178db9950cce7c525d758d3c0997f..73e9992c9e16b4ccff38c4725956cfb4
  import java.util.ArrayList;
  import java.util.Collections;
  import java.util.List;
- 
-+import net.fabricmc.loom.api.LoomGradleExtensionAPI;
-+
- import org.gradle.api.Project;
+@@ -33,16 +35,18 @@ import org.gradle.api.Project;
  import org.gradle.api.provider.Provider;
  import org.gradle.api.tasks.SourceSet;
  
--import net.fabricmc.loom.api.LoomGradleExtensionAPI;
--import net.fabricmc.loom.util.gradle.SourceSetHelper;
- import net.fabricmc.loom.LoomGradleExtension;
++import net.fabricmc.loom.LoomGradleExtension;
+ import net.fabricmc.loom.api.LoomGradleExtensionAPI;
 +import net.fabricmc.loom.api.metadata.ModJson;
-+import net.fabricmc.loom.util.gradle.SourceSetHelper;
+ import net.fabricmc.loom.util.gradle.SourceSetHelper;
+-import net.fabricmc.loom.LoomGradleExtension;
 +import net.fabricmc.loom.util.metadata.ModJsonFactory;
  
  public class FabricModJsonHelpers {
@@ -1238,7 +1495,7 @@ index 4481283afd0178db9950cce7c525d758d3c0997f..73e9992c9e16b4ccff38c4725956cfb4
  		final LoomGradleExtension extension = LoomGradleExtension.get(project);
  		Provider<File> overrideFile = extension.getFabricModJsonPath().getAsFile();
  
-@@ -57,10 +62,14 @@ public class FabricModJsonHelpers {
+@@ -57,10 +61,14 @@ public class FabricModJsonHelpers {
  			sourceSets.add(SourceSetHelper.getSourceSetByName("client", project));
  		}
  
@@ -1256,57 +1513,15 @@ index 4481283afd0178db9950cce7c525d758d3c0997f..73e9992c9e16b4ccff38c4725956cfb4
  		}
  
  		return Collections.emptyList();
-diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java
-index 1d185e289664129f0ed65ccad99be3535345ea90..0ffbb2b68eeb4e0b194b9ded6a7a7c4d5bef611d 100644
---- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java
-+++ b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonSource.java
-@@ -32,6 +32,7 @@ import java.nio.file.Path;
- 
- import org.gradle.api.Project;
- import org.gradle.api.tasks.SourceSet;
-+import org.jetbrains.annotations.NotNull;
- 
- import net.fabricmc.loom.util.ZipUtils;
- import net.fabricmc.loom.util.gradle.SourceSetHelper;
-@@ -41,25 +42,25 @@ import net.fabricmc.loom.util.gradle.SourceSetHelper;
-  * This abstraction allows easily reading a contained file from the mod.
-  */
- public interface FabricModJsonSource {
--	byte[] read(String path) throws IOException;
-+	byte[] read(@NotNull String path) throws IOException;
- 
- 	record ZipSource(Path zipPath) implements FabricModJsonSource {
- 		@Override
--		public byte[] read(String path) throws IOException {
-+		public byte[] read(@NotNull String path) throws IOException {
- 			return ZipUtils.unpack(zipPath, path);
- 		}
- 	}
- 
- 	record DirectorySource(Path directoryPath) implements FabricModJsonSource {
- 		@Override
--		public byte[] read(String path) throws IOException {
-+		public byte[] read(@NotNull String path) throws IOException {
- 			return Files.readAllBytes(directoryPath.resolve(path));
- 		}
- 	}
- 
- 	record SourceSetSource(Project project, SourceSet... sourceSets) implements FabricModJsonSource {
- 		@Override
--		public byte[] read(String path) throws IOException {
-+		public byte[] read(@NotNull String path) throws IOException {
- 			return Files.readAllBytes(findFile(path).toPath());
- 		}
- 
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonUtils.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonUtils.java
-index d1c972ab1b9bcd040aa869c8d5104af1ed44acc4..ca4446828dd90412cd9751b05ce4b6dbd92d743c 100644
+index d1c972ab1b9bcd040aa869c8d5104af1ed44acc4..74bd817a1307e31ff3dcb17de593db2820dee724 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonUtils.java
 +++ b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonUtils.java
 @@ -31,6 +31,7 @@ import java.util.function.Predicate;
  import com.google.gson.JsonElement;
  import com.google.gson.JsonObject;
  import com.google.gson.JsonPrimitive;
-+import org.jetbrains.annotations.Nullable;
++import org.jspecify.annotations.Nullable;
  
  public final class FabricModJsonUtils {
  	private FabricModJsonUtils() {
@@ -1466,12 +1681,38 @@ index 0000000000000000000000000000000000000000..759f81ed4f5d102f2416c9590591ab7e
 +}
 diff --git a/src/main/java/net/fabricmc/loom/util/metadata/package-info.java b/src/main/java/net/fabricmc/loom/util/metadata/package-info.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3242557545dbb0046fd0bd4a8b5a00c15a45f34f
+index 0000000000000000000000000000000000000000..afdef721ace8988945379c606801f96da4c2da8b
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/metadata/package-info.java
-@@ -0,0 +1 @@
+@@ -0,0 +1,28 @@
++/*
++ * This file is part of fabric-loom, licensed under the MIT License (MIT).
++ *
++ * Copyright (c) 2022 FabricMC
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++@NullMarked
 +package net.fabricmc.loom.util.metadata;
-\ No newline at end of file
++
++import org.jspecify.annotations.NullMarked;
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJson.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJson.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..8ad58423fcdd638b7b638e1c1d5072ceac2c8253
@@ -1672,7 +1913,7 @@ index 0000000000000000000000000000000000000000..8f05556168149e2f0e86c5d082db2509
 +}
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9323fbcb00a255c7ce4fb89a5543304330da94af
+index 0000000000000000000000000000000000000000..a379d15b6b7dc6a835e375f98e524219e9ec424d
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/qmj/QuiltModJsonV1.java
 @@ -0,0 +1,171 @@
@@ -1712,7 +1953,7 @@ index 0000000000000000000000000000000000000000..9323fbcb00a255c7ce4fb89a55433043
 +import com.google.gson.JsonElement;
 +import com.google.gson.JsonObject;
 +import com.google.gson.JsonPrimitive;
-+import org.jetbrains.annotations.Nullable;
++import org.jspecify.annotations.Nullable;
 +
 +import net.fabricmc.loom.util.fmj.ModEnvironment;
 +import net.fabricmc.loom.util.fmj.FabricModJsonSource;
@@ -1849,9 +2090,35 @@ index 0000000000000000000000000000000000000000..9323fbcb00a255c7ce4fb89a55433043
 +}
 diff --git a/src/main/java/net/fabricmc/loom/util/qmj/package-info.java b/src/main/java/net/fabricmc/loom/util/qmj/package-info.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..5ba98947bfdf9f72a3a05e3715fb567e96b7d38e
+index 0000000000000000000000000000000000000000..3af94e38ff21971e5aca15a29b30e9ccb2cd08a2
 --- /dev/null
 +++ b/src/main/java/net/fabricmc/loom/util/qmj/package-info.java
-@@ -0,0 +1 @@
+@@ -0,0 +1,28 @@
++/*
++ * This file is part of fabric-loom, licensed under the MIT License (MIT).
++ *
++ * Copyright (c) 2022 FabricMC
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in all
++ * copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++@NullMarked
 +package net.fabricmc.loom.util.qmj;
-\ No newline at end of file
++
++import org.jspecify.annotations.NullMarked;
