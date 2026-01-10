@@ -5,7 +5,7 @@ Subject: [PATCH] Support QMJ5
 
 
 diff --git a/build.gradle b/build.gradle
-index f152c0a42668b419b2fe76ea1d375a903bbe562f..00e2a862bed4d0b6141369a58de4d51123aae874 100644
+index 28263657c1b06bce0a78b68c1cce135b67b196c5..1b24586ca7d4cc2e922c99597401a10784e00b2e 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -51,6 +51,10 @@ repositories {

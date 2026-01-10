@@ -12,7 +12,7 @@ This includes:
 - Automatically applying the Quilt Maven
 
 diff --git a/build.gradle b/build.gradle
-index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..f152c0a42668b419b2fe76ea1d375a903bbe562f 100644
+index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..28263657c1b06bce0a78b68c1cce135b67b196c5 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -22,7 +22,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -99,21 +99,7 @@ index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..f152c0a42668b419b2fe76ea1d375a90
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -343,6 +363,13 @@ publishing {
- 	}
- }
- 
-+tasks.withType(PublishToMavenRepository) {
-+	onlyIf {
-+		(repository == publishing.repositories.release && publication == publishing.publications.pluginMaven) ||
-+		(repository == publishing.repositories.release && publication.name == "quiltLoomPluginMarkerMaven")
-+	}
-+}
-+
- // A task to output a json file with a list of all the test to run
- tasks.register('writeActionsTestMatrix') {
- 	doLast {
-@@ -421,4 +448,4 @@ abstract class PrintActionsTestName extends DefaultTask {
+@@ -421,4 +441,4 @@ abstract class PrintActionsTestName extends DefaultTask {
  }
  
  apply from: rootProject.file('gradle/versions.gradle')
