@@ -12,7 +12,7 @@ This includes:
 - Automatically applying the Quilt Maven
 
 diff --git a/build.gradle b/build.gradle
-index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..28263657c1b06bce0a78b68c1cce135b67b196c5 100644
+index 4d69e8bc5d092e6e092cbc719895e0459be67795..5ec49f85b30b2844d50c0523980ec5a109004e8c 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -22,7 +22,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -21,10 +21,10 @@ index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..28263657c1b06bce0a78b68c1cce135b
  
 -group = 'net.fabricmc'
 +group = 'org.quiltmc'
- def baseVersion = '1.14'
+ def baseVersion = '1.15'
  
  def ENV = System.getenv()
-@@ -234,23 +234,42 @@ codenarc {
+@@ -224,23 +224,42 @@ codenarc {
  
  gradlePlugin {
  	plugins {
@@ -76,7 +76,7 @@ index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..28263657c1b06bce0a78b68c1cce135b
  	}
  }
  
-@@ -320,11 +339,11 @@ publishing {
+@@ -310,11 +329,11 @@ publishing {
  						Node dependencies = root.appendChild(document.createElement('dependencies'))
  						Node dependency = dependencies.appendChild(document.createElement('dependency'))
  						Node groupId = dependency.appendChild(document.createElement('groupId'))
@@ -91,7 +91,7 @@ index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..28263657c1b06bce0a78b68c1cce135b
  					})
  				}
  			}
-@@ -332,6 +351,7 @@ publishing {
+@@ -322,6 +341,7 @@ publishing {
  	}
  	repositories {
  		maven {
@@ -99,7 +99,7 @@ index a9e824c9f9abb7d55d1516dfa2e53e218b002fa8..28263657c1b06bce0a78b68c1cce135b
  			if (ENV.MAVEN_URL) {
  				url ENV.MAVEN_URL
  				credentials {
-@@ -421,4 +441,4 @@ abstract class PrintActionsTestName extends DefaultTask {
+@@ -422,4 +442,4 @@ abstract class PrintActionsTestName extends DefaultTask {
  }
  
  apply from: rootProject.file('gradle/versions.gradle')
@@ -259,7 +259,7 @@ index 2237933d7828e72f2b1b0ba78de2249e7f19b078..316b3b451a49a49854eefda878dc2046
  	}
  
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
-index b13cf33d38a4b7463d4858a69c9b8a08ec965592..74feadf0ce04f99686c328a429841dee4b29b261 100644
+index 13c1914691746bec6d87690364b08026b76fe255..7aefff99c3f0af65325fd79b0b5aee24e669f7fc 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ArtifactMetadata.java
 @@ -26,6 +26,7 @@ package net.fabricmc.loom.configuration.mods;
@@ -333,10 +333,10 @@ index 720181615f578e0f4c88e3f2043e4e4c0ae79284..3491e0d8eb9cd47d3940a84475ff689d
  
  	@Override
 diff --git a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
-index a55e3d9427f2274c8daae378f6152ec36df05f03..0fae8cb4f3c3685f31038bc2034c93c3518230c5 100644
+index 4fa3c8d6e08a320bc39b1d60527b88075099a71d..f435eb09a55b2ca3c0ba04f58a7bdce1c9ef2956 100644
 --- a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
-@@ -132,18 +132,20 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+@@ -138,19 +138,21 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
  		}
  
  		final LaunchConfig launchConfig = new LaunchConfig()
@@ -345,7 +345,9 @@ index a55e3d9427f2274c8daae378f6152ec36df05f03..0fae8cb4f3c3685f31038bc2034c93c3
  				.property("log4j.configurationFile", getLog4jConfigPaths().get())
  				.property("log4j2.formatMsgNoLookups", "true")
 -				.property("fabric.defaultModDistributionNamespace", getProductionNamespace().get())
+-				.property("fabric.defaultMixinRemapType", getDefaultMixinRemapType().get())
 +				.property("loader.defaultModDistributionNamespace", getProductionNamespace().get())
++				.property("loader.defaultMixinRemapType", getDefaultMixinRemapType().get())
  
  				.argument("client", "--assetIndex")
  				.argument("client", versionInfo.assetIndex().fabricId(getMinecraftVersion().get()))
@@ -361,7 +363,7 @@ index a55e3d9427f2274c8daae378f6152ec36df05f03..0fae8cb4f3c3685f31038bc2034c93c3
  		}
  
  		if (versionInfo.hasNativesToExtract()) {
-@@ -155,15 +157,15 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+@@ -162,15 +164,15 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
  		}
  
  		if (getSplitSourceSets().get()) {
@@ -380,7 +382,7 @@ index a55e3d9427f2274c8daae378f6152ec36df05f03..0fae8cb4f3c3685f31038bc2034c93c3
  			}
  		}
  
-@@ -207,6 +209,11 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+@@ -214,6 +216,11 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
  		}
  
  		public LaunchConfig property(String side, String key, String value) {
@@ -406,7 +408,7 @@ index 7f06e06ddfbdb524f1e8b14b3c8ea43bf3b3bd6f..697a9f4c7e8006e1f9fcc3cebd9748d3
  		}
  
 diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
-index 27c5cf504cc61e433c57b733ac9d124a5b0391cc..9bd3380b46d23daf6c3ff07825bead62c19675eb 100644
+index 53fcb19c6d87eb2fc2fdabc6f47568f974682017..308e145609bf10aaad4ea776b16d061aafe586fb 100644
 --- a/src/main/java/net/fabricmc/loom/util/Constants.java
 +++ b/src/main/java/net/fabricmc/loom/util/Constants.java
 @@ -33,6 +33,7 @@ public class Constants {
@@ -435,7 +437,7 @@ index 3350a985f73e403f086a2a988283cbe4644d0cc2..eef1cd42b1e53497012165e1580c6199
 +	}
  }
 diff --git a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
-index 0da65dd135a5428394f2653c52948fb7e13f9a75..584b87e96280e1a058b907d17d16b65051cf1355 100644
+index 44fde279e8565d5294732ce7db6f203163ca39f4..1bbf8c51c7a6a830735cba379c803f33e32c427c 100644
 --- a/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
 +++ b/src/main/java/net/fabricmc/loom/util/SourceRemapper.java
 @@ -125,7 +125,7 @@ public class SourceRemapper {

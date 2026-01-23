@@ -5,7 +5,7 @@ Subject: [PATCH] Support QMJ5
 
 
 diff --git a/build.gradle b/build.gradle
-index 28263657c1b06bce0a78b68c1cce135b67b196c5..1b24586ca7d4cc2e922c99597401a10784e00b2e 100644
+index 5ec49f85b30b2844d50c0523980ec5a109004e8c..2b50fe4b71502bb54574c709880c79cb1cb5c2d2 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -51,6 +51,10 @@ repositories {
@@ -19,7 +19,7 @@ index 28263657c1b06bce0a78b68c1cce135b67b196c5..1b24586ca7d4cc2e922c99597401a107
  	mavenCentral()
  }
  
-@@ -95,6 +99,7 @@ dependencies {
+@@ -90,6 +94,7 @@ dependencies {
  	// libraries
  	implementation libs.gson
  	implementation libs.bundles.asm
@@ -28,7 +28,7 @@ index 28263657c1b06bce0a78b68c1cce135b67b196c5..1b24586ca7d4cc2e922c99597401a107
  	// game handling utils
  	implementation (libs.fabric.stitch) {
 diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
-index 8c02b64a7fd1c827ec0e972f80deb2b48bb349b8..cb31bf0a1ce02d2c0a3cf3821d1134d2865eb352 100644
+index 0af1769cab0c784f83f55d0bccf4d5501c53c3e9..d814bdb5a8ccb41dc110756e131316f18b584bf6 100644
 --- a/gradle/libs.versions.toml
 +++ b/gradle/libs.versions.toml
 @@ -2,6 +2,7 @@
@@ -38,7 +38,7 @@ index 8c02b64a7fd1c827ec0e972f80deb2b48bb349b8..cb31bf0a1ce02d2c0a3cf3821d1134d2
 +quilt-parsers = "0.3.0"
  
  stitch = "0.6.2"
- tiny-remapper = "0.12.0"
+ tiny-remapper = "0.12.3"
 @@ -29,6 +30,9 @@ asm-util = { module = "org.ow2.asm:asm-util", version.ref = "asm" }
  
  gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
@@ -116,7 +116,7 @@ index 4ec34c3137d32f47819a85ac07db91014bc54067..755e901a91f2f9c1f68006ebc02feab2
  			final boolean isReproducibleFileOrder = getParameters().getArchiveReproducibleFileOrder().get();
  			final boolean isPreserveFileTimestamps = getParameters().getArchivePreserveFileTimestamps().get();
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index f2cc03b0594126b6d5016fc6a4d5897f31530bea..ef5d2343b5c2ef316ffc4911882acd58a4aacbed 100644
+index 4520a4fc1f72e658e35aa1c0e3efc387ecbd00ae..866775a2c20513de544a1bd5fdcc2c046b10b744 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 @@ -202,6 +202,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
@@ -140,10 +140,10 @@ index 4a92c257ab7262db2b3732b3d9c9dd8f4b0c104c..c715478b57e278659b2f063edbcc3935
  		}
  	}
 diff --git a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
-index 0fae8cb4f3c3685f31038bc2034c93c3518230c5..aee9f30acde33672aebf405c7825fa89c02208cc 100644
+index f435eb09a55b2ca3c0ba04f58a7bdce1c9ef2956..73e900e0bbaf4cf5fd5b0a2b9ad30174aeb937ee 100644
 --- a/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/launch/GenerateDLIConfigTask.java
-@@ -133,6 +133,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
+@@ -139,6 +139,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
  
  		final LaunchConfig launchConfig = new LaunchConfig()
  				.property("loader.development", "true")
@@ -152,10 +152,10 @@ index 0fae8cb4f3c3685f31038bc2034c93c3518230c5..aee9f30acde33672aebf405c7825fa89
  				.property("log4j2.formatMsgNoLookups", "true")
  				.property("loader.defaultModDistributionNamespace", getProductionNamespace().get())
 diff --git a/src/main/java/net/fabricmc/loom/util/ZipUtils.java b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
-index 29884c8b3e67535e22e00b377aa817676fc22153..a1a0962c05114a9ef786c0880b03788a1e15e2b5 100644
+index 6c57a8dc0c320d558de5335d8d1e601789223e41..c8d3773407fddf843ce4d842ba186db85d69500e 100644
 --- a/src/main/java/net/fabricmc/loom/util/ZipUtils.java
 +++ b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
-@@ -47,6 +47,8 @@ import org.jspecify.annotations.Nullable;
+@@ -51,6 +51,8 @@ import org.jspecify.annotations.Nullable;
  import org.objectweb.asm.ClassReader;
  import org.objectweb.asm.ClassVisitor;
  import org.objectweb.asm.ClassWriter;
@@ -164,7 +164,7 @@ index 29884c8b3e67535e22e00b377aa817676fc22153..a1a0962c05114a9ef786c0880b03788a
  
  import net.fabricmc.loom.LoomGradlePlugin;
  
-@@ -112,6 +114,12 @@ public class ZipUtils {
+@@ -116,6 +118,12 @@ public class ZipUtils {
  		return LoomGradlePlugin.GSON.fromJson(new String(bytes, StandardCharsets.UTF_8), clazz);
  	}
  
@@ -177,7 +177,7 @@ index 29884c8b3e67535e22e00b377aa817676fc22153..a1a0962c05114a9ef786c0880b03788a
  	@Nullable
  	public static <T> T unpackGsonNullable(Path zip, String path, Class<T> clazz) throws IOException {
  		try {
-@@ -121,6 +129,15 @@ public class ZipUtils {
+@@ -125,6 +133,15 @@ public class ZipUtils {
  		}
  	}
  
@@ -193,27 +193,6 @@ index 29884c8b3e67535e22e00b377aa817676fc22153..a1a0962c05114a9ef786c0880b03788a
  	public static <T> T unpackJson(Path zip, String path, Class<T> clazz) throws IOException {
  		final byte[] bytes = unpack(zip, path);
  		return LoomGradlePlugin.GSON.fromJson(new String(bytes, StandardCharsets.UTF_8), clazz);
-@@ -256,6 +273,20 @@ public class ZipUtils {
- 		return replacedCount;
- 	}
- 
-+	public static void move(Path zip, String path, String newPath) throws IOException {
-+		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(zip, false)) {
-+			var fsPath = fs.get().getPath(path);
-+			var newFsPath = fs.get().getPath(newPath);
-+
-+			if (Files.exists(fsPath)) {
-+				Files.write(newFsPath, Files.readAllBytes(fsPath), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-+				Files.delete(fsPath);
-+			} else {
-+				throw new NoSuchFileException(fsPath.toString());
-+			}
-+		}
-+	}
-+
- 	@FunctionalInterface
- 	public interface UnsafeUnaryOperator<T> {
- 		T apply(T arg) throws IOException;
 diff --git a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java b/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java
 index f987bcfb37371900fb93ca02e17341f0a5aff129..d76d6f7f3d47e70c2cca7954d834f27f3511e095 100644
 --- a/src/main/java/net/fabricmc/loom/util/fmj/FabricModJsonFactory.java

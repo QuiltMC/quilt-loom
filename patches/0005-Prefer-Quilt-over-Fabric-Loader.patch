@@ -92,3 +92,28 @@ index 0000000000000000000000000000000000000000..84bc1d757bd7e664c9872863b5ff61d3
 +		}
 +	}
 +}
+diff --git a/src/main/java/net/fabricmc/loom/util/ZipUtils.java b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
+index c8d3773407fddf843ce4d842ba186db85d69500e..16c3f1597f405c5d44374e36ec360693b22ef081 100644
+--- a/src/main/java/net/fabricmc/loom/util/ZipUtils.java
++++ b/src/main/java/net/fabricmc/loom/util/ZipUtils.java
+@@ -317,6 +317,20 @@ public class ZipUtils {
+ 		return replacedCount.get();
+ 	}
+ 
++	public static void move(Path zip, String path, String newPath) throws IOException {
++		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(zip, false)) {
++			var fsPath = fs.get().getPath(path);
++			var newFsPath = fs.get().getPath(newPath);
++
++			if (Files.exists(fsPath)) {
++				Files.write(newFsPath, Files.readAllBytes(fsPath), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
++				Files.delete(fsPath);
++			} else {
++				throw new NoSuchFileException(fsPath.toString());
++			}
++		}
++	}
++
+ 	@FunctionalInterface
+ 	public interface UnsafeUnaryOperator<T> {
+ 		T apply(T arg) throws IOException;

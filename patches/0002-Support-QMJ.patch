@@ -5,10 +5,10 @@ Subject: [PATCH] Support QMJ
 
 
 diff --git a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-index 2c644561d75e47b08fc8895aa28a7a2e763b902c..5306266824abf4b63a9856a2cb04d83ceb55d4a3 100644
+index 642302449d3584a9ddd23d9820718224316a3181..41ab47230992548874d4a7cc97b876156399e46d 100644
 --- a/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
 +++ b/src/main/java/net/fabricmc/loom/api/LoomGradleExtensionAPI.java
-@@ -184,10 +184,10 @@ public interface LoomGradleExtensionAPI {
+@@ -183,10 +183,10 @@ public interface LoomGradleExtensionAPI {
  	void disableDeprecatedPomGeneration(MavenPublication publication);
  
  	/**
@@ -452,7 +452,7 @@ index 72c39b417441a0fbb590cb19c30c0911a2737333..d0ea700d17f3e3e829ee0759007c14ca
  	public int hashCode() {
  		int result = Objects.hash(path, modId);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerJarProcessor.java b/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerJarProcessor.java
-index 06886fff81a95baa0b914d6d9602405643acfcc1..7a46a48ebedf7dfcf5f6c3c5587e8eeba02af403 100644
+index 01abf15aec77b90a404d4e4608149de1e80dc9d9..35069d92de8200558b009fcfb12bf8f218951bf6 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerJarProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/accesswidener/AccessWidenerJarProcessor.java
 @@ -40,11 +40,11 @@ import org.jspecify.annotations.Nullable;
@@ -472,9 +472,9 @@ index 06886fff81a95baa0b914d6d9602405643acfcc1..7a46a48ebedf7dfcf5f6c3c5587e8eeb
  		 */
  
  		if (includeTransitive) {
--			for (FabricModJson fabricModJson : context.modDependencies()) {
+-			for (FabricModJson fabricModJson : context.modDependenciesCompileRuntime()) {
 -				accessWideners.addAll(ModAccessWidenerEntry.readAll(fabricModJson, true));
-+			for (ModJson modJson : context.modDependencies()) {
++			for (ModJson modJson : context.modDependenciesCompileRuntime()) {
 +				accessWideners.addAll(ModAccessWidenerEntry.readAll(modJson, true));
  			}
  		}
@@ -536,7 +536,7 @@ index 3f74f27988f71c5b18477ff846f63793fc5e81d6..f74dec8ac3490c55c364fec0caa672b4
  
  		extension.getMods().create(modId.get(), mod -> {
 diff --git a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
-index 67050399ec4cfac055392cf3012866900589ee17..def09d5b92ca121fc6bf8caa80db3db2698a6f50 100644
+index 25b418a76dd62f7f415ea5a4c981064b21a98efb..419d2b07d2d35e6e24ea1de557ad81d3556d66d3 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/ifaceinject/InterfaceInjectionProcessor.java
 @@ -53,6 +53,7 @@ import org.slf4j.Logger;
@@ -553,9 +553,9 @@ index 67050399ec4cfac055392cf3012866900589ee17..def09d5b92ca121fc6bf8caa80db3db2
  import net.fabricmc.loom.util.ZipUtils;
 -import net.fabricmc.loom.util.fmj.FabricModJson;
  import net.fabricmc.mappingio.tree.MappingTree;
+ import net.fabricmc.mappingio.tree.MappingTreeView;
  import net.fabricmc.mappingio.tree.MemoryMappingTree;
- import net.fabricmc.tinyremapper.TinyRemapper;
-@@ -100,7 +100,7 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
+@@ -101,7 +101,7 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  		}
  
  		Set<String> clientOnlyModIds = context.modDependenciesCompileRuntimeClient().stream()
@@ -564,7 +564,7 @@ index 67050399ec4cfac055392cf3012866900589ee17..def09d5b92ca121fc6bf8caa80db3db2
  				.collect(Collectors.toSet());
  
  		return new Spec(injectedInterfaces, clientOnlyModIds);
-@@ -235,9 +235,9 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
+@@ -238,9 +238,9 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  	}
  
  	private record InjectedInterface(String modId, String className, String ifaceName, @Nullable String generics) {
@@ -577,7 +577,7 @@ index 67050399ec4cfac055392cf3012866900589ee17..def09d5b92ca121fc6bf8caa80db3db2
  
  			if (jsonElement == null) {
  				return Collections.emptyList();
-@@ -273,8 +273,8 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
+@@ -276,8 +276,8 @@ public abstract class InterfaceInjectionProcessor implements MinecraftJarProcess
  			return result;
  		}
  
@@ -636,7 +636,7 @@ index 3ebf78349865db0e26dc1cbeeb9e477455698cf5..9d370b6ae15fc50895b54f3abb66d988
  
  		return new AccessWidenerData(accessWidenerPath, header, accessWidener);
 diff --git a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
-index 28385f8b98df47926c48fafe19bf0233c8224035..05c2d0cd9a91b25706311733a7e46e79ffd4f5d4 100644
+index d6c9a247353f07779004aa208986fa99a717849f..8d636196e03f6c59d3bf28ba86c485236eae54c7 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/mods/ModProcessor.java
 @@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
@@ -707,7 +707,7 @@ index d9d35fd76b54d6706bbfac48a47db0e4c0a5562c..037a0ce414e2c97acaac4c7be61e4b9b
  				throw ExceptionUtil.createDescriptiveWrapper(IOException::new, "Failed to read mixin configuration from " + mod.getInputFile(), e);
  			}
 diff --git a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java b/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
-index 5a5a1977aec7b7160b770b4750b949ebd087c57c..243b405d5f6c9bae1ff2924cb53808662b651550 100644
+index 29916105a3f9532c9d927b2292fc60969b26cb89..341e55e858c1903b8a9bfbb12535b9c1237aabdc 100644
 --- a/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
 +++ b/src/main/java/net/fabricmc/loom/configuration/processors/ModJavadocProcessor.java
 @@ -39,18 +39,16 @@ import java.util.Objects;
@@ -730,18 +730,18 @@ index 5a5a1977aec7b7160b770b4750b949ebd087c57c..243b405d5f6c9bae1ff2924cb5380866
  import net.fabricmc.mappingio.MappedElementKind;
  import net.fabricmc.mappingio.MappingReader;
  import net.fabricmc.mappingio.MappingUtil;
-@@ -79,8 +77,8 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
+@@ -80,8 +78,8 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
  	public ModJavadocProcessor.@Nullable Spec buildSpec(SpecContext context) {
  		List<ModJavadoc> javadocs = new ArrayList<>();
  
--		for (FabricModJson fabricModJson : context.allMods()) {
+-		for (FabricModJson fabricModJson : context.modDependenciesCompileRuntime()) {
 -			ModJavadoc javadoc = ModJavadoc.create(fabricModJson, context.productionNamespace());
-+		for (ModJson modJson : context.allMods()) {
++		for (ModJson modJson : context.modDependenciesCompileRuntime()) {
 +			ModJavadoc javadoc = ModJavadoc.create(modJson, context.productionNamespace());
  
  			if (javadoc != null) {
  				javadocs.add(javadoc);
-@@ -116,20 +114,19 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
+@@ -117,20 +115,19 @@ public abstract class ModJavadocProcessor implements MinecraftJarProcessor<ModJa
  
  	public record ModJavadoc(String modId, MemoryMappingTree mappingTree, String mappingsHash) {
  		@Nullable
@@ -1126,10 +1126,10 @@ index 00aec308c71d5044b7c8ce2680be610e7977fb95..2983268f4607f446a1d01adb40abe992
  		}
  	}
 diff --git a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
-index 400fff15daa24a1dc0fe9cbf400faba3c4afc425..ac6eeb52e0392e3cca30bc75a1eeeb04af77938b 100644
+index c0de68e806da886a2bd64e17319fed678ae3b389..b5ec64d36291f5747df9068f03175bec8b8a198b 100644
 --- a/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
 +++ b/src/main/java/net/fabricmc/loom/extension/LoomGradleExtensionApiImpl.java
-@@ -74,7 +74,7 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
+@@ -75,7 +75,7 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
  import net.fabricmc.loom.task.GenerateSourcesTask;
  import net.fabricmc.loom.util.DeprecationHelper;
  import net.fabricmc.loom.util.MirrorUtil;
@@ -1138,7 +1138,7 @@ index 400fff15daa24a1dc0fe9cbf400faba3c4afc425..ac6eeb52e0392e3cca30bc75a1eeeb04
  import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
  import net.fabricmc.loom.util.gradle.SourceSetHelper;
  
-@@ -320,13 +320,13 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
+@@ -330,13 +330,13 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
  
  	@Override
  	public String getModVersion() {
@@ -1156,7 +1156,7 @@ index 400fff15daa24a1dc0fe9cbf400faba3c4afc425..ac6eeb52e0392e3cca30bc75a1eeeb04
  
  	@Override
 diff --git a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
-index 0c0fa39db738fd9e015d90716ea54c3dc1f12f42..f2cc03b0594126b6d5016fc6a4d5897f31530bea 100644
+index 1e395e167e40cd5f4b77a8c7fc8bfc4ad7233a86..4520a4fc1f72e658e35aa1c0e3efc387ecbd00ae 100644
 --- a/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 +++ b/src/main/java/net/fabricmc/loom/task/RemapJarTask.java
 @@ -55,9 +55,9 @@ import net.fabricmc.classtweaker.api.ClassTweakerReader;
